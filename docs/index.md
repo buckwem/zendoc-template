@@ -13,10 +13,10 @@ We suggest you use Visual Studio Code with appropriate plugins. Complete the fol
 3. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint) plugin for Visual Studio Code. This is designed to check your markdown files against a library of rules to encourage standards and consistency.
 4. Connect Visual Studio Code with GitHub using HTTPS.  TODO
 
-## Initialise your documentation website
+## Initialise your repository
 
 1. Create a directory for all your GitLab projects on your local desktop. For example, create a directory called 'gitlab' on your OneDrive. Using OneDrive will give you another backup of your gitlab repository.
-2. [Fork a copy of the template](https://gitlab.surrey.ac.uk/mb0105/doc-template/-/forks/new) to create a copy of the template for your use.
+2. [Fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/doc-template/-/forks/new) to create a copy of the template for your use.
 3. Enter the *Project name* using to the format the coursework specifies. For example, for Coursework 1 for the module COMM058 in the year 2026, enter 'comm058-coursework1-2026'. Use all lowercase and a dash between words with no spaces. This will be used to create the project URL.
 4. Select your personal namespace for the project URL.
 5. Change the *Visibility Level* to *Private*.
@@ -25,6 +25,8 @@ We suggest you use Visual Studio Code with appropriate plugins. Complete the fol
         Don't forget to set the visibility to private, otherwise other students can see your coursework. As another student to check whether they can see your site.
 
 6. Press the button [Fork Project] to create your own copy of the project.
+
+## Download repository locally
 7. Next we need to download and copy the project into Visual Studio Code so you can work with it locally. Select the [Code v] button and a menu will come up. Select the HTTPS button to the right of Visual Studio Code.
 8. A browser popup will appear saying 'Open Visual Studio Code?' and you push the [Open Visual Stdio Code] button.
 9. This will open a directory selection box. Go to the 'gitlab' directory you selected earlier and press the [Select as Repository Destination]. This will then download the code to a subdirectory with the name of the project you created earlier.
@@ -41,7 +43,6 @@ We suggest you use Visual Studio Code with appropriate plugins. Complete the fol
       <figcaption>Open repository</figcaption>
     </figure>
 
-
 ## Perform initial configuration
 
 1. The zensical.toml file contains the configuration for your website.
@@ -53,12 +54,20 @@ We suggest you use Visual Studio Code with appropriate plugins. Complete the fol
 1. Click on the [Source Control] icon (third one down) on the left in Visual Studio Code and you will see a list of all the files that have been changed and created.
 
     <figure markdown="span">
-      ![Image title](Initial-commit.png){ width="300" }
+      ![Image title](initial-commit.png){ width="300" }
       <figcaption>Initial commit</figcaption>
     </figure>
 
 2. Fill into the Message box short description of the change. In this case, enter 'Initial Commit' as this is the first commit of the code to GitLab.
-3. Then press the [Commit] button.
+3. Then press the [Commit] button and select [Save All and Commit Changes].
+
+    <figure markdown="span">
+      ![Image title](commit-changes.png){ width="200" }
+      <figcaption>Initial commit</figcaption>
+    </figure>
+
+
+
 
 ## View your initial website
 

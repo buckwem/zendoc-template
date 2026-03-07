@@ -1,6 +1,8 @@
 pages:
   stage: deploy
   image: python:latest
+  tags:
+    - pages
   script:
     - pip install zensical
     - zensical build --clean 

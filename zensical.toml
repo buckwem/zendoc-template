@@ -46,7 +46,7 @@ Copyright &copy; 2026 University of Surrey
 # Read more: https://zensical.org/docs/setup/navigation/
 nav = [
   { "Get setup" = "index.md" },
-  { "Zensical Basics"= "getstarted.md"},
+  { "Zensical basics"= "getstarted.md"},
   { "Markdown in 5min" = "markdown.md" },
 ]
 

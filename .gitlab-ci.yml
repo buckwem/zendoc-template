@@ -5,7 +5,7 @@ pages:
     - pages
   script:
     - pip install zensical
-    - zensical build --clean 
+    - zensical build --clean -d public
   pages:
     publish: public
   rules:

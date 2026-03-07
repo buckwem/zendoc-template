@@ -66,10 +66,23 @@ We suggest you use Visual Studio Code with appropriate plugins. Complete the fol
       <figcaption>Initial commit</figcaption>
     </figure>
 
+4. Then sync changes with GitLab
 
-
+    <figure markdown="span">
+      ![Image title](sync-changes.png){ width="200" }
+      <figcaption>Sync changes</figcaption>
+    </figure>
 
 ## View your initial website
+1. Enter in the URL of the website using the form 'https://<namespace>.pages.surrey.ac.uk/<repository-name>'
+2. A box will pop up for you to authorise access for GitLab Pages to gain access to your project to build it.
+
+    <figure markdown="span">
+      ![Image title](authorise-gitlab-pages.png){ width="350" }
+      <figcaption>Authorise GitLab Pagess</figcaption>
+    </figure>
+
+
 
 
 https://mb0105.pages.surrey.ac.uk/comm058-coursework1-2026/

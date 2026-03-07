@@ -3,6 +3,7 @@ pages:
   image: python:latest
   tags:
     - pages
+    - linux
   script:
     - pip install zensical
     - zensical build --clean 

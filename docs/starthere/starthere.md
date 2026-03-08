@@ -4,13 +4,26 @@ icon: lucide/rocket
 
 # START HERE
 
-## Installing the pre-requisites
+Documentation is easy to write on a static website when using [markdown](https://www.markdownguide.org/) and it's much easier to use than [LateX](https://www.latex-project.org/), which is designed for academic documentation.
 
-We suggest you use Visual Studio Code with appropriate plugins. Complete the following steps.
+## Some history
+
+There are various open source static website generators available including [Read the Docs](https://docs.readthedocs.com/platform/stable/index.html#) and [MkDocs](https://www.mkdocs.org/). A popular combination has been [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) that produces professional documentation using a Material design theme. It's had a very active community of developers creating plugins but development has stopped for the past 18 months. From there the Material for MkDocs developed created a new static website generator, [Zensical](https://zensical.org/), written for speed using the [Rust programming langiuage](https://rust-lang.org/). This website is written using Zensical.
+
+## How it works
+
+Zensical provides the theme and tooling to enable you to write documentation using Markdown and immediately view the website locally. To create am online website to share with others, the files are loaded into the university GitLab and automation then builds it into an online website.
+
+To make it easy for you, a documentation template has been created that you will clone (fork) into a project you can use to develop your own document or report. Follow the instructions below to get started creating an environment to write the content to publish on your static website.
+
+## Install the pre-requisites
+
+We suggest you use Visual Studio Code with appropriate plugins to edit your static website. Complete the following steps.
 
 1. Start with installing [Visual Studio Code](https://code.visualstudio.com/)
 2. Install [GitLab plugin](https://marketplace.visualstudio.com/items?itemName=GitLab.gitlab-workflow) in Visual Studio Code. This will enable you manage your documentation in GitLab.
 3. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint) plugin for Visual Studio Code. This is designed to check your markdown files against a library of rules to encourage standards and consistency.
+3. Install [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) plugin for Visual Studio Code. This extension help manage a TOML file.
 4. Connect Visual Studio Code with GitHub using HTTPS.  TODO
 
 ## Initialise your repository
@@ -27,16 +40,17 @@ We suggest you use Visual Studio Code with appropriate plugins. Complete the fol
 6. Press the button [Fork Project] to create your own copy of the project.
 
 ## Download repository locally
-7. Next we need to download and copy the project into Visual Studio Code so you can work with it locally. Select the [Code v] button and a menu will come up. Select the HTTPS button to the right of Visual Studio Code.
-8. A browser popup will appear saying 'Open Visual Studio Code?' and you push the [Open Visual Stdio Code] button.
-9. This will open a directory selection box. Go to the 'gitlab' directory you selected earlier and press the [Select as Repository Destination]. This will then download the code to a subdirectory with the name of the project you created earlier.
+
+1. Next we need to download and copy the project into Visual Studio Code so you can work with it locally. Select the [Code v] button and a menu will come up. Select the HTTPS button to the right of Visual Studio Code.
+2. A browser popup will appear saying 'Open Visual Studio Code?' and you push the [Open Visual Stdio Code] button.
+3. This will open a directory selection box. Go to the 'gitlab' directory you selected earlier and press the [Select as Repository Destination]. This will then download the code to a subdirectory with the name of the project you created earlier.
 
     <figure markdown="span">
       <img src="../images/directory-selection.png" style="width: 70%;">
       <figcaption>Directory selection</figcaption>
     </figure>
 
-10. Then you will be prompted to open your repository that is stored in your 'gitlab' directory. If you already have Visual Studio Code, you may wish to select [Open in a new window] so it creates a seprate window to your current workspace.
+4. Then you will be prompted to open your repository that is stored in your 'gitlab' directory. If you already have Visual Studio Code, you may wish to select [Open in a new window] so it creates a seprate window to your current workspace.
 
     <figure markdown="span">
       <img src="../images/open-repository.png" style="width: 40%;">
@@ -74,6 +88,7 @@ We suggest you use Visual Studio Code with appropriate plugins. Complete the fol
     </figure>
 
 ## View your initial website
+
 1. Enter in the URL of the website using the form 'https://*namespace*.pages.surrey.ac.uk/*repository-name*'. The URL for this template site is [http://mb0105.pages.surrey.ac.uk/doc-template](http://mb0105.pages.surrey.ac.uk/doc-template)
 2. A box will pop up for you to authorise access for GitLab Pages to gain access to your project to build it.
 
@@ -81,4 +96,30 @@ We suggest you use Visual Studio Code with appropriate plugins. Complete the fol
        <img src="../images/authorise-gitlab-pages.png" style="width: 40%;">
       <figcaption>Authorise GitLab Pagess</figcaption>
     </figure>
+
 3. You will be redirected to a site [https://doc-template-4f75ad.pages.surrey.ac.uk/](https://doc-template-4f75ad.pages.surrey.ac.uk/)
+
+## Release your report
+
+1. Before you release your report, remove the *START HERE* section by commenting it out in the zensical.toml file. Enter a # before the five lines defining the menu structure. You can still get to the information, as it's on the documentation template website [http://mb0105.pages.surrey.ac.uk/doc-template/starthere/starthere](http://mb0105.pages.surrey.ac.uk/doc-template/starthere/starthere)
+
+    ``` title="zensical.tomal"
+    .
+    .
+    .
+      {"Assignment" = [
+      {"Section 1" = "section1.md"},
+      {"Section 2" = "section2.md"},
+      {"Section 3" = "section3.md"},
+      {"Section 4" = "section4.md"}
+    #  ]},
+    #    {"START HERE" = [
+    #      {"Start Here" = "starthere/starthere.md"},
+    #      {"Zensical basics" = "starthere/getstarted.md"},
+    #      {"Markdown in 5min" = "starthere/markdown.md"}
+      ]}
+    ]
+    .
+    .
+    .
+    ```

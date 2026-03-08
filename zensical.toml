@@ -343,6 +343,12 @@ generic = true
 [project.markdown_extensions.pymdownx.tilde]
 [project.markdown_extensions.pymdownx.details]
 [project.markdown_extensions.pymdownx.blocks.caption]
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.superfences]
 custom_fences = [
   { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }

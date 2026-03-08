@@ -29,5 +29,3 @@ MSc programmes in Computer Science</p>
 Author: Insert Name Here<br>
 Date: Submission Date
 </p>
-
-

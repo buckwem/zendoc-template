@@ -74,11 +74,11 @@ We suggest you use Visual Studio Code with appropriate plugins. Complete the fol
     </figure>
 
 ## View your initial website
-1. Enter in the URL of the website using the form 'https://<namespace>.pages.surrey.ac.uk/<repository-name>'. The URL for this template site is (http://mb0105.pages.surrey.ac.uk/doc-template){:target="_blank"}
+1. Enter in the URL of the website using the form 'https://*namespace*.pages.surrey.ac.uk/*repository-name*'. The URL for this template site is [http://mb0105.pages.surrey.ac.uk/doc-template](http://mb0105.pages.surrey.ac.uk/doc-template)
 2. A box will pop up for you to authorise access for GitLab Pages to gain access to your project to build it.
 
     <figure markdown="span">
        <img src="../images/authorise-gitlab-pages.png" style="width: 40%;">
       <figcaption>Authorise GitLab Pagess</figcaption>
     </figure>
-3. You will be redirected to a site (https://doc-template-4f75ad.pages.surrey.ac.uk/):{:target="_blank"}
+3. You will be redirected to a site [https://doc-template-4f75ad.pages.surrey.ac.uk/](https://doc-template-4f75ad.pages.surrey.ac.uk/)

@@ -2,7 +2,7 @@
 icon: lucide/rocket
 ---
 
-# Academic Misconduct
+# Content Originality
 
 
 !!! warning
@@ -21,4 +21,5 @@ I agree that the University may submit my work to means of checking this, such a
 
 ## Statement on AI Use
 
-** Complete a statement on how you used AI and what you did not use AI for**
+!!! note
+    Complete a statement on how you used AI including what you did not use AI for.

@@ -50,7 +50,7 @@ nav = [
       "index.md",
   ]},
   {"Originality" = [
-      {"Academic Misconduct" = "misconduct.md"}
+      {"Content Originality" = "originality.md"}
   ]},
   {"Assignment" = [
       {"Section 1" = "section1.md"},

@@ -46,9 +46,23 @@ Copyright &copy; 2026 University of Surrey
 #
 # Read more: https://zensical.org/docs/setup/navigation/
 nav = [
-  { "Get setup" = "index.md" },
-  { "Zensical basics"= "getstarted.md"},
-  { "Markdown in 5min" = "markdown.md" },
+  {"Cover" = [
+      "index.md",
+  ]},
+  {"Originality" = [
+      {"Academic Misconduct" = "misconduct.md"}
+  ]},
+  {"Assignment" = [
+      {"Section 1" = "section1.md"},
+      {"Section 2" = "section2.md"},
+      {"Section 3" = "section3.md"},
+      {"Section 4" = "section4.md"}
+  ]},
+    {"START HERE" = [
+        {"Start Here" = "starthere/starthere.md"},
+        {"Zensical basics" = "starthere/getstarted.md"},
+        {"Markdown in 5min" = "starthere/markdown.md"}
+  ]}
 ]
 
 # With the "extra_css" option you can add your own CSS styling to customize
@@ -59,7 +73,7 @@ nav = [
 #
 # Read more: https://zensical.org/docs/customization/#additional-css
 #
-#extra_css = ["stylesheets/extra.css"]
+extra_css = ["stylesheets/extra.css"]
 
 # With the `extra_javascript` option you can add your own JavaScript to your
 # project to customize the behavior according to your needs.
@@ -68,6 +82,10 @@ nav = [
 #
 # Read more: https://zensical.org/docs/customization/#additional-javascript
 #extra_javascript = ["javascripts/extra.js"]
+extra_javascript = [
+    "javascripts/mathjax.js",
+    "https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"
+]
 
 # ----------------------------------------------------------------------------
 # Section for configuring theme options
@@ -97,6 +115,9 @@ nav = [
 #
 #favicon = "images/favicon.png"
 
+repo_url = "https://gitlab.surrey.ac.uk/mb0105/doc-template"
+
+
 # Zensical supports more than 60 different languages. This means that the
 # labels and tooltips that Zensical's templates produce are translated.
 # The "language" option allows you to set the language used. This language
@@ -124,13 +145,13 @@ features = [
     # will generate an edit button for the page. This works for common
     # repository hosting services.
     # https://zensical.org/docs/setup/repository/#content-actions
-    #"content.action.edit",
+    "content.action.edit",
 
     # If you have a repository configured and turn on this feature, Zensical
     # will generate a button that allows the user to view the Markdown
     # code for the current page.
     # https://zensical.org/docs/setup/repository/#content-actions
-    #"content.action.view",
+    "content.action.view",
 
     # Code annotations allow you to add an icon with a tooltip to your
     # code blocks to provide explanations at crucial points.
@@ -176,7 +197,7 @@ features = [
     # This feature turns on navigation elements in the footer that allow the
     # user to navigate to a next or previous page.
     # https://zensical.org/docs/setup/footer/#navigation
-    "navigation.footer",
+    # "navigation.footer",
 
     # When section index pages are enabled, documents can be directly attached
     # to sections, which is particularly useful for providing overview pages.
@@ -202,7 +223,7 @@ features = [
     # When navigation paths are activated, a breadcrumb navigation is rendered
     # above the title of each page
     # https://zensical.org/docs/setup/navigation/#navigation-path
-    "navigation.path",
+    # "navigation.path",
 
     # When pruning is enabled, only the visible navigation items are included
     # in the rendered HTML, reducing the size of the built site by 33% or more.
@@ -217,12 +238,12 @@ features = [
     # When tabs are enabled, top-level sections are rendered in a menu layer
     # below the header for viewports above 1220px, but remain as-is on mobile.
     # https://zensical.org/docs/setup/navigation/#navigation-tabs
-    #"navigation.tabs",
+    "navigation.tabs",
 
     # When sticky tabs are enabled, navigation tabs will lock below the header
     # and always remain visible when scrolling down.
     # https://zensical.org/docs/setup/navigation/#sticky-navigation-tabs
-    #"navigation.tabs.sticky",
+    "navigation.tabs.sticky",
 
     # A back-to-top button can be shown when the user, after scrolling down,
     # starts to scroll up again.
@@ -248,7 +269,7 @@ features = [
     # When navigation integration for the table of contents is enabled, it is
     # always rendered as part of the navigation sidebar on the left.
     # https://zensical.org/docs/setup/navigation/#navigation-integration
-    #"toc.integrate",
+    "toc.integrate",
 ]
 
 # ----------------------------------------------------------------------------
@@ -297,7 +318,7 @@ toggle.name = "Switch to light mode"
 # ----------------------------------------------------------------------------
 #[project.theme.icon]
 #logo = "lucide/smile"
-#repo = "lucide/smile"
+repo = "fontawesome/brands/gitlab"
 
 # ----------------------------------------------------------------------------
 # The "extra" section contains miscellaneous settings.
@@ -305,5 +326,25 @@ toggle.name = "Switch to light mode"
 #[[project.extra.social]]
 #icon = "fontawesome/brands/github"
 #link = "https://github.com/user/repo"
+
+# ----------------------------------------------------------------------------
+# Python Extensions
+#
+# Read more:
+# - https://zensical.org/docs/setup/extensions/python-markdown-extensions/#arithmatex-zensicaltoml
+# ----------------------------------------------------------------------------
+[project.markdown_extensions.pymdownx.arithmatex]
+generic = true
+
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.pymdownx.caret]
+[project.markdown_extensions.pymdownx.mark]
+[project.markdown_extensions.pymdownx.tilde]
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.blocks.caption]
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
+]
 
 # [project.markdown_extensions."neoteroi.spantable"]

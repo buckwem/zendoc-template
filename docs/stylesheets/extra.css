@@ -1,0 +1,120 @@
+.titleb1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+}
+
+.titleb2 {
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+}
+
+.titleb3 {
+  font-size: 1.3rem;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+}
+
+.titleb4 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+}
+
+.titleb5 {
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+}
+
+.title1 {
+  font-size: 1.5rem;
+  font-weight: normal;
+  text-align: center;
+  display: block;
+}
+
+.title2 {
+  font-size: 1.4rem;
+  font-weight: normal;
+  text-align: center;
+  display: block;
+}
+
+.title3 {
+  font-size: 1.3rem;
+  font-weight: normal;
+  text-align: center;
+  display: block;
+}
+
+.title4 {
+  font-size: 1.2rem;
+  font-weight: normal;
+  text-align: center;
+  display: block;
+}
+
+.title5 {
+  font-size: 1.1rem;
+  font-weight: normal;
+  text-align: center;
+  display: block;
+}
+
+.label1 {
+  font-size: 1.5rem;
+  font-weight: normal;
+  text-align: left;
+  display: block;
+}
+
+.label2 {
+  font-size: 1.4rem;
+  font-weight: normal;
+  text-align: left;
+  display: block;
+}
+
+.label3 {
+  font-size: 1.3rem;
+  font-weight: normal;
+  text-align: left;
+  display: block;
+}
+
+.label4 {
+  font-size: 1.2rem;
+  font-weight: normal;
+  text-align: left;
+  display: block;
+}
+
+.label5 {
+  font-size: 1.1rem;
+  font-weight: normal;
+  text-align: left;
+  display: block;
+}
+
+/* Text Alignment Utilities */
+.text-center {
+  text-align: center;
+  display: block; /* Ensures it takes up the full width to align correctly */
+}
+
+.text-right {
+  text-align: right;
+  display: block;
+}
+
+.text-justify {
+  text-align: justify;
+  display: block;
+}

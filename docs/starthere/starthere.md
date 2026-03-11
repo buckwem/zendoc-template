@@ -8,7 +8,7 @@ Documentation is easy to write on a static website when using [markdown](https:/
 
 ## Some history
 
-There are various open source static website generators available including [Read the Docs](https://docs.readthedocs.com/platform/stable/index.html#) and [MkDocs](https://www.mkdocs.org/). A popular combination has been [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) that produces professional documentation using a Material design theme. It's had a very active community of developers creating plugins but development has stopped for the past 18 months. From there the Material for MkDocs developed created a new static website generator, [Zensical](https://zensical.org/), written for speed using the [Rust programming langiuage](https://rust-lang.org/). This website is written using Zensical.
+There are various open source static website generators available including [Read the Docs](https://docs.readthedocs.com/platform/stable/index.html#) and [MkDocs](https://www.mkdocs.org/). A popular combination has been [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) that produces professional documentation using a Material design theme. It's had a very active community of developers creating plugins but development has stopped for the past 18 months. From there the Material for MkDocs primary authors developed a new static website generator, [Zensical](https://zensical.org/), written for speed using the [Rust programming langiuage](https://rust-lang.org/). This website is written using Zensical.
 
 ## How it works
 
@@ -33,11 +33,10 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
 3. Enter the *Project name* using to the format the coursework specifies. For example, for Coursework 1 for the module COMM058 in the year 2026, enter 'comm058-coursework1-2026'. Use all lowercase and a dash between words with no spaces. This will be used to create the project URL.
 4. Select your personal namespace for the project URL.
 5. Change the *Visibility Level* to *Private*.
+6. Press the button [Fork Project] to create your own copy of the project.
 
     !!! Warning
-        Don't forget to set the visibility to private, otherwise other students can see your coursework. As another student to check whether they can see your site.
-
-6. Press the button [Fork Project] to create your own copy of the project.
+        Don't forget to set the visibility to private, otherwise other students can see your coursework. Ask another student to check whether they can see your site. We will discuss how to view it later in the instructions.
 
 ## Download repository locally
 
@@ -57,11 +56,19 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
       <figcaption>Open repository</figcaption>
     </figure>
 
+## Viewing local website
+
+The great feature of Zensical is that you view the changes to the website locally using a locally hosted website without sending the source to gitlab,
+
+1. Start with installing python and any other software extensions that are required. Use the instructions for pip [here](https://zensical.org/docs/get-started/#install-with-pip) or if you are used to using uv then [here](https://zensical.org/docs/get-started/#install-with-uv).
+2. With cloning (forking) the site, the configuration work to [create](https://zensical.org/docs/create-your-site/) and [publish](https://zensical.org/docs/publish-your-site/) your site is already done for you.
+3. You can now go to your top-level working directory in your chosen Python environment (virtual environment or uv) and use the preview function documented [here](https://zensical.org/docs/usage/preview/).
+
 ## Perform initial configuration
 
 1. The zensical.toml file contains the configuration for your website.
 
-10. Make sure all your files have been saved. Any that are unsaved have a filled circle against the file name. Go to the file and press Ctrl-S/Cmd-S.
+1. Make sure all your files have been saved. Any that are unsaved have a filled circle against the file name. Go to the file and press Ctrl-S/Cmd-S.
 
 ## Synchronise your updates
 
@@ -86,10 +93,6 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
       <img src="../images/sync-changes.png" style="width: 40%;">
       <figcaption>Sync changes</figcaption>
     </figure>
-
-## Viewing local website
-
-
 
 ## Viewing online website
 

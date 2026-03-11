@@ -87,7 +87,11 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
       <figcaption>Sync changes</figcaption>
     </figure>
 
-## View your initial website
+## Viewing local website
+
+
+
+## Viewing online website
 
 1. Enter in the URL of the website using the form 'https://*namespace*.pages.surrey.ac.uk/*repository-name*'. The URL for this template site is [http://mb0105.pages.surrey.ac.uk/doc-template](http://mb0105.pages.surrey.ac.uk/doc-template)
 2. A box will pop up for you to authorise access for GitLab Pages to gain access to your project to build it.

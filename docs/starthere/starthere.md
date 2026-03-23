@@ -8,13 +8,13 @@ Documentation is easy to write on a static website when using [markdown](https:/
 
 ## Some history
 
-There are various open source static website generators available including [Read the Docs](https://docs.readthedocs.com/platform/stable/index.html#) and [MkDocs](https://www.mkdocs.org/). A popular combination has been [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) that produces professional documentation using a Material design theme. It's had a very active community of developers creating plugins but development has stopped for the past 18 months. From there the Material for MkDocs primary authors developed a new static website generator, [Zensical](https://zensical.org/), written for speed using the [Rust programming langiuage](https://rust-lang.org/). This website is written using Zensical.
+There are various open source static website generators available including [Read the Docs](https://docs.readthedocs.com/platform/stable/index.html#) and [MkDocs](https://www.mkdocs.org/). A popular combination has been [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) that produces professional documentation using a Material design theme. It's had a very active community of developers creating plugins but development has stopped for the past 18 months. From there the Material for MkDocs primary authors developed a new static website generator, [Zensical](https://zensical.org/), written for speed using the [Rust programming language](https://rust-lang.org/). This website is written using Zensical.
 
 ## How it works
 
-Zensical provides the theme and tooling to enable you to write documentation using Markdown and immediately view the website locally. To create am online website to share with others, the files are loaded into the university GitLab and automation then builds it into an online website.
+Zensical provides the theme and tooling to enable you to write documentation using Markdown and immediately view the website locally. When you are happy with content, the site can be published to an online website to share with others by loading the files into the university GitLab and automation then builds it into web pages.
 
-To make it easy for you, a documentation template has been created that you will clone (fork) into a project you can use to develop your own document or report. Follow the instructions below to get started creating an environment to write the content to publish on your static website.
+To make it easy for you, a documentation template has been created that you will fork (clone) into a project you can use to develop your own document or report. Follow the instructions below to get started creating an environment to write the content to publish on your static website.
 
 ## Install the pre-requisites
 
@@ -23,12 +23,13 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
 1. Start with installing [Visual Studio Code](https://code.visualstudio.com/)
 2. Install [GitLab plugin](https://marketplace.visualstudio.com/items?itemName=GitLab.gitlab-workflow) in Visual Studio Code. This will enable you manage your documentation in GitLab.
 3. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint) plugin for Visual Studio Code. This is designed to check your markdown files against a library of rules to encourage standards and consistency.
-3. Install [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) plugin for Visual Studio Code. This extension help manage a TOML file.
-4. Connect Visual Studio Code with GitHub using HTTPS.  TODO
+4. Install [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) plugin for Visual Studio Code. This extension help manage a TOML file.
+5. Install [LTeX – LanguageTool grammar/spell checking](https://marketplace.visualstudio.com/items?itemName=valentjn.vscode-ltex) to enable spelling and grammar checking for Markdown.
+6. Connect Visual Studio Code with GitHub using HTTPS.  TODO
 
 ## Initialise your repository
 
-1. Create a directory for all your GitLab projects on your local desktop. For example, create a directory called 'gitlab' on your OneDrive. Using OneDrive will give you another backup of your gitlab repository.
+1. Create a directory for all your GitLab projects on your local desktop. For example, create a directory called 'GitLab' on your OneDrive. Using OneDrive will give you another backup of your GitLab repository.
 2. [Fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/doc-template/-/forks/new) to create a copy of the template for your use.
 3. Enter the *Project name* using to the format the coursework specifies. For example, for Coursework 1 for the module COMM058 in the year 2026, enter 'comm058-coursework1-2026'. Use all lowercase and a dash between words with no spaces. This will be used to create the project URL.
 4. Select your personal namespace for the project URL.
@@ -112,21 +113,24 @@ The great feature of Zensical is that you view the changes to the website locall
 
     ``` title="zensical.tomal"
     .
-    .
-    .
+    nav = [
+      {"Cover" = [
+        "index.md",
+      ]},
+      {"Originality" = [
+        {"Content Originality" = "originality.md"}
+      ]},
       {"Assignment" = [
-      {"Section 1" = "section1.md"},
-      {"Section 2" = "section2.md"},
-      {"Section 3" = "section3.md"},
-      {"Section 4" = "section4.md"}
+        {"Section 1" = "section1.md"},
+        {"Section 2" = "section2.md"},
+        {"Section 3" = "section3.md"},
+        {"Section 4" = "section4.md"}
+    # Comment out the START HERE section (5 lines) before final release
     #  ]},
     #    {"START HERE" = [
     #      {"Start Here" = "starthere/starthere.md"},
     #      {"Zensical basics" = "starthere/getstarted.md"},
     #      {"Markdown in 5min" = "starthere/markdown.md"}
-      ]}
+       ]}
     ]
-    .
-    .
-    .
     ```

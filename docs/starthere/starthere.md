@@ -4,33 +4,33 @@ icon: lucide/rocket
 
 # START HERE
 
-Documentation is easy to write on a static website when using <a href="https://www.markdownguide.org/" target="_blank">markdown</a> and it's much easier to use than <a href="https://www.latex-project.org/"target=_blank>LaTeX</a>, which is designed for academic documentation.
+Documentation is easy to write on a static website when using [markdown](https://www.markdownguide.org/){target=_blank} and it's much easier to use than [LaTeX](https://www.latex-project.org){target=_blank}, which is designed for academic documentation.
 
 ## Some history
 
-There are various open source static website generators available including <a href="https://docs.readthedocs.com/platform/stable/index.html#" target="_blank">Read the Docs</a> and <a href="https://www.mkdocs.org/" target="_blank">MkDocs</a>. A popular combination has been <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank">Material for MkDocs</a> that produces professional documentation using a Material design theme. It's had a very active community of developers creating plugins but development has stopped for the past 18 months. From there the Material for MkDocs primary authors developed a new static website generator, <a href="https://zensical.org/" target="_blank">Zensical</a>, written for speed using the <a href="https://rust-lang.org/" target="_blank">Rust programming language</a>. This website is written using Zensical.
+There are various open source static website generators available including [Read the Docs](https://docs.readthedocs.com/platform/stable/index.html#){target="_blank">} and [MkDocs](https://www.mkdocs.org){target="_blank"}. A popular combination has been [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/){target="_blank"} that produces professional documentation using a Material design theme. It's had a very active community of developers creating plugins but development has stopped for the past 18 months. From there the Material for MkDocs primary authors developed a new static website generator, [Zensical](https://zensical.org/){target="_blank"}, written for speed using the [Rust programming language](https://rust-lang.org/){target="_blank"} for reliability and speed. This website is written using Zensical.
 
 ## How it works
 
 Zensical provides the theme and tooling to enable you to write documentation using Markdown and immediately view the website locally. When you are happy with content, the site can be published to an online website to share with others by loading the files into the university GitLab and automation then builds it into web pages.
 
-To make it easy for you, a documentation template has been created that you will fork (clone) into a project you can use to develop your own document or report. Follow the instructions below to get started creating an environment to write the content to publish on your static website.
+To make it easy for you, a documentation template has been created that you will fork (clone) into a project you can use to develop your own document or report. Follow the instructions below to get started creating an environment to write the content to publish on your own static website.
 
 ## Install the prerequisites
 
 We suggest you use Visual Studio Code with appropriate plugins to edit your static website. Complete the following steps.
 
-1. Start with installing <a href="https://code.visualstudio.com/" target="_blank">Visual Studio Code</a>
-2. Install <a href="https://marketplace.visualstudio.com/items?itemName=GitLab.gitlab-workflow" target="_blank">GitLab</a> plugin in Visual Studio Code. This will enable you manage your documentation in GitLab.
-3. Install <a href="https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint" target="_blank">markdownlint</a> plugin for Visual Studio Code. This is designed to check your markdown files against a library of rules to encourage standards and consistency.
-4. Install <a href="https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml" target="_blank">Even Better TOML</a> plugin for Visual Studio Code. This extension help manage a TOML file.
-5. Install <a href="https://marketplace.visualstudio.com/items?itemName=valentjn.vscode-ltex" target="_blank">LTeX – LanguageTool grammar/spell checking</a> to enable spelling and grammar checking for Markdown.
+1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}.
+2. Install [GitLab](https://marketplace.visualstudio.com/items?itemName=GitLab.gitlab-workflow){target="_blank"} plugin in Visual Studio Code. This will enable you manage your documentation in GitLab.
+3. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint){target="_blank"} plugin for Visual Studio Code. This is designed to check your markdown files against a library of rules to encourage standards and consistency.
+4. Install [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml){target="_blank"} plugin for Visual Studio Code. This extension help manage a TOML file.
+5. Install [LTeX – LanguageTool grammar/spell checking](https://marketplace.visualstudio.com/items?itemName=valentjn.vscode-ltex){target="_blank"} to enable spelling and grammar checking for Markdown.
 6. Connect Visual Studio Code with GitHub using HTTPS.  TODO
 
 ## Initialise your repository
 
 1. Create a directory for all your GitLab projects on your local desktop. For example, create a directory called 'GitLab' on your OneDrive. Using OneDrive will give you another backup of your GitLab repository.
-2. <a href="https://gitlab.surrey.ac.uk/mb0105/doc-template/-/forks/new" target="_blank">Fork a copy of the documentation template</a> to create a copy of the template for your use.
+2. [Fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/doc-template/-/forks/new){target="_blank"} to create a copy of the template for your use.
 3. Enter the *Project name* using to the format the coursework specifies. For example, for Coursework 1 for the module COMM058 in the year 2026, enter 'comm058-coursework1-2026'. Use all lowercase and a dash between words with no spaces. This will be used to create the project URL.
 4. Select your personal namespace for the project URL.
 5. Change the *Visibility Level* to *Private*.
@@ -61,9 +61,9 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
 
 The great feature of Zensical is that you view the changes to the website locally using a locally hosted website without sending the source to GitLab,
 
-1. Start with installing python and any other software extensions that are required. Use the instructions for pip <a href="https://zensical.org/docs/get-started/#install-with-pip" target="_blank">here</a> or if you are used to using uv then <a href="https://zensical.org/docs/get-started/#install-with-uv" target="_blank">here</a>.
-2. With cloning (forking) the site, the configuration work to <a href="https://zensical.org/docs/create-your-site/" target="_blank">create</a> and <a href="https://zensical.org/docs/publish-your-site/" target="_blank">publish</a> your site to GitLab is already done for you.
-3. You can now go to your top-level working directory in your chosen Python environment (virtual environment or uv) and use the preview function documented <a href="https://zensical.org/docs/usage/preview/" target="_blank">here</a>.
+1. Start with installing python and any other software extensions that are required. Use the instructions for pip [here](https://zensical.org/docs/get-started/#install-with-pip){target="_blank"} or if you are used to using uv then [here](https://zensical.org/docs/get-started/#install-with-uv){target="_blank"}.
+2. With cloning (forking) the site, the configuration work to [create](https://zensical.org/docs/create-your-site/){target="_blank"} and [publish](https://zensical.org/docs/publish-your-site/){target="_blank"} your site to GitLab is already done for you.
+3. You can now go to your top-level working directory in your chosen Python environment (virtual environment or uv) and use the preview function documented [here](https://zensical.org/docs/usage/preview/){target="_blank"}.
 
 ## Perform initial configuration
 
@@ -97,7 +97,7 @@ The great feature of Zensical is that you view the changes to the website locall
 
 ## Viewing online website
 
-1. Enter in the URL of the website using the form 'https://*namespace*.pages.surrey.ac.uk/*repository-name*'. The URL for this template site is <a href="http://mb0105.pages.surrey.ac.uk/doc-template" target="_blank">http://mb0105.pages.surrey.ac.uk/doc-template</a>
+1. Enter in the URL of the website using the form 'https://*namespace*.pages.surrey.ac.uk/*repository-name*'. The URL for this template site is [http://mb0105.pages.surrey.ac.uk/doc-template](http://mb0105.pages.surrey.ac.uk/doc-template){target="_blank"}.
 2. A box will pop up for you to authorise access for GitLab Pages to gain access to your project to build it.
 
     <figure markdown="span">
@@ -105,11 +105,11 @@ The great feature of Zensical is that you view the changes to the website locall
       <figcaption>Authorise GitLab Pagess</figcaption>
     </figure>
 
-3. You will be redirected to a site <a href="https://doc-template-4f75ad.pages.surrey.ac.uk/" target="_blank">https://doc-template-4f75ad.pages.surrey.ac.uk/</a>.
+3. You will be redirected to a site [https://doc-template-4f75ad.pages.surrey.ac.uk/](https://doc-template-4f75ad.pages.surrey.ac.uk/){target="_blank"}.
 
 ## Release your report
 
-1. Before you release your report, remove the *START HERE* section by commenting it out in the zensical.toml file. Enter a # before the five lines defining the menu structure. You can still get to the information, as it's on the documentation template website <a href="http://mb0105.pages.surrey.ac.uk/doc-template/starthere/starthere" target="_blank">http://mb0105.pages.surrey.ac.uk/doc-template/starthere/starthere</a>
+1. Before you release your report, remove the *START HERE* section by commenting it out in the zensical.toml file. Enter a # before the five lines defining the menu structure. You can still get to the information, as it's on the documentation template website [http://mb0105.pages.surrey.ac.uk/doc-template/starthere/starthere](http://mb0105.pages.surrey.ac.uk/doc-template/starthere/starthere){target="_blank"}.
 
     ``` title="zensical.tomal"
     .

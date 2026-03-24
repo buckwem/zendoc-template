@@ -335,6 +335,7 @@ repo = "fontawesome/brands/gitlab"
 # Read more:
 # - https://zensical.org/docs/setup/extensions/python-markdown-extensions/#arithmatex-zensicaltoml
 # ----------------------------------------------------------------------------
+[project.markdown_extensions.attr_list]
 [project.markdown_extensions.pymdownx.arithmatex]
 generic = true
 

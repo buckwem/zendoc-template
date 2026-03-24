@@ -335,7 +335,7 @@ repo = "fontawesome/brands/gitlab"
 # Read more:
 # - https://zensical.org/docs/setup/extensions/python-markdown-extensions/#arithmatex-zensicaltoml
 # ----------------------------------------------------------------------------
-# Below is a list of the default Markdown extensions that Zensical uses.
+# Below is a list of the default and supported python Markdown extensions that Zensical supports.
 [project.markdown_extensions.abbr]
 [project.markdown_extensions.admonition]
 [project.markdown_extensions.attr_list]
@@ -348,6 +348,7 @@ permalink = "⚓︎"
 [project.markdown_extensions.pymdownx.arithmatex]
 generic = true
 [project.markdown_extensions.pymdownx.betterem]
+smart_enable = "all"
 [project.markdown_extensions.pymdownx.caret]
 [project.markdown_extensions.pymdownx.details]
 [project.markdown_extensions.pymdownx.emoji]
@@ -359,21 +360,20 @@ line_spans = "__span"
 pygments_lang_class = true
 [project.markdown_extensions.pymdownx.inlinehilite]
 [project.markdown_extensions.pymdownx.keys]
-[project.markdown_extensions.pymdownx.magiclink]
 [project.markdown_extensions.pymdownx.mark]
 [project.markdown_extensions.pymdownx.smartsymbols]
+[project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.superfences]
 custom_fences = [
   { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
 ]
 [project.markdown_extensions.pymdownx.tabbed]
 alternate_style = true
-combine_header_slug = true
 [project.markdown_extensions.pymdownx.tasklist]
 custom_checkbox = true
 [project.markdown_extensions.pymdownx.tilde]
 # You can add your own custom Markdown extensions here. You can also configure the extensions that Zensical uses by default. See the documentation for details.
 [project.markdown_extensions.pymdownx.blocks.caption]
-[project.markdown_extensions.pymdownx.snippets]
+[project.markdown_extensions.pymdownx.magiclink]
 
 # [project.markdown_extensions."neoteroi.spantable"]

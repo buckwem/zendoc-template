@@ -85,7 +85,7 @@ Code can also be highlighted inline: `#!python print("Hello, Python!")`.
 
 > Go to [documentation](https://zensical.org/docs/authoring/diagrams/)
 
-Note: None of these diagram types are used in the COMM058 Architectural Thinkng for Security module.
+Note: None of these diagram types are used in the COMM058 Architectural Thinking for Security module.
 
 ``` mermaid
 graph LR
@@ -140,7 +140,7 @@ $$
     Note that MathJax is included via a `script` tag on this page and is not
     configured in the generated default configuration to avoid including it
     in a pages that do not need it. See the documentation for details on how
-    to configure it on all your pages if they are more Maths-heavy than these
+    to configure it on all your pages if they are more maths-heavy than these
     simple starter pages.
 
 <script id="MathJax-script" async src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -319,7 +319,7 @@ toggle.name = "Switch to light mode"
 # - https://zensical.org/docs/authoring/icons-emojis/#search
 # ----------------------------------------------------------------------------
 [project.theme.icon]
-#logo = "lucide/smile"
+logo = "lucide/book-open"
 edit = "material/pencil"
 view = "material/eye"
 repo = "fontawesome/brands/gitlab"

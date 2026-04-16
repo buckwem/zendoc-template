@@ -1,5 +1,5 @@
 ---
-icon: simple/markdown
+icon: lucide/book-open
 ---
 
 <style>

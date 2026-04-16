@@ -30,6 +30,9 @@ site_author = "Mark Buckwell"
 site_url = "https://mb0105.pages.surrey.ac.uk/doc-template/"
 site_dir = "public"
 
+repo_url = "https://gitlab.surrey.ac.uk/mb0105/doc-template"
+repo_name = "doc-template"
+
 # The copyright notice appears in the page footer and can contain an HTML
 # fragment.
 #
@@ -105,7 +108,7 @@ extra_javascript = [
 # Read more:
 # - https://zensical.org/docs/customization/#extending-the-theme
 #
-#custom_dir = "overrides"
+# custom_dir = "overrides"
 
 # With the "favicon" option you can set your own image to use as the icon
 # browsers will use in the browser title bar or tab bar. The path provided
@@ -116,9 +119,6 @@ extra_javascript = [
 # - https://developer.mozilla.org/en-US/docs/Glossary/Favicon
 #
 #favicon = "images/favicon.png"
-
-repo_url = "https://gitlab.surrey.ac.uk/mb0105/doc-template"
-
 
 # Zensical supports more than 60 different languages. This means that the
 # labels and tooltips that Zensical's templates produce are translated.
@@ -199,7 +199,7 @@ features = [
     # This feature turns on navigation elements in the footer that allow the
     # user to navigate to a next or previous page.
     # https://zensical.org/docs/setup/footer/#navigation
-    # "navigation.footer",
+    "navigation.footer",
 
     # When section index pages are enabled, documents can be directly attached
     # to sections, which is particularly useful for providing overview pages.
@@ -318,8 +318,10 @@ toggle.name = "Switch to light mode"
 # - https://zensical.org/docs/setup/logo-and-icons
 # - https://zensical.org/docs/authoring/icons-emojis/#search
 # ----------------------------------------------------------------------------
-#[project.theme.icon]
+[project.theme.icon]
 #logo = "lucide/smile"
+edit = "material/pencil"
+view = "material/eye"
 repo = "fontawesome/brands/gitlab"
 
 # ----------------------------------------------------------------------------
@@ -343,8 +345,7 @@ repo = "fontawesome/brands/gitlab"
 [project.markdown_extensions.footnotes]
 [project.markdown_extensions.md_in_html]
 [project.markdown_extensions.toc]
-permalink = "⚓︎"
-[project.markdown_extensions.tables]
+permalink = true
 [project.markdown_extensions.pymdownx.arithmatex]
 generic = true
 [project.markdown_extensions.pymdownx.betterem]
@@ -352,28 +353,31 @@ smart_enable = "all"
 [project.markdown_extensions.pymdownx.caret]
 [project.markdown_extensions.pymdownx.details]
 [project.markdown_extensions.pymdownx.emoji]
-emoji_index = "zensical.extensions.emoji.twemoji"
 emoji_generator = "zensical.extensions.emoji.to_svg"
+emoji_index = "zensical.extensions.emoji.twemoji"
 [project.markdown_extensions.pymdownx.highlight]
 anchor_linenums = true
 line_spans = "__span"
 pygments_lang_class = true
 [project.markdown_extensions.pymdownx.inlinehilite]
 [project.markdown_extensions.pymdownx.keys]
+[project.markdown_extensions.pymdownx.magiclink]
 [project.markdown_extensions.pymdownx.mark]
 [project.markdown_extensions.pymdownx.smartsymbols]
-[project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.superfences]
 custom_fences = [
   { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
 ]
 [project.markdown_extensions.pymdownx.tabbed]
 alternate_style = true
+combine_header_slug = true
 [project.markdown_extensions.pymdownx.tasklist]
 custom_checkbox = true
 [project.markdown_extensions.pymdownx.tilde]
+
 # You can add your own custom Markdown extensions here. You can also configure the extensions that Zensical uses by default. See the documentation for details.
+[project.markdown_extensions.tables]
+[project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.blocks.caption]
-[project.markdown_extensions.pymdownx.magiclink]
 
 # [project.markdown_extensions."neoteroi.spantable"]

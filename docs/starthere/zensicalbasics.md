@@ -2,7 +2,19 @@
 icon: lucide/rocket
 ---
 
-# Zensical Basics
+<style>
+  /* This page starts at 2 */
+  .md-typeset {
+    counter-reset: h1-count 1 !important; 
+  }
+
+  /* This specific page sidebar starts at 2 */
+  .md-nav--primary {
+    counter-reset: toc1 2 !important;
+  }
+</style>
+
+# Zensical Basics {: .reset-heading-counter-2 }
 
 For full documentation visit [zensical.org](https://zensical.org/docs/).
 

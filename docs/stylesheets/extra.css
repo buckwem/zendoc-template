@@ -1,3 +1,5 @@
+/* =========== Styles used for text on the cover page =========== */
+
 .titleb1 {
   font-size: 1.5rem;
   font-weight: bold;
@@ -103,7 +105,8 @@
   display: block;
 }
 
-/* Text Alignment Utilities */
+/* =========== Styles used for text alignment =========== */
+
 .text-center {
   text-align: center;
   display: block; /* Ensures it takes up the full width to align correctly */
@@ -116,5 +119,75 @@
 
 .text-justify {
   text-align: justify;
-  display: block;
+  display: block; 
+}
+
+/* =========== Styles for numbering each page headings =========== */
+
+/* 1. Reset the main counter at the start of the page content */
+.md-typeset {
+  counter-reset: h1-count 0; /* Change 0 to (StartNumber - 1) to offset */
+}
+
+/* 2. Style Heading 1 */
+.md-typeset h1 {
+  counter-increment: h1-count;
+  counter-reset: h2-count; /* Reset H2s when a new H1 appears */
+}
+.md-typeset h1::before {
+  content: counter(h1-count) ". ";
+}
+
+/* 3. Style Heading 2 */
+.md-typeset h2 {
+  counter-increment: h2-count;
+  counter-reset: h3-count; /* Reset H3s when a new H2 appears */
+}
+.md-typeset h2::before {
+  content: counter(h1-count) "." counter(h2-count) " ";
+}
+
+/* 4. Style Heading 3 */
+.md-typeset h3 {
+  counter-increment: h3-count;
+}
+.md-typeset h3::before {
+  content: counter(h1-count) "." counter(h2-count) "." counter(h3-count) " ";
+}
+
+/* =========== Styles for numbering the Table of Contents (TOC) =========== */
+
+/* 1. Set the Level 1 number in the nav configuration in zensical.toml */
+
+/* 2. Insert at the top of each .md page before the first H1 to reset the TOC counters for each new page. This ensures that each page starts with the correct numbering based on its position in the nav. h1-count is set to one less than the desired starting number because the first H1 on the page will increment it to the correct value. toc1 is set to the exact starting number for the TOC entries
+
+<style>
+  .md-typeset {
+    counter-reset: h1-count 1 !important; 
+  }
+  .md-nav--primary {
+    counter-reset: toc1 2 !important;
+  }
+</style>
+
+*/
+
+/* 3. Level 2 (The subsections) */
+.md-nav--secondary > .md-nav__list > .md-nav__item {
+  counter-increment: toc2;
+  counter-reset: toc3 0; /* Ensures every new H1 resets the H2 count to .1 */
+}
+
+.md-nav--secondary > .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {
+  content: counter(toc1) "." counter(toc2) " "; /* Result: 3.1 */
+}
+
+/* 4. Level 3 (The subsubsections) */
+/* We target the list nested inside a Level 2 item */
+.md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item {
+  counter-increment: toc3;
+}
+
+.md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {
+  content: counter(toc1) "." counter(toc2) "." counter(toc3) " "; /* Result: 3.1.1 */
 }

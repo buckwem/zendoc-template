@@ -53,16 +53,16 @@ nav = [
     {"Content Originality" = "originality.md"}
   ]},
   {"Assignment" = [
-    {"Section 1" = "section1.md"},
-    {"Section 2" = "section2.md"},
-    {"Section 3" = "section3.md"},
-    {"Section 4" = "section4.md"}
+    {"1. Section" = "section1.md"},
+    {"2. Section" = "section2.md"},
+    {"3. Section" = "section3.md"},
+    {"4. Section" = "section4.md"}
 # Comment out the START HERE section (5 lines) before final release
   ]},
     {"START HERE" = [
-      {"Start Here" = "starthere/starthere.md"},
-      {"Zensical basics" = "starthere/getstarted.md"},
-      {"Markdown in 5min" = "starthere/markdown.md"}
+      {"1. Start Here" = "starthere/starthere.md"},
+      {"2. Zensical basics" = "starthere/zensicalbasics.md"},
+      {"3. Markdown in 5min" = "starthere/markdown.md"}
   ]}
 ]
 

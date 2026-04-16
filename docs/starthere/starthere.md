@@ -2,7 +2,19 @@
 icon: lucide/rocket
 ---
 
-# START HERE
+<style>
+  /* This page starts at 3 */
+  .md-typeset {
+    counter-reset: h1-count 2 !important; 
+  }
+
+  /* This specific page sidebar starts at 3 */
+  .md-nav--primary {
+    counter-reset: toc1 3 !important;
+  }
+</style>
+
+# Start Here
 
 Documentation is easy to write on a static website when using [markdown](https://www.markdownguide.org/){target=_blank} and it's much easier to use than [LaTeX](https://www.latex-project.org){target=_blank}, which is designed for academic documentation.
 

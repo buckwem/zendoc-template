@@ -35,3 +35,12 @@ I agree that the University may submit my work to means of checking this, such a
 
 !!! note
     Complete a statement on how you used AI including what you did not use AI for.
+
+
+| Tool Used | Explain How Used | List Prompts | Justify Use |
+| -- | -- | -- | -- |
+|   |   |   |   |
+|   |   |   |   |
+|   |   |   |   |
+|   |   |   |   |
+|   |   |   |   |

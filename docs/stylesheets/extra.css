@@ -1,184 +1,99 @@
-/* =========== Styles for the header image =========== */
-/* =================================================== */
+/* ============================================================= */
+/* ================ Styles for the header image ================ */
+/* ============================================================= */
 
-/* === Example of header with image === */
+/* === Header with image and overlay to ensure text readability === */
 
 /* Light Mode Header Image */
 [data-md-color-scheme="default"] .md-header {
-  background: 
+  background:
     linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), 
     url("../assets/header-background.jpg");
-  background-size: cover;
-  background-position: center;
-}
+  background-size: cover; background-position: center; }
 
 /* Dark Mode HeaderImage */
 [data-md-color-scheme="slate"] .md-header {
-  background: 
+  background:
     linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
      url("../assets/header-background-dark.jpg");
-  background-size: cover;
-  background-position: center;
-}
+  background-size: cover; background-position: center; }
 
-/* =========== Styles used for text on the cover page =========== */
+/* === Header with colour gradient === */
 
-.titleb1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-align: center;
-  display: block;
-}
+/* Light Mode Header Image */
+/* [data-md-color-scheme="default"] .md-header {
+  background:
+    linear-gradient( rgb(102, 128, 208), rgb(147, 199, 248));
+  background-size: cover; background-position: center; }
 
-.titleb2 {
-  font-size: 1.4rem;
-  font-weight: bold;
-  text-align: center;
-  display: block;
-}
+/* Dark Mode HeaderImage */
+/* [data-md-color-scheme="slate"] .md-header {
+  background:
+    linear-gradient(rgba(21, 35, 77, 1), rgb(57, 87, 115));
+  background-size: cover; background-position: center; }
 
-.titleb3 {
-  font-size: 1.3rem;
-  font-weight: bold;
-  text-align: center;
-  display: block;
-}
+/* ============================================================= */
+/* =========== Styles used for text on the cover page ========== */
+/* ============================================================= */
 
-.titleb4 {
-  font-size: 1.2rem;
-  font-weight: bold;
-  text-align: center;
-  display: block;
-}
+/* centred and bold titles */
+.title-ctr-b1 { font-size: 1.5rem; font-weight: bold; text-align: center; display: block; }
+.title-ctr-b2 { font-size: 1.4rem; font-weight: bold; text-align: center; display: block; }
+.title-ctr-b3 { font-size: 1.3rem; font-weight: bold; text-align: center; display: block; }
+.title-ctr-b4 { font-size: 1.2rem; font-weight: bold; text-align: center; display: block; }
+.title-ctr-b5 { font-size: 1.1rem; font-weight: bold; text-align: center; display: block; }
 
-.titleb5 {
-  font-size: 1.1rem;
-  font-weight: bold;
-  text-align: center;
-  display: block;
-}
+/* centred and normal weight titles */
+.title-ctr-1 { font-size: 1.5rem; font-weight: normal; text-align: center; display: block; }
+.title-ctr-2 { font-size: 1.4rem; font-weight: normal; text-align: center; display: block; }
+.title-ctr-3 { font-size: 1.3rem; font-weight: normal; text-align: center; display: block; }
+.title-ctr-4 { font-size: 1.2rem; font-weight: normal; text-align: center; display: block; }
+.title-ctr-5 { font-size: 1.1rem; font-weight: normal; text-align: center; display: block; }
 
-.title1 {
-  font-size: 1.5rem;
-  font-weight: normal;
-  text-align: center;
-  display: block;
-}
+/* left-aligned and bold titles */
+.title-left-1 { font-size: 1.5rem; font-weight: normal; text-align: left; display: block; }
+.title-left-2 { font-size: 1.4rem; font-weight: normal; text-align: left; display: block; }
+.title-left-3 { font-size: 1.3rem; font-weight: normal; text-align: left; display: block; }
+.title-left-4 { font-size: 1.2rem; font-weight: normal; text-align: left; display: block; }
+.title-left-5 { font-size: 1.1rem; font-weight: normal; text-align: left; display: block; }
 
-.title2 {
-  font-size: 1.4rem;
-  font-weight: normal;
-  text-align: center;
-  display: block;
-}
+/* ============================================================= */
+/* ============== Styles used for text alignment =============== */
+/* ============================================================= */
 
-.title3 {
-  font-size: 1.3rem;
-  font-weight: normal;
-  text-align: center;
-  display: block;
-}
+.text-center { text-align: center; display: block; }
+.text-right { text-align: right;  display: block; }
+.text-justify { text-align: justify; display: block; }
 
-.title4 {
-  font-size: 1.2rem;
-  font-weight: normal;
-  text-align: center;
-  display: block;
-}
-
-.title5 {
-  font-size: 1.1rem;
-  font-weight: normal;
-  text-align: center;
-  display: block;
-}
-
-.label1 {
-  font-size: 1.5rem;
-  font-weight: normal;
-  text-align: left;
-  display: block;
-}
-
-.label2 {
-  font-size: 1.4rem;
-  font-weight: normal;
-  text-align: left;
-  display: block;
-}
-
-.label3 {
-  font-size: 1.3rem;
-  font-weight: normal;
-  text-align: left;
-  display: block;
-}
-
-.label4 {
-  font-size: 1.2rem;
-  font-weight: normal;
-  text-align: left;
-  display: block;
-}
-
-.label5 {
-  font-size: 1.1rem;
-  font-weight: normal;
-  text-align: left;
-  display: block;
-}
-
-/* =========== Styles used for text alignment =========== */
-
-.text-center {
-  text-align: center;
-  display: block; /* Ensures it takes up the full width to align correctly */
-}
-
-.text-right {
-  text-align: right;
-  display: block;
-}
-
-.text-justify {
-  text-align: justify;
-  display: block; 
-}
-
-/* =========== Styles for numbering each page headings =========== */
+/* ============================================================= */
+/* ============ Styles for numbering page headings ============= */
+/* ============================================================= */
 
 /* 1. Reset the main counter at the start of the page content */
 .md-typeset {
-  counter-reset: h1-count 0; /* Change 0 to (StartNumber - 1) to offset */
-}
+  counter-reset: h1-count 0; /* Change 0 to (StartNumber - 1) to offset */ }
 
 /* 2. Style Heading 1 */
 .md-typeset h1 {
-  counter-increment: h1-count;
-  counter-reset: h2-count; /* Reset H2s when a new H1 appears */
-}
+  counter-increment: h1-count; counter-reset: h2-count; /* Reset H2s when a new H1 appears */ }
 .md-typeset h1::before {
-  content: counter(h1-count) ". ";
-}
+  content: counter(h1-count) ". "; }
 
 /* 3. Style Heading 2 */
 .md-typeset h2 {
-  counter-increment: h2-count;
-  counter-reset: h3-count; /* Reset H3s when a new H2 appears */
-}
+  counter-increment: h2-count; counter-reset: h3-count; /* Reset H3s when a new H2 appears */ }
 .md-typeset h2::before {
-  content: counter(h1-count) "." counter(h2-count) " ";
-}
+  content: counter(h1-count) "." counter(h2-count) " "; }
 
 /* 4. Style Heading 3 */
 .md-typeset h3 {
-  counter-increment: h3-count;
-}
+  counter-increment: h3-count; }
 .md-typeset h3::before {
-  content: counter(h1-count) "." counter(h2-count) "." counter(h3-count) " ";
-}
+  content: counter(h1-count) "." counter(h2-count) "." counter(h3-count) " "; }
 
-/* =========== Styles for numbering the Table of Contents (TOC) =========== */
+/* ============================================================= */
+/* ======== Styles for numbered Table of Contents (TOC) ======== */
+/* ============================================================= */
 
 /* 1. Set the Level 1 number in the nav configuration in zensical.toml */
 
@@ -198,20 +113,15 @@
 /* 3. Level 2 (The subsections) */
 .md-nav--secondary > .md-nav__list > .md-nav__item {
   counter-increment: toc2;
-  counter-reset: toc3 0; /* Ensures every new H1 resets the H2 count to .1 */
-}
+  counter-reset: toc3 0; /* Ensures every new H1 resets the H2 count to .1 */ }
 
 .md-nav--secondary > .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {
-  content: counter(toc1) "." counter(toc2) " "; /* Result: 3.1 */
-}
+  content: counter(toc1) "." counter(toc2) " "; /* Result: 3.1 */ }
 
 /* 4. Level 3 (The subsubsections) */
-/* We target the list nested inside a Level 2 item */
 .md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item {
-  counter-increment: toc3;
-}
+  counter-increment: toc3; }
 
 .md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {
-  content: counter(toc1) "." counter(toc2) "." counter(toc3) " "; /* Result: 3.1.1 */
-}
+  content: counter(toc1) "." counter(toc2) "." counter(toc3) " "; /* Result: 3.1.1 */ }
 

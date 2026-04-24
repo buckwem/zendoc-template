@@ -1,3 +1,26 @@
+/* =========== Styles for the header image =========== */
+/* =================================================== */
+
+/* === Example of header with image === */
+
+/* Light Mode Header Image */
+[data-md-color-scheme="default"] .md-header {
+  background: 
+    linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), 
+    url("../assets/header-background.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+/* Dark Mode HeaderImage */
+[data-md-color-scheme="slate"] .md-header {
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+     url("../assets/header-background-dark.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
 /* =========== Styles used for text on the cover page =========== */
 
 .titleb1 {
@@ -191,3 +214,4 @@
 .md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {
   content: counter(toc1) "." counter(toc2) "." counter(toc3) " "; /* Result: 3.1.1 */
 }
+

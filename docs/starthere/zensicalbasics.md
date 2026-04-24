@@ -30,6 +30,12 @@ For full documentation visit [zensical.org](https://zensical.org/docs/).
 
 ## Examples
 
+### Lists within Lists
+
+!!! warning "The 4 Space Rule"
+
+    If you are nesting Tabs, Admonitions, or Code Blocks inside a list, you must indent by exactly 4 spaces. If your ordered list numbering resets to "1", check your indentation!
+
 ### Admonitions
 
 > Go to [documentation](https://zensical.org/docs/authoring/admonitions/)
@@ -117,7 +123,6 @@ Here's a sentence with a footnote.[^1]
 Hover it, to see a tooltip.
 
 [^1]: This is the footnote.
-
 
 ## Formatting
 

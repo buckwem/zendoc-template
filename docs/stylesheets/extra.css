@@ -9,14 +9,14 @@
   background:
     linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), 
     url("../assets/header-background.jpg");
-  background-size: cover; background-position: center; }
+  background-size: cover; background-position: center; min-height: 64px; }
 
 /* Dark Mode HeaderImage */
 [data-md-color-scheme="slate"] .md-header {
   background:
     linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
      url("../assets/header-background-dark.jpg");
-  background-size: cover; background-position: center; }
+  background-size: cover; background-position: center; min-height: 64px; }
 
 /* === Header with colour gradient === */
 
@@ -125,3 +125,12 @@
 .md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {
   content: counter(toc1) "." counter(toc2) "." counter(toc3) " "; /* Result: 3.1.1 */ }
 
+
+/* ============================================================= */
+/* ============== Styles for use with card grids =============== */
+/* ============================================================= */
+
+/* Force one column grid for cards */
+.grid.cards.one-column {
+  grid-template-columns: 1fr;
+}

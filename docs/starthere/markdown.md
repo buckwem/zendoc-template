@@ -3,20 +3,27 @@ icon: lucide/book-open
 ---
 
 <style>
-  /* This page starts at 4 */
+  /* This page starts at 3 */
   .md-typeset {
-    counter-reset: h1-count 3 !important; 
+    counter-reset: h1-count 2 !important; 
   }
 
-  /* This specific page sidebar starts at 4 */
+  /* This specific page sidebar starts at 3 */
   .md-nav--primary {
-    counter-reset: toc1 4 !important;
+    counter-reset: toc1 3 !important;
   }
 </style>
 
 # Markdown in 5min
 
+Markdown is a lightweight markup language that allows you to format plain text using a simple syntax. It was designed to be easy to read and easy to write, eventually converting into structurally valid HTML.
+
+Here is a summary of the most common formatting elements you’ll use in a .md file.
+
 ## Headers
+
+Headings are created by adding hash signs (#) before your text. The number of hashes corresponds to the heading level.
+
 ```
 # H1 Header
 ## H2 Header
@@ -27,6 +34,9 @@ icon: lucide/book-open
 ```
 
 ## Text formatting
+
+You can make text bold, italic, or both to add emphasis without needing complex menus.
+
 ```
 **bold text**
 *italic text*
@@ -36,6 +46,9 @@ icon: lucide/book-open
 ```
 
 ## Links and images
+
+The syntax for these is very similar; images just add an exclamation mark at the beginning for an image.
+
 ```
 [Link text](https://example.com)
 [Link with title](https://example.com "Hover title")
@@ -44,26 +57,36 @@ icon: lucide/book-open
 ```
 
 ## Lists
+
+Markdown handles both ordered (numbered) and unordered (bulleted) lists easily.
+
+### Unordered Lists
+
+Use a minus sign (-), asterisk (*), or plus sign (+).
+
 ```
-Unordered:
 - Item 1
 - Item 2
   - Nested item
+```
 
-Ordered:
+### Ordered Lists
+
+Simply use numbers followed by a period.
+
+```
 1. First item
 2. Second item
 3. Third item
 ```
 
-## Blockquotes
-```
-> This is a blockquote
-> Multiple lines
->> Nested quote
-```
-
 ## Code blocks
+
+Markdown is a favorite for developers because of how it handles code snippets.
+
+* Inline Code: Wrap text in backticks: `code`.
+* Code Blocks: Wrap multiple lines in "fences" using three backticks (```). You can often specify the language for syntax highlighting.
+
 ````
 ```javascript
 function hello() {
@@ -73,6 +96,9 @@ function hello() {
 ````
 
 ## Tables
+
+Tables are created using pipes `|` and hyphens `-`. The second row defines the alignment using colons.
+
 ```
 | Header 1 | Header 2 | Header 3 |
 |----------|----------|----------|
@@ -96,15 +122,22 @@ ___
 - [ ] Another task
 ```
 
-## Escaping characters
+## Blockquotes and Rules
+
+To highlight quotes or separate sections:
+
+* **Blockquote:** Use the `>` symbol before the text to create a callout or quote.
 ```
-Use backslash to escape: \* \_ \# \`
+> This is a blockquote
+> Multiple lines
+>> Nested quote
 ```
 
-## Line breaks
-```
-End a line with two spaces  
-to create a line break.
+* **Horizontal Rule** Use three dashes `---` on a line by themselves to create a thematic break.
 
-Or use a blank line for a new paragraph.
-```
+
+## Quick Tips
+
+* **Line Breaks:** To create a line break without a new paragraph, end a line with two or more spaces before hitting enter.
+
+* **Escaping Characters:** If you want to show a literal character (like a *) without it formatting the text, use a backslash: `\*`.

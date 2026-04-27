@@ -14,54 +14,68 @@ icon: lucide/book-open
   }
 </style>
 
-# Installing Docs-as-Code Environment
+# Installing the Tools
 
-## Setup the prerequisites
+## Setup Visual Studio Code
 
 We suggest you use Visual Studio Code with appropriate plugins to edit your static website. Complete the following steps.
 
 1. Register for the Surrey GitLab instance at [https://gitlab.surrey.ac.uk](https://gitlab.surrey.ac.uk)
 1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS and Windows 11 are below:
+    <div class="grid cards one-column" markdown>
+    
+    -   :material-clock-fast:{ .lg .middle } __Install Visual Studio__
 
-    === "macOS - Standard"
+        ---
 
-        1. Download the macOS universal zip file from the [official website](https://code.visualstudio.com/).
-        2. Open the downloaded `.zip` file to extract the application.
-        3. Drag the **Visual Studio Code.app** into your **Applications** folder.
+        === "macOS - Standard"
 
-    === "macOS - Homebrew"
+            1. Download the macOS universal zip file from the [official website](https://code.visualstudio.com/).
+            2. Open the downloaded `.zip` file to extract the application.
+            3. Drag the **Visual Studio Code.app** into your **Applications** folder.
 
-        If you use the Homebrew package manager, run this command in your Terminal:
-        ``` bash
-        brew install --cask visual-studio-code
-        ```
+        === "macOS - Homebrew"
 
-    === "Windows 11 - PowerShell"
+            If you use the Homebrew package manager, run this command in your Terminal:
+            ``` bash
+            brew install --cask visual-studio-code
+            ```
 
-        Open up a **PowerShell** window and install **Visual Studio Code** using the command:
-        ```PowerShell
-        winget install Microsoft.VisualStudioCode
-        ```
+        === "Windows 11 - PowerShell"
+
+            Open up a **PowerShell** window and install **Visual Studio Code** using the command:
+            ```PowerShell
+            winget install Microsoft.VisualStudioCode
+            ```
+
+    </div>
 
 2. You will be using the university **GitLab** service at [https://gitlab.surrey.ac.uk] to store your code. The `git` command is used to communicate with **GitLab**.  macOS usually comes with the `git` command installed, but it might be an outdated version. For Windows 11, you will need to install`git`. Follow the instructions below to update or install it.
+    <div class="grid cards one-column" markdown>
+    
+    -   :material-clock-fast:{ .lg .middle } __Install GitLab__
 
-    === "macOS - Standard"
+        ---
 
-        Open the **Terminal** application and run the command `xcode-select --install`
+        === "macOS - Standard"
 
-    === "macOS - Homebrew"
+            Open the **Terminal** application and run the command `xcode-select --install`
 
-        If you use the Homebrew package manager, run this command in your Terminal:
-        ``` bash
-        brew install git
-        ```
+        === "macOS - Homebrew"
 
-    === "Windows 11 - PowerShell"
+            If you use the Homebrew package manager, run this command in your Terminal:
+            ``` bash
+            brew install git
+            ```
 
-        Open up a **PowerShell** window and install `git` using the command:
-        ```PowerShell
-        winget install Git.Git
-        ```
+        === "Windows 11 - PowerShell"
+
+            Open up a **PowerShell** window and install `git` using the command:
+            ```PowerShell
+            winget install Git.Git
+            ```
+
+    </div>
 
 3. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint){target="_blank"} plugin for Visual Studio Code. This is designed to check your markdown files against a library of rules to encourage standards and consistency.
 4. Install [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml){target="_blank"} plugin for Visual Studio Code. This extension help manage a TOML file.
@@ -78,7 +92,7 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
     1. Select **Key** and enter the GitLab instance URL [https://gitlab.surrey.ac.uk](https://gitlab.surrey.ac.uk).
     1. Select **Value** and enter your university ID for the OAuth application. e.g. `aa0101`.
 
-## Initialise your repository
+## Initialise your Git Repo
 
 1. Create a directory for all your GitLab projects on your local desktop. For example, create a directory called 'GitLab' on your OneDrive. Using OneDrive will give you another backup of your GitLab repository.
 2. [Fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/doc-template/-/forks/new){target="_blank"} to create a copy of the template for your use.
@@ -90,7 +104,7 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
     !!! Warning
         Don't forget to set the visibility to private, otherwise other students can see your coursework. Ask another student to check whether they can see your site. We will discuss how to view it later in the instructions.
 
-## Download repository locally
+## Download Git Repo locally
 
 1. Next we need to download and copy the project into Visual Studio Code so you can work with it locally. Select the [Code v] button and a menu will come up. Select the HTTPS button to the right of Visual Studio Code.
 2. A browser popup will appear saying 'Open Visual Studio Code?' and you push the [Open Visual Studio Code] button.
@@ -108,7 +122,7 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
       <figcaption>Open repository</figcaption>
     </figure>
 
-## Viewing local website
+## Viewing documentation locally
 
 The great feature of Zensical is that you view the changes to the website locally using a locally hosted website without sending the source to GitLab,
 
@@ -153,7 +167,7 @@ The great feature of Zensical is that you view the changes to the website locall
 
     <figure markdown="span">
        <img src="../images/authorise-gitlab-pages.png" style="width: 40%;">
-      <figcaption>Authorise GitLab Pagess</figcaption>
+      <figcaption>Authorise GitLab Pages</figcaption>
     </figure>
 
 3. You will be redirected to a site [https://doc-template-4f75ad.pages.surrey.ac.uk/](https://doc-template-4f75ad.pages.surrey.ac.uk/){target="_blank"}.

@@ -16,7 +16,11 @@ icon: lucide/book-open
 
 # Shell Commands
 
-This page covers the essential commands for navigating and managing your system via bash or zsh (used by MacOS terminal). MacOS terminal now uses zsh as its default shell, almost all Bash commands work identically on Limux. A detailed reference to the shell commnand line can be found on [linuxcommand.org](https://linuxcommand.org).
+You will be using shell commands if you are operating on Linux or macOS to write your documentation. This page serves as a refresher on the essential commands for navigating and managing your system using either bash or zsh, the latter being the default shell in the macOS terminal.
+
+!!! tip
+
+    A detailed reference to the shell commnand line can be found on [linuxcommand.org](https://linuxcommand.org){target="_blank"}.
 
 ## Navigation and basic info
 
@@ -98,7 +102,7 @@ These operators allow you to pass data between running programs and files.
 | -- |-- |
 | `>` | Overwrite: Sends output to a file, deleting whatever was there before. e.g. `echo "hello" > file.txt`
 | `>>` | Append: Adds output to the end of a file without deleting the old stuff. e.g. `echo "world" >> file.txt`
-| `\|` | The Pipe: Takes the "Standard Out" of the left command and shoves it into the "Standard In" of the right command. |
+| `|` | The Pipe: takes the "Standard Out" of the left command and shoves it into the "Standard In" of the right command. |
 
 ## Essential Keyboard Shortcuts
 

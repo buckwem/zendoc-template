@@ -75,4 +75,8 @@ Zensical provides the themes and tools necessary to draft documentation in Markd
 
 To make it easy for you, a documentation template has been created that you will fork (clone) into a project you can use to develop your own document or report. Follow the instructions below to get started creating an environment to write the content to publish on your own static website.
 
-Let's start with installing the basic tools for using 
+!!! tip
+
+    These instructions are composed in markdown format, which is processed by Zensical. To view the structure of Markdown files, go to the Git repository for the documentation located at the top right of this page. There, you will find markdown files that serve as examples for writing your documentation.
+
+Let's start with installing the basic tools for writing your documentation using a Docs-as-code approach.

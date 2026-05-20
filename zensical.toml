@@ -102,6 +102,8 @@ extra_javascript = [
 # ----------------------------------------------------------------------------
 [project.theme]
 
+logo = "assets/logo_black.png"
+
 # change this to "classic" to use the traditional Material for MkDocs look.
 #variant = "classic"
 
@@ -330,7 +332,6 @@ toggle.name = "Switch to light mode"
 # - https://zensical.org/docs/authoring/icons-emojis/#search
 # ----------------------------------------------------------------------------
 [project.theme.icon]
-logo = "lucide/book-open"
 edit = "lucide/pencil"
 view = "lucide/eye"
 repo = "fontawesome/brands/gitlab"

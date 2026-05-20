@@ -20,7 +20,7 @@ icon: lucide/book-open
 
 We suggest you use Visual Studio Code with appropriate plugins to edit your static website. Complete the following steps.
 
-1. Register for the Surrey GitLab instance at [https://gitlab.surrey.ac.uk](https://gitlab.surrey.ac.uk)
+1. Register for the [Surrey GitLab instance](https://gitlab.surrey.ac.uk)
 1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS and Windows 11 are below:
     <div class="grid cards one-column" markdown>
     
@@ -50,7 +50,7 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
 
     </div>
 
-2. You will be using the university **GitLab** service at [https://gitlab.surrey.ac.uk] to store your code. The `git` command is used to communicate with **GitLab**.  macOS usually comes with the `git` command installed, but it might be an outdated version. For Windows 11, you will need to install`git`. Follow the instructions below to update or install it.
+2. You will be using the university **GitLab** service at [](https://gitlab.surrey.ac.uk) to store your code. The `git` command is used to communicate with **GitLab**.  macOS usually comes with the `git` command installed, but it might be an outdated version. For Windows 11, you will need to install`git`. Follow the instructions below to update or install it.
     <div class="grid cards one-column" markdown>
     
     -   :material-clock-fast:{ .lg .middle } __Install GitLab__
@@ -99,28 +99,28 @@ We suggest you use Visual Studio Code with appropriate plugins to edit your stat
 3. Enter the *Project name* using to the format the coursework specifies. For example, for Coursework 1 for the module COMM058 in the year 2026, enter 'comm058-coursework1-2026'. Use all lowercase and a dash between words with no spaces. This will be used to create the project URL.
 4. Select your personal namespace for the project URL.
 5. Change the *Visibility Level* to *Private*.
-6. Press the button [Fork Project] to create your own copy of the project.
+6. Press the button \[Fork Project\] to create your own copy of the project.
 
     !!! Warning
         Don't forget to set the visibility to private, otherwise other students can see your coursework. Ask another student to check whether they can see your site. We will discuss how to view it later in the instructions.
 
 ## Download Git Repo locally
 
-1. Next we need to download and copy the project into Visual Studio Code so you can work with it locally. Select the [Code v] button and a menu will come up. Select the HTTPS button to the right of Visual Studio Code.
-2. A browser popup will appear saying 'Open Visual Studio Code?' and you push the [Open Visual Studio Code] button.
-3. This will open a directory selection box. Go to the 'GitLab' directory you selected earlier and press the [Select as Repository Destination]. This will then download the code to a subdirectory with the name of the project you created earlier.
+1. Next we need to download and copy the project into Visual Studio Code so you can work with it locally. Select the **Code**{: .bg-blue} button and a menu will come up. Select the HTTPS button to the right of Visual Studio Code.
+2. A browser popup will appear saying 'Open Visual Studio Code?' and you push the **Open Visual Studio Code**{: .bg-blue} button.
+3. This will open a directory selection box. Go to the 'GitLab' directory you selected earlier and press the **Select as Repository Destination**{: .bg-blue}. This will then download the code to a subdirectory with the name of the project you created earlier.
 
-    <figure markdown="span">
-      <img src="../images/directory-selection.png" style="width: 70%;">
-      <figcaption>Directory selection</figcaption>
-    </figure>
+    ![Directory Selection](./images/directory-selection.png){ width="70%" }
+    /// caption
+    Directory Selection
+    ///
 
-4. Then you will be prompted to open your repository that is stored in your 'GitLab' directory. If you already have Visual Studio Code, you may wish to select [Open in a new window] so it creates a separate window to your current workspace.
+4. Then you will be prompted to open your repository that is stored in your 'GitLab' directory. If you already have Visual Studio Code, you may wish to select **Open in a new window**{: .bg-blue} so it creates a separate window to your current workspace.
 
-    <figure markdown="span">
-      <img src="../images/open-repository.png" style="width: 40%;">
-      <figcaption>Open repository</figcaption>
-    </figure>
+    ![Open repository](./images/open-repository.png){ width="40%" }
+    /// caption
+    Open repository
+    ///
 
 ## Viewing documentation locally
 
@@ -134,41 +134,41 @@ The great feature of Zensical is that you view the changes to the website locall
 
 1. The zensical.toml file contains the configuration for your website.
 
-1. Make sure all your files have been saved. Any that are unsaved have a filled circle against the file name. Go to the file and press Ctrl-S/Cmd-S.
+2. Make sure all your files have been saved. Any that are unsaved have a filled circle against the file name. Go to the file and press Ctrl-S/Cmd-S.
 
 ## Synchronise your updates
 
-1. Click on the [Source Control] icon (third one down) on the left in Visual Studio Code and you will see a list of all the files that have been changed and created.
+1. Click on the :gitlab-branch: icon on the left in Visual Studio Code and you will see a list of all the files that have been changed and created.
 
-    <figure markdown="span">
-      <img src="../images/initial-commit.png" style="width: 40%;">
-      <figcaption>Initial commit</figcaption>
-    </figure>
+    ![Initial commit](./images/initial-commit.png){ width="40%" }
+    /// caption
+    Initial commit
+    ///
 
 2. Fill into the Message box short description of the change. In this case, enter 'Initial Commit' as this is the first commit of the code to GitLab.
-3. Then press the [Commit] button and select [Save All and Commit Changes].
+3. Then press the **Commit**{: .bg-blue} button and select **Save All and Commit Changes**{: .bg-blue}.
 
-    <figure markdown="span">
-      <img src="../images/commit-changes.png" style="width: 40%;">
-      <figcaption>Initial commit</figcaption>
-    </figure>
+    ![Commit changes](./images/commit-changes.png){ width="40%" }
+    /// caption
+    Commit changes
+    ///
 
 4. Then sync changes with GitLab
 
-    <figure markdown="span">
-      <img src="../images/sync-changes.png" style="width: 40%;">
-      <figcaption>Sync changes</figcaption>
-    </figure>
+    ![Sync changes](./images/sync-changes.png){ width="40%" }
+    /// caption
+    Sync changes
+    ///
 
 ## Viewing online website
 
 1. Enter in the URL of the website using the form 'https://*namespace*.pages.surrey.ac.uk/*repository-name*'. The URL for this template site is [http://mb0105.pages.surrey.ac.uk/doc-template](http://mb0105.pages.surrey.ac.uk/doc-template){target="_blank"}.
 2. A box will pop up for you to authorise access for GitLab Pages to gain access to your project to build it.
 
-    <figure markdown="span">
-       <img src="../images/authorise-gitlab-pages.png" style="width: 40%;">
-      <figcaption>Authorise GitLab Pages</figcaption>
-    </figure>
+    ![Authorise GitLab Pages](./images/authorise-gitlab-pages.png){ width="40%" }
+    /// caption
+    Authorise GitLab Pages
+    ///
 
 3. You will be redirected to a site [https://doc-template-4f75ad.pages.surrey.ac.uk/](https://doc-template-4f75ad.pages.surrey.ac.uk/){target="_blank"}.
 

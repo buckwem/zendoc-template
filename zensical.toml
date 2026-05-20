@@ -17,7 +17,7 @@ site_name = "Assignment Template"
 # meaningful description of the site content for use by search engines.
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_description
-site_description = "A temmplate for student assessment reports."
+site_description = "A template for student assignment reports using Zensical."
 
 # The site_author attribute. This is used in the HTML head element.
 #
@@ -64,7 +64,7 @@ nav = [
     {"3. Section" = "section3.md"},
     {"4. Section" = "section4.md"}
   ]},
-# Comment out the START HERE section (5 lines) before releasing your repoert, as it contains instructions for the author and is not meant for the reader of the report.]},
+# Comment out the START HERE section (5 lines) before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.]},
     {"START HERE" = [
       {"1. Start Here" = "starthere/starthere.md"},
       {"2. Installing the Tools" = "starthere/installation.md"},
@@ -113,7 +113,7 @@ extra_javascript = [
 # Read more:
 # - https://zensical.org/docs/customization/#extending-the-theme
 #
-# custom_dir = "overrides"
+custom_dir = "overrides"
 
 # With the "favicon" option you can set your own image to use as the icon
 # browsers will use in the browser title bar or tab bar. The path provided
@@ -152,7 +152,7 @@ features = [
     # will generate an edit button for the page. This works for common
     # repository hosting services.
     # https://zensical.org/docs/setup/repository/#content-actions
-    "content.action.edit",
+    # "content.action.edit",
 
     # If you have a repository configured and turn on this feature, Zensical
     # will generate a button that allows the user to view the Markdown
@@ -378,8 +378,9 @@ smart_enable = "all"
 [project.markdown_extensions.pymdownx.caret]
 [project.markdown_extensions.pymdownx.details]
 [project.markdown_extensions.pymdownx.emoji]
-emoji_generator = "zensical.extensions.emoji.to_svg"
 emoji_index = "zensical.extensions.emoji.twemoji"
+emoji_generator = "zensical.extensions.emoji.to_svg"
+options.custom_icons = ["overrides/.icons"]
 [project.markdown_extensions.pymdownx.highlight]
 anchor_linenums = true
 line_spans = "__span"
@@ -404,5 +405,6 @@ custom_checkbox = true
 [project.markdown_extensions.tables]
 [project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.blocks.caption]
+[project.markdown_extensions.zensical.extensions.glightbox]
 
 # [project.markdown_extensions."neoteroi.spantable"]

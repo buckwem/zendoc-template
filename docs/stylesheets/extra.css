@@ -134,3 +134,15 @@
 .grid.cards.one-column {
   grid-template-columns: 1fr;
 }
+
+/* ============================================================= */
+/* ============= Styles for test background colour ============= */
+/* ============================================================= */
+
+.bg-blue {
+    background-color: #0078d4;
+    color: #ffffff;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: normal;
+}

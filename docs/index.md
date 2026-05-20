@@ -12,8 +12,15 @@ hide:
   }
 </style>
 
+<!-- the align attribute does not support centering. -->
+<!-- Use a blank caption to centre an image          -->
+
+![](./assets/cover-centre-logo.png){ width="50%" }
+/// caption
+
+///
+
 <!-- the different title line use styles defined in the extras.css file -->
-<p class="title-ctr-b1">UNIVERSITY OF SURREY</p>
 
 <p class="title-ctr-b4">
 Faculty of Engineering and Physical Sciences<br>

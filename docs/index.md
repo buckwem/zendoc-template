@@ -12,10 +12,14 @@ hide:
   }
 </style>
 
-<!-- the align attribute does not support centering. -->
-<!-- Use a blank caption to centre an image          -->
+<!-- The align attribute does not support centering.
+     so we use a blank caption to centre an image.
+     We also suppport swapping of the logo to 
+     support a dark and light theme
+-->
 
-![](./assets/cover-centre-logo.png){ width="50%" }
+![](./assets/cover-centre-logo-black.png#only-light){ width="40%" }
+![](./assets/cover-centre-logo-white.png#only-dark){ width="40%" }
 /// caption
 
 ///

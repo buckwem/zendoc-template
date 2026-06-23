@@ -22,6 +22,7 @@ icon: lucide/book-open
     * Copying might constitute plagiarism.
     * All submissions may be checked by TurnItIn for instances of copying and collusion.
     * Your submission must be in your own words. Where you have quoted text from another source this must be clearly indicated and referenced.
+    * Complete the statement on AI Use to show 
     * Please read the Student Handbook to ensure that you know what this means!
 
 
@@ -44,4 +45,4 @@ I agree that the University may submit my work to means of checking this, such a
 |   |   |   |   |
 |   |   |   |   |
 |  Gemini AI | Improve explanations in the coursework. | 1. Improve the following description to make clearer in no more than two sentences: <sentence> | Used to make the discussion clearer.  |
-| Quillbot | Improve overall grammar construction as paragraph is edited.
+| Quillbot | Improve overall grammar construction as I edit a paragraph. | No prompts - I put into the grammar checker and sometimes use the Improve function. | Improve my grammar as I edit the each paragraph |

@@ -2,3 +2,6 @@
 public/
 .github/workflows/
 .venv/
+.DS_Store
+styles/
+.vscode/

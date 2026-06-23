@@ -3,15 +3,9 @@ icon: lucide/book-open
 ---
 
 <style>
-  /* This page starts at 1 */
-  .md-typeset {
-    counter-reset: h1-count 0 !important; 
-  }
-
-  /* This specific page sidebar starts at 1 */
-  .md-nav--primary {
-    counter-reset: toc1 1 !important;
-  }
+  /* Reset the page and sidebar to start at 1 */
+  .md-typeset { counter-reset: h1-count 0 !important; }
+  .md-nav--primary { counter-reset: toc1 1 !important; }
 </style>
 
 # Section
@@ -29,3 +23,6 @@ icon: lucide/book-open
 ## SubSection
 
 ### SubSubSection
+
+# Link validation
+

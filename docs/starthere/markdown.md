@@ -3,26 +3,20 @@ icon: lucide/book-open
 ---
 
 <style>
-  /* This page starts at 3 */
-  .md-typeset {
-    counter-reset: h1-count 2 !important; 
-  }
-
-  /* This specific page sidebar starts at 3 */
-  .md-nav--primary {
-    counter-reset: toc1 3 !important;
-  }
+  /* Reset the page and sidebar to start at 3 */
+  .md-typeset { counter-reset: h1-count 2 !important; }
+  .md-nav--primary { counter-reset: toc1 3 !important; }
 </style>
 
 # Markdown in 5min
 
-Markdown is a lightweight markup language that allows you to format plain text using a simple syntax. It was designed to be easy to read and easy to write, eventually converting into structurally valid HTML.
+Markdown is a lightweight markup language that enables you to format plain text using a simple syntax. Markdown is easy to read and easy to write, eventually converting into structurally valid HTML.
 
-Here is a summary of the most common formatting elements you’ll use in a .md file.
+Here is a summary of the most common formatting elements you'll use in a .md file.
 
 ## Headers
 
-Headings are created by adding hash signs (#) before your text. The number of hashes corresponds to the heading level.
+Add hash signs (#) before your text to create a heading. The number of hashes corresponds to the heading level.
 
 ```
 # H1 Header
@@ -47,7 +41,7 @@ You can make text bold, italic, or both to add emphasis without needing complex 
 
 ## Links and images
 
-The syntax for these is very similar; images just add an exclamation mark at the beginning for an image.
+The syntax for these is similar. Just add an exclamation mark at the beginning for an image.
 
 ```
 [Link text](https://example.com)
@@ -58,9 +52,9 @@ The syntax for these is very similar; images just add an exclamation mark at the
 
 ## Lists
 
-Markdown handles both ordered (numbered) and unordered (bulleted) lists easily.
+Markdown handles both ordered (numbered) and unordered (bulleted) lists.
 
-### Unordered Lists
+### Unordered lists
 
 Use a minus sign (-), asterisk (*), or plus sign (+).
 
@@ -70,7 +64,7 @@ Use a minus sign (-), asterisk (*), or plus sign (+).
   - Nested item
 ```
 
-### Ordered Lists
+### Ordered lists
 
 Simply use numbers followed by a period.
 
@@ -97,7 +91,7 @@ function hello() {
 
 ## Tables
 
-Tables are created using pipes `|` and hyphens `-`. The second row defines the alignment using colons.
+Use pipes `|` and hyphens `-` to create tables. The second row defines the alignment using colons.
 
 ```
 | Header 1 | Header 2 | Header 3 |
@@ -122,7 +116,7 @@ ___
 - [ ] Another task
 ```
 
-## Blockquotes and Rules
+## Blockquotes and rules
 
 To highlight quotes or separate sections:
 
@@ -136,7 +130,7 @@ To highlight quotes or separate sections:
 * **Horizontal Rule** Use three dashes `---` on a line by themselves to create a thematic break.
 
 
-## Quick Tips
+## Quick tips
 
 * **Line Breaks:** To create a line break without a new paragraph, end a line with two or more spaces before hitting enter.
 

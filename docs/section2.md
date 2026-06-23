@@ -3,15 +3,9 @@ icon: lucide/book-open
 ---
 
 <style>
-  /* This page starts at 2 */
-  .md-typeset {
-    counter-reset: h1-count 1 !important; 
-  }
-
-  /* This specific page sidebar starts at 2 */
-  .md-nav--primary {
-    counter-reset: toc1 2 !important;
-  }
+  /* Reset the page and sidebar to start at 2 */
+  .md-typeset { counter-reset: h1-count 1 !important; }
+  .md-nav--primary { counter-reset: toc1 2 !important; }
 </style>
 
 # Section

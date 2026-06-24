@@ -2,17 +2,26 @@
 icon: lucide/book-open
 ---
 
+<!-- 
+# Copyright (c) 2025-2026 Mark Buckwell and contributors
+# SPDX-License-Identifier: MIT
+# All contributions are certified under the DCO
+-->
+
 <style>
-  /* Reset the page and sidebar to start at 3 */
-  .md-typeset { counter-reset: h1-count 2 !important; }
-  .md-nav--primary { counter-reset: toc1 3 !important; }
+  /* Reset the page and sidebar to start at 5 */
+  .md-typeset { counter-reset: h1-count 4 !important; }
+  .md-nav--primary { counter-reset: toc1 5 !important; }
+  /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
 </style>
 
-# Markdown in 5min
+# Markdown basics
 
-Markdown is a lightweight markup language that enables you to format plain text using a simple syntax. Markdown is easy to read and easy to write, eventually converting into structurally valid HTML.
+Markdown is a lightweight markup language that enables you to format plain text using a simple syntax. It's easy to read and easy to write, eventually converting into structurally valid HTML, and is widely used for documentation, readme files, and content management systems. It enables you to focus on writing without worrying about complex formatting, making it an ideal choice for collaborative documentation projects.
 
-Here is a summary of the most common formatting elements you'll use in a .md file.
+It's text-based, meaning you can use a text editor to create and edit Markdown files. This makes it highly portable and compatible with version control systems like Git, enabling collaborative editing and tracking of changes over time. Plain text files with the `.md` extension store the Markdown. You can then share, version, and convert these files into HTML for web publishing.
+
+Here is a summary of the most common formatting elements you'll use in a `.md` file.
 
 ## Headers
 

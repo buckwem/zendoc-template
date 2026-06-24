@@ -5,12 +5,19 @@ hide:
     - title
 ---
 
-<!-- Hide heading 1 on the page as hide: title does not work -->
-<style>
-  .md-typeset h1 {
-    display: none;
-  }
-</style>
+<!-- 
+# Copyright (c) 2025-2026 Mark Buckwell and contributors
+# SPDX-License-Identifier: MIT
+# All contributions are certified under the DCO
+-->
+
+<!-- Hide heading 1 on the page as hide: title does not seem to work -->
+<style> .md-typeset h1 { display: none; } </style>
+
+<!-- We still need a title set for the next/previous page navigation
+     to work, so we set it here but hide it from the page.
+-->
+# Cover Page
 
 <!-- The align attribute does not support centering.
      so we use a blank caption to centre an image.
@@ -44,7 +51,7 @@ MSc programmes in Computer Science</p>
   In using this style, it's been applied to multiple lines using the line break
   Fill in your own name and the date the document is released.
 -->
-<p class="title-left-5">
+<p class="title-left-6">
 Author: Insert Name Here<br>
 Date: Submission Date
 </p>

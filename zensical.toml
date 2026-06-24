@@ -1,3 +1,7 @@
+# Copyright (c) 2025-2026 Mark Buckwell, Zensical and contributors
+# SPDX-License-Identifier: MIT
+# All contributions are certified under the DCO
+
 # ============================================================================
 #
 # The configuration produced by default is meant to highlight the features
@@ -56,7 +60,7 @@ nav = [
     "index.md",
   ]},
   {"Originality" = [
-    {"Content Originality" = "originality.md"}
+    {"0. Originality & AI Use" = "originality.md"}
   ]},
   {"Assignment" = [
     {"1. Section" = "section1.md"},
@@ -67,10 +71,12 @@ nav = [
   ]},
     {"START HERE" = [
       {"1. Start Here" = "starthere/starthere.md"},
-      {"2. Installing the Tools" = "starthere/installation.md"},
-      {"3. Markdown in 5min" = "starthere/markdown.md"},
-      {"4. Zensical basics" = "starthere/zensicalbasics.md"},
-      {"5. Shell commands" = "starthere/shcommands.md"}
+      {"2. Install core" = "starthere/installcore.md"},
+      {"3. Install extensions" = "starthere/installextensions.md"},
+      {"4. Customise" = "starthere/customise.md"},
+      {"5. Markdown basics" = "starthere/markdown.md"},
+      {"6. Zensical basics" = "starthere/zensicalbasics.md"},
+      {"7. Shell commands" = "starthere/shcommands.md"}
 # Comment until here before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.
   ]}
 ]
@@ -103,6 +109,8 @@ extra_javascript = [
 # ----------------------------------------------------------------------------
 [project.theme]
 
+# The black logo for light mode is set below.
+# the white logo for dark mode is in the extra.css file, so we don't need to set it here.
 logo = "assets/logo_black.png"
 
 # change this to "classic" to use the traditional Material for MkDocs look.

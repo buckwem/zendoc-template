@@ -2,15 +2,22 @@
 icon: lucide/book-open
 ---
 
+<!-- 
+# Copyright (c) 2025-2026 Mark Buckwell, Zensical and contributors
+# SPDX-License-Identifier: MIT
+# All contributions are certified under the DCO
+-->
+
 <style>
   /* Reset the page and sidebar to start at 1 */
   .md-typeset { counter-reset: h1-count 0 !important; }
   .md-nav--primary { counter-reset: toc1 1 !important; }
+  /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
 </style>
 
 # Start here
 
-Documentation is easy to publish on a static website when using a docs-as-code workflow. [Markdown](https://www.markdownguide.org/){target=_blank} is a markup language used for writing documentation, which is then stored in a Git repository.. Hosted Git services such as GitLab or GitHub, together with tooling such as Visual Studio Code make it easy to maintain and host documentation.
+Documentation is easy to publish on a static website when using a docs-as-code workflow. [Markdown](https://www.markdownguide.org/){target=_blank} is a markup language used for writing documentation in text files that are then stored in a Git repository. Hosted Git services such as GitLab or GitHub, together with tooling such as Visual Studio Code make it easy to maintain and host documentation.
 
 Adopting a docs-as-code workflow transforms documentation from a chore into an engineering process. By treating your written content with the same rigour as code, you enable a collaborative approach to documentation.
 
@@ -20,11 +27,11 @@ Docs-as-code means using the same tools and workflows for documentation as you d
 
 `Markdown as the Source of Truth`
 
-: Markdown is a lightweight markup language that's simple to read in its raw form and consistently renders on the web. It's used for writing documentation for conversion into HTML for web publishing.
+: [Markdown](https://www.markdownguide.org/){target=_blank} is a lightweight markup language that's simple to read in its raw form and consistently renders on the web. It's used for writing documentation for conversion into HTML for web publishing.
 
 `Version control via Git`
 
-: Storing files in a Git repository (GitHub, GitLab, or Bitbucket) enables the tracking of all changes. There will be a complete history of "who changed what and why," making it easy to revert errors and audit changes.
+: Storing files in a Git repository (such as GitHub, GitLab, or Bitbucket) enables the tracking of all changes to the documentation. There will be a complete history of "who changed what and why," making it easy to undo errors and audit changes.
 
 `Collaborative Reviews`
 
@@ -36,15 +43,15 @@ To move from using a word processor or simple website to a scalable and effectiv
 
 `Authoring tool`
 
-Effective documentation relies on tooling to edit content and automate quality checks for spelling, grammar, and consistent formatting. By using Visual Studio Code, writers can leverage a collection of extensions to provide real-time quality assurance. 
+Effective documentation depends on tools that help with content editing and automate quality checks, including spelling, grammar, style and formatting consistency. While there are numerous text editors available, Visual Studio Code stands out as a favoured option due to its extensive ecosystem of extensions. By using Visual Studio Code, writers can take advantage of a variety of extensions that offer real-time quality assurance. 
 
 `Docs-as-code builder`
 
-
+Markdown files can serve as a foundation for a static website. However, they often require enhanced formatting options through additional themes and styling. A docs-as-code builder then transforms the Markdown and supplementary instructions into HTML, applying a theme to generate a professional-looking website. Zensical is a fast and reliable docs-as-code builder designed to process Markdown files and create a static documentation website. It enables the website to be viewed locally before publishing, ensuring that the final output meets quality standards.
 
 `Code Repository and Management`
 
-This integrated environment is directly connected to a Git repository enabling the review and editing of content by other team members before publication.
+By connecting directly to a Git repository, this integrated environment establishes a secure, centralised vault that tracks the history of project files. Each modification is recorded as a distinct commit, enabling users to audit changes or revert to earlier versions if errors arise. Prior to finalising any work, a pull request prompts a peer-review process that allows collaborators to comment on, test, and approve the updates. This workflow ensures that only vetted, high-quality content is prepared for final publication.
 
 !!! note "Why not LaTeX?"
 
@@ -52,9 +59,11 @@ This integrated environment is directly connected to a Git repository enabling t
 
 ## Docs-as-code in production
 
-As a student, you will be following a simplified workflow, as you aren't working with documentation that spans thousands of pages. Nevertheless, understanding the approach used at scale can help you appreciate the skills you will develop. GitLab provides a video that outlines the entire process for their documentation and highlights the importance of the skills acquired through a docs-as-code methodology.
+As a student, you will be following a simplified workflow, as you aren't working with documentation that spans thousands of pages and is maintained by a large development team. Nevertheless, understanding the approach used at scale can help you appreciate the value of the skills you will develop. GitLab provides a video that outlines the entire process for their documentation and highlights the importance of the skills acquired through a docs-as-code methodology.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/ZlabtdA-gZE?si=_3GQjj5C6EDpMP8Z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<div style="display: flex; justify-content: center;">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/ZlabtdA-gZE?si=_3GQjj5C6EDpMP8Z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
 
 
 !!! warning

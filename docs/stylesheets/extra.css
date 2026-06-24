@@ -1,7 +1,15 @@
+/*
+Copyright (c) 2025-2026 Mark Buckwell, Zensical and contributors
+SPDX-License-Identifier: MIT
+All contributions are certified under the DCO
+*/
+
 /* ============================================================= */
 /* ================ Style for slate theme logo= ================ */
 /* ============================================================= */
 
+# The white logo for dark mode is below.
+# The black logo for light mode is in the zensical.toml file and we don't need to set it here.
 [data-md-color-scheme="slate"] .md-logo img {
   content: url("../assets/logo_white.png");
 }
@@ -40,9 +48,9 @@
     linear-gradient(rgba(21, 35, 77, 1), rgb(57, 87, 115));
   background-size: cover; background-position: center; }
 
-/* ============================================================= */
-/* =========== Styles used for text on the cover page ========== */
-/* ============================================================= */
+/* =================================================================== */
+/* =========== Styles used for title text on the cover page ========== */
+/* =================================================================== */
 
 /* centred and bold titles */
 .title-ctr-b1 { font-size: 1.5rem; font-weight: bold; text-align: center; display: block; }
@@ -50,6 +58,7 @@
 .title-ctr-b3 { font-size: 1.3rem; font-weight: bold; text-align: center; display: block; }
 .title-ctr-b4 { font-size: 1.2rem; font-weight: bold; text-align: center; display: block; }
 .title-ctr-b5 { font-size: 1.1rem; font-weight: bold; text-align: center; display: block; }
+.title-ctr-b6 { font-size: 1.0rem; font-weight: bold; text-align: center; display: block; }
 
 /* centred and normal weight titles */
 .title-ctr-1 { font-size: 1.5rem; font-weight: normal; text-align: center; display: block; }
@@ -57,6 +66,7 @@
 .title-ctr-3 { font-size: 1.3rem; font-weight: normal; text-align: center; display: block; }
 .title-ctr-4 { font-size: 1.2rem; font-weight: normal; text-align: center; display: block; }
 .title-ctr-5 { font-size: 1.1rem; font-weight: normal; text-align: center; display: block; }
+.title-ctr-6 { font-size: 1.0rem; font-weight: normal; text-align: center; display: block; }
 
 /* left-aligned and bold titles */
 .title-left-1 { font-size: 1.5rem; font-weight: normal; text-align: left; display: block; }
@@ -64,6 +74,7 @@
 .title-left-3 { font-size: 1.3rem; font-weight: normal; text-align: left; display: block; }
 .title-left-4 { font-size: 1.2rem; font-weight: normal; text-align: left; display: block; }
 .title-left-5 { font-size: 1.1rem; font-weight: normal; text-align: left; display: block; }
+.title-left-6 { font-size: 1.0rem; font-weight: normal; text-align: left; display: block; }
 
 /* ============================================================= */
 /* ============== Styles used for text alignment =============== */

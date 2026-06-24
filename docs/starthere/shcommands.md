@@ -2,19 +2,26 @@
 icon: lucide/book-open
 ---
 
+<!-- 
+# Copyright (c) 2025-2026 Mark Buckwell and contributors
+# SPDX-License-Identifier: MIT
+# All contributions are certified under the DCO
+-->
+
 <style>
-  /* Reset the page and sidebar to start at 5 */
-  .md-typeset { counter-reset: h1-count 4 !important; }
-  .md-nav--primary { counter-reset: toc1 5 !important; }
+  /* Reset the page and sidebar to start at 6 */
+  .md-typeset { counter-reset: h1-count 5 !important; }
+  .md-nav--primary { counter-reset: toc1 6 !important; }
+  /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
 </style>
 
 # Shell commands
 
-You will be using shell commands if you are operating on Linux or macOS to write your documentation. This page serves as a refresher on the essential commands for navigating and managing your system using either bash or zsh. Zsh is the default shell in the macOS terminal.
+You will be using shell commands if you are operating on Linux or macOS to write your documentation. This section serves as a refresher on the essential commands for navigating and managing your system using either bash or zsh.
 
 !!! tip
 
-    A detailed reference to the shell commnand line can be found on [linuxcommand.org](https://linuxcommand.org){target="_blank"}.
+    A more detailed reference to the shell commnand line can be found on [linuxcommand.org](https://linuxcommand.org){target="_blank"}.
 
 ## Navigation and basic info
 
@@ -32,7 +39,7 @@ Knowing where you are and how to move is the first step to understanding bash/zs
 
 ## File and folder operations
 
-Next the shell commands to manage directories and files.
+Next, here are the shell commands to manage directories and files. You will be using these commands to create, copy, move, and delete files and folders.
 
 !!! Warning
     A shell doesn't have a "Trash" bin. When you delete something here, it's usually gone for good.
@@ -48,11 +55,26 @@ Next the shell commands to manage directories and files.
 | `cat [file]` | Displays the entire contents of a file in the terminal. |
 | `less [file]` | Opens a file for reading (press q to exit). |
 
+## Editing files
+
+You will need to edit files in the terminal. There are many editors available, each with its own strengths and weaknesses. Here are some popular options:
+
+| Editor | Style | Best For |
+| -- |-- |-- |
+| `nano` | Lightweight / Modeless | Quick, beginner-friendly configuration edits. |
+| `vim`/`neovim` | Modal / Highly Keyboard-Driven | Rapid editing, coding, and heavy terminal workflows. |
+| `micro` | Modern / Modeless | A modern terminal editor with intuitive Ctrl+C/Ctrl+V shortcuts and mouse support. |
+| `helix` | Modal / Modern | A modern, fast terminal editor with built-in language server support and multiple cursors. |
+| `emacs` | Extendable Environment | Users who want an entire operating system of utilities inside their editor. |
+
+If you are new to terminal editors, start with `nano` or `micro`. If you want to learn a more powerful editor, try `vim` or `helix`.
+
 ## Administrative and permissions
+
+Often the permissions of files and folders will need changing. Here are some commands to help you manage permissions and ownership.
 
 !!! Note
     If you get a "Permission Denied" error, you likely need sudo.
-
 
 | Command | Action |
 | -- |-- |
@@ -87,18 +109,9 @@ Essential commands for finding files and file contents.
 | `find . -name "*.txt"` | Finds all .txt files in the current directory and subdirectories. |
 | `[cmd] | grep "word"` | The Pipe (\|) takes the output of one command and sends it to another. |
 
-
-## Stream shortcuts
-
-These operators enable you to pass data between running programs and files.
-
-| Shortcut | Action |
-| -- |-- |
-| `>` | Overwrite: Sends output to a file, deleting whatever was there before. For example, `echo "hello" > file.txt`
-| `>>` | Append: Adds output to the end of a file without deleting the old stuff. For example, `echo "world" >> file.txt`
-| `|` | The Pipe: takes the "Standard Out" of the left command and shoves it into the "Standard In" of the right command. |
-
 ## Essential keyboard shortcuts
+
+There are some essential keyboard shortcuts to help you navigate the terminal more efficiently.
 
 | Shortcut | Action |
 | -- |-- |
@@ -106,8 +119,19 @@ These operators enable you to pass data between running programs and files.
 | `Arrow Up/Down` | Scroll through your previous commands. |
 | `Ctrl + C` | Cancel/Kill the currently running command. |
 
+## Stream shortcuts
+
+Programs and files pass data between themselves using the operators below.
+
+| Shortcut | Action |
+| -- |-- |
+| `>` | Overwrite: Sends output to a file, deleting whatever was there before. For example, `echo "hello" > file.txt`
+| `>>` | Append: Adds output to the end of a file without deleting the old stuff. For example, `echo "world" >> file.txt`
+| `|` | The Pipe: takes the "Standard Out" of the left command and shoves it into the "Standard In" of the right command. |
 
 ## Job queue control
+
+There are commands to manage jobs running in the background or suspended in the terminal. It's important to understand that a job is a command that's running in the terminal. You can have multiple jobs running at the same time, and you can control them using these commands.
 
 | Shortcut/Command | Action |
 | -- |-- |
@@ -121,6 +145,8 @@ These operators enable you to pass data between running programs and files.
 | `kill %[id]` |	Terminates a job in your list using its job number. |
 
 ## Jobs and processes
+
+There are commands available to manage processes and jobs running on your system. A process is a program that's currently running, and each process has a unique Process ID (PID).
 
 | Command | Action |
 | -- |-- |

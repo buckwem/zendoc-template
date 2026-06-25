@@ -65,21 +65,44 @@ As a student, you will be following a simplified workflow, as you aren't working
   <iframe width="560" height="315" src="https://www.youtube.com/embed/ZlabtdA-gZE?si=_3GQjj5C6EDpMP8Z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 </div>
 
-
-!!! warning
-
-    Before releasing your document, comment out the 5 lines of the START HERE section in the zensical.toml file.
-
 ## Zensical for docs-as-code
 
 Zensical provides the themes and tools necessary to draft professionaldocumentation in Markdown with instant local previews. Once finalised, you can publish your site by uploading the files to a Git repository. From there, automated pipelines build and deploy the content into a live website.
 
-[Zensical](https://zensical.org/){target="_blank"}, written for speed and reliability using the [Rust programming language](https://rust-lang.org/){target="_blank"}, publishes this documentation in a website.
+[Zensical](https://zensical.org/){target="_blank"}, written for speed and reliability using the [Rust programming language](https://rust-lang.org/){target="_blank"}, publishes documentation in a website.
 
-You will fork (clone) a documentation template into a project you can use to write your own document or report. To begin creating an environment for writing content to publish on your own static website, follow the instructions below.
+This documentation template is available for you to fork (clone) into a project that you can use to write your own document or report.
 
 !!! tip
 
     These instructions are composed in markdown format, which is processed by Zensical. To view the structure of Markdown files, go to the Git repository for the documentation located at the top right of this page. There, you will find markdown files that serve as examples for writing your documentation.
 
-Start with installing the basic tools for writing your documentation using a Docs-as-code approach.
+## Documentation structure
+
+The documentation for this document template has been split into a number of sections.
+
+`Install core`
+
+The *Install core* section describes how to install the core prerequisite tools and create a fork of the document tamplate. By the end of this section you will have an environment ready to develop your own coursework or documentation. The instructions are available for masOS, Windows 11 and Ubuntu/Debian Linux.
+
+`Install extensions`
+
+The *Install extensions' section describes additional tools that can be installed to help you create quality docs-as-code documents. They will take additional effort to install and configure.
+
+`Customeise`
+
+The 'Customise' section discusses how to configure this template to give it different style and layout to meet your specific needs.
+
+`Markdown basics`
+
+The *Markdown basics* section describes the principles of Markdown and how to use it to write your documentation.
+
+`Zensical basics`
+
+The *Zensical basics* section describes the principles of Zensical and how to use it to create and manage your documentation.
+
+`Shell commands`
+
+The *Shell commands* section describes the shell commands used in this documentation template. It's intended as a reference for you to use when writing your own documentation. Students in the past found these commands helpful.
+
+<br>Continue to the next section to get started with the installation of the core tools and creating a fork of this document template.

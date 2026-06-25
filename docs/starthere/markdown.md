@@ -21,7 +21,11 @@ Markdown is a lightweight markup language that enables you to format plain text 
 
 It's text-based, meaning you can use a text editor to create and edit Markdown files. This makes it highly portable and compatible with version control systems like Git, enabling collaborative editing and tracking of changes over time. Plain text files with the `.md` extension store the Markdown. You can then share, version, and convert these files into HTML for web publishing.
 
-Here is a summary of the most common formatting elements you'll use in a `.md` file.
+Below is a summary of the most common formatting elements you'll use in a `.md` file.
+
+!!! Note "Zensical Markdown"
+
+    Zensical uses a flavour of Markdown called [Python Markdown](https://python-markdown.github.io/){target=_blank} with some extensions. This ensures that your Markdown files are compatible with a wide range of tools and platforms, while also providing additional features for enhanced formatting and functionality. There are some differences between Zensical Markdown and other flavours of Markdown, so it's important to refer to the [Zensical documentation](https://zensical.org/docs/authoring/markdown/){target=_blank} for details.
 
 ## Headers
 

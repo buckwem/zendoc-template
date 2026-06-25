@@ -42,8 +42,19 @@ As a starting point, the documentation template has the following directory stru
 * :material-file-document-outline: `.vale.ini` — Configuration file for Vale, a syntax and style checker.
 * :material-file-document-outline: `requirements.txt` — Lists the Python dependencies required for the project.
 * :material-file-document-outline: `README.md` — The README file for the project, providing an overview and instructions.
-* :material-file-document-outline: `LICENSE.md` — The license file for the project in Markdown format, specifying the terms under which the project can be used and distributed.
+* :material-file-document-outline: `LICENSE.md` — The license file for the project in Markdown format, specifying the terms under which the project can be used and distributed. We've used the MIT license for the project used by Zensical. It's a permissive free software license that allows for reuse within proprietary software provided all copies of the licensed software include a copy of the MIT License terms and the copyright notice.
 * :material-file-document-outline: `.gitignore` — Specifies files and directories to be ignored by Git version control.
 * :material-file-document-outline: `.gitlab-ci.yml` — Configuration file for GitLab CI/CD, defining the pipeline for continuous integration and deployment.
 * :material-folder: `.gitlab/` — Directory containing GitLab-specific configuration files.
     * :material-file-document-outline: `README.md` — README file for the GitLab configuration, providing details about the CI/CD setup.
+
+
+
+
+
+
+
+
+!!! warning
+
+    Before releasing your document, comment out the 5 lines of the START HERE section in the zensical.toml file.

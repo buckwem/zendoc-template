@@ -17,17 +17,21 @@ icon: lucide/book-open
 
 # Install core
 
-We will be going through the steps to install the tools needed to edit your static website. The instructions are for macOS, Windows 11, and Linux (Ubuntu/Debian). If you are using a different operating system, please refer to the official documentation for that operating system.
+This section takes you through the core installation steps for the tools needed to edit your static website. The instructions are for macOS, Windows 11, and Linux (Ubuntu/Debian). If you are using a different operating system, please refer to the official documentation for that operating system.
 
 !!! Tip
     The screenshots below may have small text on your screen. You can click on an image to enlarge it.
 
+Visual Studio Code is the selected as the primary editor for developing your documentation website using Zensical. You can use other editors, but the availability of many plugins in Visual Studio Code will help you edit your documentation more efficiently.
+
+The install and configuration starts with the setup of Visual Studio Code.
+
 ## Setup Visual Studio Code
 
-It's suggested that you use Visual Studio Code with appropriate plugins to edit your static website. Complete the following steps.
+The steps below will help you install Visual Studio Code and the necessary plugins to edit your documentation website. If you have already installed Visual Studio Code, check through the steps to ensure you have the required plugins installed.
 
-1. Register for the [Surrey GitLab instance](https://gitlab.surrey.ac.uk)
-1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS and Windows 11 are below:
+1. Register for the [Surrey GitLab instance](https://gitlab.surrey.ac.uk){target="_blank"}. You will need to use your university email address to register. If you have already registered, you can skip this step.
+2. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, Windows 11, and Linux (Ubuntu/Debian) are below:
     <div class="grid cards one-column" markdown>
     
     -   :material-clock-fast:{ .lg .middle } __Install Visual Studio__
@@ -62,96 +66,113 @@ It's suggested that you use Visual Studio Code with appropriate plugins to edit 
 
     </div>
 
-2. You will be using the university **GitLab** service at [](https://gitlab.surrey.ac.uk) to store your code. You can communicate with **GitLab** using the `git` command.  macOS can comes with the `git` command installed, but it might be an outdated version. For Windows 11, you will need to install`git`. Follow the instructions below to update or install it.
+3. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint){target="_blank"} plugin for Visual Studio Code. This mardownlint extension checks your markdown files using a library of rules to encourage consistent formatting.
+4. Install [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml){target="_blank"} plugin for Visual Studio Code. This extension help manage a [TOML](#download-git-repo-locally){target="_blank"} file.
+5. Install [LTeX+–LanguageTool grammar/spell checking](https://marketplace.visualstudio.com/items?itemName=ltex-plus.vscode-ltex-plus){target="_blank"} to enable spelling and grammar checking for Markdown. Configure the plugin in the setting to use the *language* `en-GB`.
+
+## Setup Git with Visual Studio Code
+
+Next, you will need to install the `git` command and configure the *GitLab* or *GitHub* plugin in Visual Studio Code to use an OAuth login. The instructions below are for both *GitLab* and *GitHub* plugins.
+
+1. You will be using a **GitLab** or **GitHub** service to store your code and will need to install the `git` command. Follow the instructions below to install or update `git` to the latest stable version.
     <div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Install GitLab__
+    -   :material-clock-fast:{ .lg .middle } __Install Git Command__
 
         ---
 
         === "macOS - Homebrew"
 
-            If you use the Homebrew package manager, run this command in your Terminal:
+            If you use the Homebrew package manager, run this command in your Terminal to either install or update `git` to the latest stable version:
+
             ``` bash
+            brew update
             brew install git
             ```
 
         === "Windows 11 - PowerShell"
 
             Open up a **PowerShell** window and install `git` using the command:
-            ```PowerShell
+
+            ``` powershell
             winget install Git.Git
+            ```
+
+            or you can download the official git installer from [git-scm.com](https://git-scm.com/download/win){target="_blank"} and run the installer.
+
+            If you just require an updated version of `git`, you can run the following command in **PowerShell**:
+
+            ``` powershell
+            winget upgrade Git.Git
             ```
 
         === "Linux - Ubuntu/Debian"
 
-            Open a terminal and run the following command to install `git`:
+            Open a terminal and run the following command to install or update `git` to the latest stable version:
             ``` bash
-            sudo apt-get update
-            sudo apt-get install git
+            sudo apt update
+            sudo apt install git
             ```
 
     </div>
 
-3. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint){target="_blank"} plugin for Visual Studio Code. This mardownlint extension checks your markdown files using a library of rules to encourage consistent formatting.
-4. Install [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml){target="_blank"} plugin for Visual Studio Code. This extension help manage a [TOML](#download-git-repo-locally){target="_blank"} file.
-5. Install [LTeX+–LanguageTool grammar/spell checking](https://marketplace.visualstudio.com/items?itemName=ltex-plus.vscode-ltex-plus){target="_blank"} to enable spelling and grammar checking for Markdown. Configure the plugin in the setting to use the *language* `en-GB`.
-6. Install [GitLab](https://marketplace.visualstudio.com/items?itemName=GitLab.gitlab-workflow){target="_blank"} or [GitHub](https://marketplace.visualstudio.com/items?itemName=github.github-vscode-core){target="_blank"} plugin in Visual Studio Code. This will enable you to manage your documentation in GitLab or GitHub.
-7. Create a directory for all your *GitLab* or *GitHub* projects on your local desktop. For example, create a directory called 'GitLab' in your OneDrive directory..
+2. Install [GitLab](https://marketplace.visualstudio.com/items?itemName=GitLab.gitlab-workflow){target="_blank"} or [GitHub](https://marketplace.visualstudio.com/items?itemName=github.github-vscode-core){target="_blank"} plugin in Visual Studio Code. This will enable you to manage your documentation in GitLab or GitHub.
+
+3. Create a directory for all your *GitLab* or *GitHub* projects on your local desktop. For example, create a directory called 'GitLab' in your OneDrive directory..
     
     !!! Tip
         Using OneDrive will give you an additional backup of your GitLab repository.
 
-## Sign-in GitLab or GitHub plugin
+4. Next, configure the *GitLab* or *GitHub* plugin to use an OAuth login. The instructions below are for both *GitLab* and *GitHub* plugins.
 
-Next, configure the *GitLab* or *GitHub* plugin to use an OAuth login. The instructions below are for both *GitLab* and *GitHub* plugins.
-
-<div class="grid cards one-column" markdown>
+    <div class="grid cards one-column" markdown>
         
--   :material-clock-fast:{ .lg .middle } __Install Python and Zensical__
+    -   :material-clock-fast:{ .lg .middle } __Configure GitLab or GitHub Plugin__
 
-    ---
+        ---
 
-    === "GitLab"
+        === "GitLab"
 
-        Configure the *GitLab* plugin to use an OAuth login.
+            Configure the *GitLab* plugin to use an OAuth login.
 
-        1. Open the Command Palette:
-            1. For macOS, press Command+Shift+P.
-            1. For Windows or Linux, press Control+Shift+P.
-        1. Type `Preferences: Open User Settings` and press `Enter`.
-        1. Select **Settings > Extensions > GitLab > Authentication**.
-        1. Under **OAuth Client IDs**, select **Add Item**.
-        1. Select **Key** and enter the GitLab instance address [https://gitlab.surrey.ac.uk](https://gitlab.surrey.ac.uk).
-        1. Select **Value** and enter your university GitLab ID for the OAuth application. For example, `az1234`.
-        1. Select **Scopes** and enter `api read_user read_repository write_repository`.
-        1.  
+            1. Open the Command Palette:
+                1. For macOS, press Command+Shift+P.
+                1. For Windows or Linux, press Control+Shift+P.
+            1. Type `Preferences: Open User Settings` and press `Enter`.
+            1. Select **Settings > Extensions > GitLab > Authentication**.
+            1. Under **OAuth Client IDs**, select **Add Item**.
+            1. Select **Key** and enter the GitLab instance address [https://gitlab.surrey.ac.uk](https://gitlab.surrey.ac.uk).
+            1. Select **Value** and enter your university GitLab ID for the OAuth application. For example, `az1234`.
+            1. Select **Scopes** and enter `api read_user read_repository write_repository`.
+            1. Select **Save** to save the OAuth configuration.  
         
-        !!! Tip
-            You can find your GitLab ID by logging into the university GitLab instance and selecting **Profile > Preferences > Account**. Your GitLab ID is listed under **Username**.
-
+            !!! Tip "Finding your GitLab ID"
+                 You can find your GitLab ID by logging into the **GitLab instance** and selecting **Profile > Preferences > Account**. Your GitLab ID is listed under **Username**.
     
-    === "GitHub"
+        === "GitHub"
 
-        Configure the *GitHub* plugin to use an OAuth login.
+            Configure the *GitHub* plugin to use an OAuth login.
 
-        1. Open the Command Palette:
-            1. For macOS, press Command+Shift+P.
-            1. For Windows or Linux, press Control+Shift+P.
-        1. Type `Preferences: Open User Settings` and press `Enter`.
-        1. Select **Settings > Extensions > GitHub > Authentication**.
-        1. Under **OAuth Client IDs**, select **Add Item**.
-        1. Select **Key** and enter the GitHub instance address [https://github.com](https://github.com).
-        1. Select **Value** and enter your GitHub ID for the OAuth application..
+            1. Open the Command Palette:
+                1. For macOS, press Command+Shift+P.
+                1. For Windows or Linux, press Control+Shift+P.
+            1. Type `Preferences: Open User Settings` and press `Enter`.
+            1. Select **Settings > Extensions > GitHub > Authentication**.
+            1. Under **OAuth Client IDs**, select **Add Item**.
+            1. Select **Key** and enter the GitHub instance address [https://github.com](https://github.com).
+            1. Select **Value** and enter your GitHub ID for the OAuth application.
+            1. Select **Scopes** and enter `repo read:org`.
+            1. Select **Save** to save the OAuth configuration.
 
-</div>
-
+    </div>
 
 ## Clone the doc-template
 
+This section takes you through the steps to clone the documentation template into your own GitLab or GitHub repository. You will then be able to edit the template and publish your own documentation website.
 
+You may already have a GitLab or GitHub repository containing a Zensical template provided for you. If you do, you can skip this section and go to the next section to download the repository locally.
 
-2. Click on the link to [fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/doc-template/-/forks/new){target="_blank"} to create a copy of the template for your use.
+1. Click on the link to [fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/doc-template/-/forks/new){target="_blank"} to create a copy of the template for your use.
 
     !!! Tip
         Make sure you are logged into GitLab or GitHub before clicking the link. If you are not logged in, you will be prompted to log in first.

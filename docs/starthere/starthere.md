@@ -43,15 +43,15 @@ To move from using a word processor or simple website to a scalable and effectiv
 
 `Authoring tool`
 
-Effective documentation depends on tools that help with content editing and automate quality checks, including spelling, grammar, style and formatting consistency. While there are numerous text editors available, Visual Studio Code stands out as a favoured option due to its extensive ecosystem of extensions. By using Visual Studio Code, writers can take advantage of a variety of extensions that offer real-time quality assurance. 
+: Effective documentation depends on tools that help with content editing and automate quality checks, including spelling, grammar, style and formatting consistency. While there are numerous text editors available, Visual Studio Code stands out as a favoured option due to its extensive ecosystem of extensions. By using Visual Studio Code, writers can take advantage of a variety of extensions that offer real-time quality assurance. 
 
 `Docs-as-code builder`
 
-Markdown files can serve as a foundation for a static website. However, they often require enhanced formatting options through additional themes and styling. A docs-as-code builder then transforms the Markdown and supplementary instructions into HTML, applying a theme to generate a professional-looking website. Zensical is a fast and reliable docs-as-code builder designed to process Markdown files and create a static documentation website. It enables the website to be viewed locally before publishing, ensuring that the final output meets quality standards.
+: Markdown files can serve as a foundation for a static website. However, they often require enhanced formatting options through additional themes and styling. A docs-as-code builder then transforms the Markdown and supplementary instructions into HTML, applying a theme to generate a professional-looking website. Zensical is a fast and reliable docs-as-code builder designed to process Markdown files and create a static documentation website. It enables the website to be viewed locally before publishing, ensuring that the final output meets quality standards.
 
 `Code Repository and Management`
 
-By connecting directly to a Git repository, this integrated environment establishes a secure, centralised vault that tracks the history of project files. Each modification is recorded as a distinct commit, enabling users to audit changes or revert to earlier versions if errors arise. Prior to finalising any work, a pull request prompts a peer-review process that allows collaborators to comment on, test, and approve the updates. This workflow ensures that only vetted, high-quality content is prepared for final publication.
+: By connecting directly to a Git repository, this integrated environment establishes a secure, centralised vault that tracks the history of project files. Each modification is recorded as a distinct commit, enabling users to audit changes or revert to earlier versions if errors arise. Prior to finalising any work, a pull request prompts a peer-review process that allows collaborators to comment on, test, and approve the updates. This workflow ensures that only vetted, high-quality content is prepared for final publication.
 
 !!! note "Why not LaTeX?"
 
@@ -81,28 +81,32 @@ This documentation template is available for you to fork (clone) into a project 
 
 The documentation for this document template has been split into a number of sections.
 
-`Install core`
+`Install tooling`
 
-The *Install core* section describes how to install the core prerequisite tools and create a fork of the document tamplate. By the end of this section you will have an environment ready to develop your own coursework or documentation. The instructions are available for masOS, Windows 11 and Ubuntu/Debian Linux.
+: The [*Install tooling*](./installtooling.md) section describes how to install the core prerequisite tools and create a fork of the document template. By the end of this section you will have an environment ready to develop your own coursework or documentation. The instructions are available for macOS, Windows 11, and Ubuntu/Debian Linux.
 
-`Install extensions`
+`Start editing`
 
-The *Install extensions' section describes additional tools that can be installed to help you create quality docs-as-code documents. They will take additional effort to install and configure.
+: The [*Start editing*](./startediting.md) section describes how to edit the documentation and view the changes locally before publishing to a Git repository. It also describes how to synchronise your changes with the Git repository.
 
-`Customeise`
+`Customise`
 
-The 'Customise' section discusses how to configure this template to give it different style and layout to meet your specific needs.
+: The [*Customise*](./customise.md) section discusses how to configure this template to give it different style and layout to meet your specific needs.
 
 `Markdown basics`
 
-The *Markdown basics* section describes the principles of Markdown and how to use it to write your documentation.
+The [*Markdown basics*](./markdown.md) section describes the principles of Markdown and how to use it to write your documentation.
 
 `Zensical basics`
 
-The *Zensical basics* section describes the principles of Zensical and how to use it to create and manage your documentation.
+: The [*Zensical basics*](./zensicalbasics.md) section describes the principles of Zensical and how to use it to create and manage your documentation.
+
+`Additional tooling`
+
+: The [*Additional tooling*](additionaltooling.md) section describes additional tools that can be installed to help you create quality docs-as-code documents. They will take additional effort to install and configure.
 
 `Shell commands`
 
-The *Shell commands* section describes the shell commands used in this documentation template. It's intended as a reference for you to use when writing your own documentation. Students in the past found these commands helpful.
+: The [*Shell commands*](./shcommands.md) section describes the shell commands used in this documentation template. It's intended as a reference for you to use when writing your own documentation. Students in the past found these commands helpful.
 
-<br>Continue to the next section to get started with the installation of the core tools and creating a fork of this document template.
+Continue to the next section to get started with the installation of the core tools and creating a fork of this document template.

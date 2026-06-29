@@ -45,7 +45,7 @@ repo_name = "doc-template"
 # Copyright &copy; 2026 <copyright holder>
 # """
 copyright = """
-Author: Mark Buckwell
+Author: Mark Buckwell and contributors. Licensed under the MIT License.
 """
 
 # Zensical supports both implicit navigation and explicitly defined navigation.
@@ -67,17 +67,18 @@ nav = [
     {"2. Section" = "section2.md"},
     {"3. Section" = "section3.md"},
     {"4. Section" = "section4.md"}
-# Comment out the START HERE section (5 lines) before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.
+  # Comment out the START HERE section (5 lines) before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.
   ]},
     {"START HERE" = [
       {"1. Start Here" = "starthere/starthere.md"},
-      {"2. Install core" = "starthere/installcore.md"},
-      {"3. Install extensions" = "starthere/installextensions.md"},
-      {"4. Customise" = "starthere/customise.md"},
-      {"5. Markdown basics" = "starthere/markdown.md"},
-      {"6. Zensical basics" = "starthere/zensicalbasics.md"},
-      {"7. Shell commands" = "starthere/shcommands.md"}
-# Comment until here before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.
+      {"2. Install tooling" = "starthere/installtooling.md"},
+      {"3. Start editing" = "starthere/startediting.md"},
+      {"4. Markdown basics" = "starthere/markdown.md"},
+      {"5. Zensical basics" = "starthere/zensicalbasics.md"},
+      {"6. Customise" = "starthere/customise.md"},
+      {"7. Additional tooling" = "starthere/additionaltooling.md"},
+      {"8. Shell commands" = "starthere/shcommands.md"}
+  # Comment until here before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.
   ]}
 ]
 
@@ -109,8 +110,8 @@ extra_javascript = [
 # ----------------------------------------------------------------------------
 [project.theme]
 
-# The black logo for light mode is set below.
-# the white logo for dark mode is in the extra.css file, so we don't need to set it here.
+# Logo is set in the extra.css file for light and dark mode.
+# Leave this set by default to use the Zensical logo. You can also set your own logo here.
 logo = "assets/logo_black.png"
 
 # change this to "classic" to use the traditional Material for MkDocs look.
@@ -416,5 +417,18 @@ custom_checkbox = true
 [project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.blocks.caption]
 [project.markdown_extensions.zensical.extensions.glightbox]
+
+
+[project.markdown_extensions.zensical.extensions.macros]
+module_name = "macros"
+
+[project.plugins.mkdocstrings.handlers.python]
+inventories = ["https://docs.python.org/3/objects.inv"]
+paths = ["src"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+inherited_members = true
+show_source = false
 
 # [project.markdown_extensions."neoteroi.spantable"]

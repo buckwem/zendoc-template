@@ -3,4 +3,5 @@
 # All contributions are certified under the DCO
 
 # File to list prerequisites for the project. This file is used by the CI/CD pipeline to install dependencies before building the documentation.
+mkdocstrings-python
 zensical

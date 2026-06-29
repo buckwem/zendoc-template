@@ -9,9 +9,9 @@ icon: lucide/book-open
 -->
 
 <style>
-  /* Reset the page and sidebar to start at 6 */
-  .md-typeset { counter-reset: h1-count 5 !important; }
-  .md-nav--primary { counter-reset: toc1 6 !important; }
+  /* Reset the page and sidebar to start at 8 */
+  .md-typeset { counter-reset: h1-count 7 !important; }
+  .md-nav--primary { counter-reset: toc1 8 !important; }
   /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
 </style>
 

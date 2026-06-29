@@ -8,10 +8,17 @@ All contributions are certified under the DCO
 /* ================ Style for slate theme logo= ================ */
 /* ============================================================= */
 
-# The white logo for dark mode is below.
-# The black logo for light mode is in the zensical.toml file and we don't need to set it here.
+/* If you want to use a different logo, just replace the two png files. */
+/* Don't modify this code, as it will be overwritten if the template is updated. */
+
+/* Dark Mode -> Physically swap to the white logo asset */
 [data-md-color-scheme="slate"] .md-logo img {
   content: url("../assets/logo_white.png");
+}
+
+/* Surrey Light Mode -> Force a specific black logo asset */
+[data-md-color-scheme="default"] .md-logo img {
+  content: url("../assets/logo_black.png");
 }
 
 /* ============================================================= */
@@ -155,7 +162,7 @@ All contributions are certified under the DCO
 }
 
 /* ============================================================= */
-/* ============= Styles for test background colour ============= */
+/* ============= Styles for text background colour ============= */
 /* ============================================================= */
 
 .bg-blue {
@@ -163,5 +170,21 @@ All contributions are certified under the DCO
     color: #ffffff;
     padding: 2px 4px;
     border-radius: 4px;
-    font-weight: normal;
+    font-weight: bold;
+}
+
+.bg-green {
+    background-color: #029e50;
+    color: #ffffff;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.bg-grey {
+    background-color: #6e6d6dca;
+    color: #ffffff;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: bold;
 }

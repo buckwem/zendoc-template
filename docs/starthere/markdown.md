@@ -9,15 +9,15 @@ icon: lucide/book-open
 -->
 
 <style>
-  /* Reset the page and sidebar to start at 5 */
-  .md-typeset { counter-reset: h1-count 4 !important; }
-  .md-nav--primary { counter-reset: toc1 5 !important; }
+  /* Reset the page and sidebar to start at 4 */
+  .md-typeset { counter-reset: h1-count 3 !important; }
+  .md-nav--primary { counter-reset: toc1 4 !important; }
   /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
 </style>
 
 # Markdown basics
 
-Markdown is a lightweight markup language that enables you to format plain text using a simple syntax. It's easy to read and easy to write, eventually converting into structurally valid HTML, and is widely used for documentation, readme files, and content management systems. It enables you to focus on writing without worrying about complex formatting, making it an ideal choice for collaborative documentation projects.
+[Markdown](https://www.markdownguide.org/){target="_blank"} is a lightweight markup language that enables you to format plain text using a simple syntax. It's easy to read and easy to write, eventually converting into structurally valid HTML, and is widely used for documentation, readme files, and content management systems. It enables you to focus on writing without worrying about complex formatting, making it an ideal choice for collaborative documentation projects.
 
 It's text-based, meaning you can use a text editor to create and edit Markdown files. This makes it highly portable and compatible with version control systems like Git, enabling collaborative editing and tracking of changes over time. Plain text files with the `.md` extension store the Markdown. You can then share, version, and convert these files into HTML for web publishing.
 
@@ -26,6 +26,9 @@ Below is a summary of the most common formatting elements you'll use in a `.md` 
 !!! Note "Zensical Markdown"
 
     Zensical uses a flavour of Markdown called [Python Markdown](https://python-markdown.github.io/){target=_blank} with some extensions. This ensures that your Markdown files are compatible with a wide range of tools and platforms, while also providing additional features for enhanced formatting and functionality. There are some differences between Zensical Markdown and other flavours of Markdown, so it's important to refer to the [Zensical documentation](https://zensical.org/docs/authoring/markdown/){target=_blank} for details.
+
+!!! Tip "Markdown Live Preview"
+    You can use the [Markdown Live Preview](https://markdownlivepreview.com/){target=_blank} website to see how your Markdown will look when rendered. This is a great way to quickly check your formatting and make adjustments as needed.
 
 ## Headers
 

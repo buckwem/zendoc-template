@@ -37,14 +37,13 @@ Some examples of Zensical syntax are below. For full documentation visit [zensic
 
 ### Lists within lists
 
-Zensical supports nested lists. You can create a list within a list by indenting the inner list by 4 spaces.
+Markdown supports nested lists by indenting the inner list by four spaces. This is an implementation-specific feature of Python Markdown used by Zensical, and isn't part of the original Markdown specification.
 
-!!! warning "The 4 Space Rule"
+!!! warning "The Four Space Rule"
 
-    If you are nesting Tabs, Admonitions, or Code Blocks inside a list, you must indent by exactly 4 spaces. If your ordered list numbering resets to "1", check your indentation!
+    If you are nesting Tabs, Admonitions, or Code Blocks inside a list, you must indent by exactly 4 spaces. If your ordered list numbering resets to "1", check your indentation! Further information is on the [Zensical authoring section](https://zensical.org/docs/authoring/markdown/).
 
 ### Admonitions
-
 
 Zensical supports admonitions, that highlight blocks of content to draw attention to important information. Admonitions are available for notes, warnings, tips, and more. For further details, go to the [admonitions documentation](https://zensical.org/docs/authoring/admonitions/).
 
@@ -111,9 +110,10 @@ Zensical supports Markdown image syntax using the `<figure>` tag to add captions
 
 Zensical supports [Mermaid](https://mermaid.js.org/){target="_blank"} diagrams. You can create flowcharts, sequence diagrams, and more. For further details, go to the [diagrams documentation](https://zensical.org/docs/authoring/diagrams/).
 
+{% if is_surrey %}
 !!! note
-
-    The COMM058 Architectural Thinking for Security module does not use any of these documentation types.
+    The COMM058 Architectural Thinking for Security module doesn't use any of these documentation types. It's better that you use draw.io to create your diagrams and export them as images to include in your documentation. Use the downloadable version of draw.io, not the web version, as it's much easier to edit. Also, if you are using draw.io in your working life, your company may have a policy that cloud services can't be used unless it's a paid and approved for hosting confidential company data.
+{% endif %}
 
 ``` mermaid
 graph LR

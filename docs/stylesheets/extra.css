@@ -4,12 +4,23 @@ SPDX-License-Identifier: MIT
 All contributions are certified under the DCO
 */
 
+
+/* ============================================================= */
+/* ============ Makes the top-level menu tabs bold ============= */
+/* ============================================================= */
+.md-tabs__link {
+  font-weight: 500;
+  font-size: 0.85rem;      /* Default is roughly 0.75rem */
+}
+
 /* ============================================================= */
 /* ================ Style for slate theme logo= ================ */
 /* ============================================================= */
 
-/* If you want to use a different logo, just replace the two png files. */
-/* Don't modify this code, as it will be overwritten if the template is updated. */
+/* If you want to use a different logo, just replace the two png files.
+   Don't modify this code, as it will be overwritten if the template is updated. */
+/* If you want to change the logo, use the copy code at the top of index.md 
+   to override the default logo with your own. */
 
 /* Dark Mode -> Physically swap to the white logo asset */
 [data-md-color-scheme="slate"] .md-logo img {

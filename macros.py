@@ -1,5 +1,7 @@
 import os
 import subprocess
+import shutil
+from pathlib import Path
 
 # This function is called by Zensical to identify whether the documentation is being built
 # in a Surrey GitLab CI/CD Pipeline or if the repository URL contains the domain `surrey.gitlab.ac.uk`.
@@ -41,3 +43,27 @@ def define_env(env):
 
     # Bind the variable to your markdown files
     env.variables['is_surrey'] = final_result
+
+    # ==========================================
+    # 2. CUSTOM MACROS
+    # ==========================================
+    @env.macro
+    def copy_file(source: str, destination: str):
+        """Copies a resource to the specified destination path during build time.
+        Useful for including images, PDFs, or other assets in your documentation.
+        or to override default assets in the template (like logos or favicons)."""
+        src_path = Path(source)
+        dest_path = Path(destination)
+        
+        if not src_path.exists():
+            return f"**Macro Error:** Source file `{source}` not found."
+            
+        # Automatically make parent directories if they don't exist yet
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Copy the file (shutil.copy2 preserves metadata)
+        shutil.copy2(src_path, dest_path)
+        
+        # Return a silent HTML comment so it doesn't print text on your page
+        return f""
+    

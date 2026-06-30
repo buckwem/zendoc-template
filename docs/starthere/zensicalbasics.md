@@ -41,7 +41,7 @@ Markdown supports nested lists by indenting the inner list by four spaces. This 
 
 !!! warning "The Four Space Rule"
 
-    If you are nesting Tabs, Admonitions, or Code Blocks inside a list, you must indent by exactly 4 spaces. If your ordered list numbering resets to "1", check your indentation! Further information is on the [Zensical authoring section](https://zensical.org/docs/authoring/markdown/).
+    If you are nesting Tabs, Admonitions, or Code Blocks inside a list, you must indent by exactly 4 spaces. If your ordered list numbering resets to "1", check your indentation! Further background information is on the [Zensical authoring section](https://zensical.org/docs/authoring/markdown/).
 
 ### Admonitions
 

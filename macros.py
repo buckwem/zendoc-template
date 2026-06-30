@@ -43,6 +43,7 @@ def define_env(env):
 
     # Bind the variable to your markdown files
     env.variables['is_surrey'] = final_result
+    # env.variables['is_surrey'] = False  # This line is for testing purposes; remove it in production to enable the macro.
 
     # ==========================================
     # 2. CUSTOM MACROS

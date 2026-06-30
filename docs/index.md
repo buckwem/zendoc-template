@@ -32,20 +32,24 @@ hide:
 -->
 # Cover Page
 
+<!--
+/*================== TITLE PAGE SURREY GITLAB ==================*/ 
+-->
+{% if is_surrey %}
+
 <!-- The align attribute does not support centering.
      so we use a blank caption to centre an image.
      We also suppport swapping of the logo to 
      support a dark and light theme
 -->
 
-![](./assets/cover-centre-logo-black.png#only-light){ width="40%" }
-![](./assets/cover-centre-logo-white.png#only-dark){ width="40%" }
+![](assets/cover-centre-logo-black.png#only-light){ width="40%" }
+![](assets/cover-centre-logo-white.png#only-dark){ width="40%" }
 /// caption
 
 ///
 
 <!-- the different title line use styles defined in the extras.css file -->
-
 <p class="title-ctr-b4">
 Faculty of Engineering and Physical Sciences<br>
 School of Computer Science and Electronic Engineering</p>
@@ -53,7 +57,28 @@ School of Computer Science and Electronic Engineering</p>
 <p class="title-ctr-4">
 MSc programmes in Computer Science</p>
 
-<p class="title-ctr-b2">module_id – module_name</p>
+
+<p class="title-ctr-b2">module_id - module_name</p>
+
+<!--
+/*================== TITLE PAGE GITHUB OR OTHER GITLAB ==================*/
+-->
+{% else %}
+
+![](assets/logo_eagle_black.png#only-light){ width="10%" }
+![](assets/logo_eagle_white.png#only-dark){ width="60%" }
+/// caption
+
+///
+
+<!-- the different title line use styles defined in the extras.css file -->
+<p class="title-ctr-b4">
+Crested Eagle Labs<br>
+University of the World</p>
+
+<p class="title-ctr-4">
+Research programmes in Cyber Security</p>
+{% endif %}
 
 <br>
 <br>

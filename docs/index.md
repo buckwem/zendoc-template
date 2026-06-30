@@ -14,6 +14,11 @@ hide:
 <!-- Hide heading 1 on the page as hide: title does not seem to work -->
 <style> .md-typeset h1 { display: none; } </style>
 
+<!-- We still need a title set for the next/previous page navigation
+     to work, so we set it here but hide it from the page.
+-->
+# Cover Page
+
 <!--
   The following code is used to swap the logo depending on whether the documentation is being built
   in a Surrey GitLab CI/CD Pipeline or if the repository URL contains the domain `surrey.gitlab.ac.uk`.
@@ -26,11 +31,6 @@ hide:
 {{ copy_file('docs/assets/logo_eagle_white.png', 'docs/assets/logo_white.png') }}
 {{ copy_file('docs/assets/logo_eagle_black.png', 'docs/assets/logo_black.png') }}
 {% endif %}
-
-<!-- We still need a title set for the next/previous page navigation
-     to work, so we set it here but hide it from the page.
--->
-# Cover Page
 
 <!--
 /*================== TITLE PAGE SURREY GITLAB ==================*/ 

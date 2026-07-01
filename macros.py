@@ -9,6 +9,9 @@ from pathlib import Path
 # files to conditionally display content based on the build environment.
 
 def define_env(env):
+    # ==========================================
+    # 1. SURREY ENVIRONMENT DETECTION LOGIC
+    # ==========================================
     target_domain = 'surrey.ac.uk'
 
     # Check 1: GitLab CI/CD Pipeline environment
@@ -37,16 +40,43 @@ def define_env(env):
 
     # Combine all checks: If ANY layer detects the domain, set to True
     final_result = is_surrey_ci or is_surrey_local_git or is_surrey_in_config
-
-    # Live console debugging log (Visible when you run zensical serve/build)
-    # print(f"\n[Is Surrey Macro Debug] CI: {is_surrey_ci} | Local Git: {is_surrey_local_git} | Config Scan: {is_surrey_in_config} => is_surrey = {final_result}\n")
+    # final_result = False  # This line is for testing purposes; remove it in production to enable the macro.
 
     # Bind the variable to your markdown files
     env.variables['is_surrey'] = final_result
-    env.variables['is_surrey'] = False  # This line is for testing purposes; remove it in production to enable the macro.
+    
+    # ==========================================
+    # 2. GLOBAL LOGO SWAP ON STARTUP
+    # ==========================================
+    # This runs unconditionally when 'zensical serve' or 'zensical build' starts
+    # The code is used to swap the logo depending on whether the documentation is being built
+    # in a Surrey GitLab CI/CD Pipeline or if the repository URL contains the domain `surrey.gitlab.ac.uk`.
+    # This allows for the use of a different logo for the University of Surrey and other environments.
+    try:
+        # Define paths safely using Path
+        dest_white = Path('docs/assets/logo_white.png')
+        dest_black = Path('docs/assets/logo_black.png')
+
+        # Ensure the destination folder exists
+        dest_white.parent.mkdir(parents=True, exist_ok=True)
+
+        if final_result:
+            # If Surrey environment, copy Surrey logos
+            shutil.copy2('docs/assets/logo_surrey_white.png', dest_white)
+            shutil.copy2('docs/assets/logo_surrey_black.png', dest_black)
+            print("[Zensical Startup] Applied Surrey branding logos.")
+        else:
+            # Otherwise, copy Eagle logos
+            shutil.copy2('docs/assets/logo_default_white.png', dest_white)
+            shutil.copy2('docs/assets/logo_default_black.png', dest_black)
+            print("[Zensical Startup] Applied default branding logos.")
+            
+    except FileNotFoundError as e:
+        print(f"[Zensical Startup Warning] Could not copy logos: {e}")
+        print("Please ensure logo_surrey_*.png and logo_default_*.png exist in docs/assets/")
 
     # ==========================================
-    # 2. CUSTOM MACROS
+    # 3. CUSTOM MACROS
     # ==========================================
     @env.macro
     def copy_file(source: str, destination: str):

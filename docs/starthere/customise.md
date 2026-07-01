@@ -53,6 +53,13 @@ As a starting point, the documentation template has the following directory stru
 
 
 
+### Changing the site logo
+
+If the documentation website is part of the university's GitLab service or the location of the website is hosted under the University of Surrey domain, the site logo is automatically changed to the University of Surrey logo. Otherwise, the site logo will use the default logos in the `docs/assets/` directory. You can change the default logo by replacing the existing default logo files with your own logo files named `logo_default_black.png` and `logo_default_white.png`.
+
+
+
+
 
 
 !!! warning

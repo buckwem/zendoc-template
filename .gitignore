@@ -32,3 +32,4 @@ trace.json
 tmp
 .cache/
 public/
+docs/*.pdf

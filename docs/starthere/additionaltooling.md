@@ -118,6 +118,7 @@ sudo apt install fonts-inter fonts-jetbrains-mono
 ```
 
 ```Powershell
+choco install pandoc weasyprint
 choco install inter-font jetbrainsmono
 ``` 
 

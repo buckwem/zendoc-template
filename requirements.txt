@@ -8,4 +8,4 @@ mkdocstrings-python
 pandoc
 toml
 wkhtmltopdf
-BeautifulSoup
+beautifulsoup4

@@ -9,6 +9,7 @@ pages:
     - pages
   script:
     - pip install -r requirements.txt
+    - python build_pdf.py
     - zensical build --clean 
   pages:
     publish: public

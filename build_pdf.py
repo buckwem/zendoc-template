@@ -83,26 +83,20 @@ def main():
         print("❌ Error: No valid markdown files found.")
         sys.exit(1)
         
-    # 🔤 Extract font options from zensical.toml
+    # Extract font options from configuration
     theme_section = project_section.get('theme', {}) if isinstance(project_section, dict) else config.get('theme', {})
     font_section = theme_section.get('font', {}) if isinstance(theme_section, dict) else {}
     
-    # Defaults used by Zensical framework out-of-the-box
     main_font = "Inter"
     mono_font = "JetBrains Mono"
-    
     if isinstance(font_section, dict):
         main_font = font_section.get('text', main_font)
         mono_font = font_section.get('code', mono_font)
-    elif font_section is False:
-        # If user explicitly disabled Google Fonts fallback in site configurations
-        main_font = None
-        mono_font = None
 
     temp_build_dir = "pdf_build_workspace"
     os.makedirs(temp_build_dir, exist_ok=True)
     
-    print("🧹 Preprocessing markdown files and breaking blockquote continuations...")
+    print("🧹 Preprocessing markdown files...")
     processed_paths = []
     for path in valid_paths:
         safe_name = path.replace('/', '_').replace('\\', '_')
@@ -122,55 +116,81 @@ def main():
     else:
         compiled_paths = [toc_trigger_path] + processed_paths
 
-    # Set up global blockquote style overrides
-    style_header_path = os.path.join(temp_build_dir, "admonition_styles.tex")
-    with open(style_header_path, "w", encoding="utf-8") as f:
-        f.write(
-            "\\usepackage{xcolor}\n"
-            "\\usepackage[framemethod=default]{mdframed}\n"
-            "\\renewenvironment{quote}{\n"
-            "  \\begin{mdframed}[\n"
-            "    backgroundcolor=gray!10,\n"
-            "    linecolor=gray!40,\n"
-            "    linewidth=0.4mm,\n"
-            "    roundcorner=1mm,\n"
-            "    innerleftmargin=12pt,\n"
-            "    innerrightmargin=12pt,\n"
-            "    innertopmargin=10pt,\n"
-            "    innerbottommargin=10pt,\n"
-            "    skipabove=\\medskipamount,\n"
-            "    skipbelow=\\medskipamount\n"
-            "  ]\n"
-            "}{\n"
-            "  \\end{mdframed}\n"
-            "}\n"
-        )
-
     output_pdf = "site_documentation.pdf"
     
+    # Base command arguments shared across environments
     cmd = [
         "pandoc",
         *compiled_paths,
         "-o", output_pdf,
-        "--pdf-engine=/Library/TeX/texbin/xelatex",
         "-f", "markdown",
         "-V", "papersize=a4",
-        "-V", "geometry=margin=2cm",
-        f"--include-in-header={style_header_path}"
+        "-V", "geometry=margin=2cm"
     ]
     
-    # Append the fonts to the execution parameters if discovered
-    if main_font:
-        print(f"🎨 Setting Document Font: {main_font}")
-        cmd.extend(["-V", f"mainfont={main_font}"])
-    if mono_font:
-        print(f"💻 Setting Monospace Code Font: {mono_font}")
-        cmd.extend(["-V", f"monofont={mono_font}"])
-    
-    print(f"🚀 Compiling print-ready PDF structure via MacTeX...")
+    # 🌎 Operating System Detection Split
+    if sys.platform.startswith('linux'):
+        print("🐧 Linux detected. Setting up WeasyPrint pipeline...")
+        
+        style_file_path = os.path.join(temp_build_dir, "admonition_styles.css")
+        with open(style_header_path := style_file_path, "w", encoding="utf-8") as f:
+            f.write(f"""
+            /* Style blockquotes natively converted from admonitions */
+            blockquote {{
+                background-color: #f2f2f2 !important;
+                border: 0.4mm solid #cccccc !important;
+                border-radius: 4px !important;
+                padding: 12pt !important;
+                margin: 12pt 0 !important;
+            }}
+            /* Map web typography settings for WeasyPrint */
+            body {{
+                font-family: "{main_font}", "Helvetica", sans-serif;
+            }}
+            code, pre {{
+                font-family: "{mono_font}", "Menlo", monospace;
+            }}
+            """)
+        
+        # Inject the custom style instructions via CSS flag
+        cmd.extend(["--pdf-engine=weasyprint", f"--css={style_file_path}"])
+        
+    else:
+        print("🍎/🪟 macOS or Windows detected. Setting up MacTeX/XeLaTeX pipeline...")
+        
+        style_file_path = os.path.join(temp_build_dir, "admonition_styles.tex")
+        with open(style_header_path := style_file_path, "w", encoding="utf-8") as f:
+            f.write(
+                "\\usepackage{xcolor}\n"
+                "\\usepackage[framemethod=default]{mdframed}\n"
+                "\\renewenvironment{quote}{\n"
+                "  \\begin{mdframed}[\n"
+                "    backgroundcolor=gray!10,\n"
+                "    linecolor=gray!40,\n"
+                "    linewidth=0.4mm,\n"
+                "    roundcorner=1mm,\n"
+                "    innerleftmargin=12pt,\n"
+                "    innerrightmargin=12pt,\n"
+                "    innertopmargin=10pt,\n"
+                "    innerbottommargin=10pt,\n"
+                "    skipabove=\\medskipamount,\n"
+                "    skipbelow=\\medskipamount\n"
+                "  ]\n"
+                "}{\n"
+                "  \\end{mdframed}\n"
+                "}\n"
+            )
+            
+        cmd.extend(["--pdf-engine=/Library/TeX/texbin/xelatex", f"--include-in-header={style_file_path}"])
+        if main_font:
+            cmd.extend(["-V", f"mainfont={main_font}"])
+        if mono_font:
+            cmd.extend(["-V", f"monofont={mono_font}"])
+
+    print(f"🚀 Running compilation engine...")
     try:
         subprocess.run(cmd, check=True)
-        print(f"\n🎉 Success! Custom site typography applied. PDF generated: {output_pdf}")
+        print(f"\n🎉 Success! PDF generated cleanly via custom OS environment mapping: {output_pdf}")
     except subprocess.CalledProcessError:
         print("\n❌ Error: Pandoc failed to compile the PDF.")
     finally:

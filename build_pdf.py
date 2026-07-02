@@ -116,7 +116,7 @@ def main():
     else:
         compiled_paths = [toc_trigger_path] + processed_paths
 
-    output_pdf = "site_documentation.pdf"
+    output_pdf = "docs/site_documentation.pdf"
     
     # Base command arguments shared across environments
     cmd = [

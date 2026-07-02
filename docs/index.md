@@ -14,6 +14,8 @@ hide:
 <!-- Hide heading 1 on the page as hide: title does not seem to work -->
 <style> .md-typeset h1 { display: none; } </style>
 
+[:material-file-pdf-box: Download Documentation PDF](site_documentation.pdf){ .md-button target="_blank"}
+
 <!-- We still need a title set for the next/previous page navigation
      to work, so we set it here but hide it from the page.
 -->

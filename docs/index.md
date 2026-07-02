@@ -11,12 +11,10 @@ hide:
 # All contributions are certified under the DCO
 -->
 
-<!-- Hide heading 1 on the page as hide: title does not seem to work -->
-<style> .md-typeset h1 { display: none; } </style>
-
 [:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;"}
 
-
+<!-- Hide heading 1 on the page as hide: title does not seem to work -->
+<style> .md-typeset h1 { display: none; } </style>
 <!-- We still need a title set for the next/previous page navigation
      to work, so we set it here but hide it from the page.
 -->
@@ -27,11 +25,15 @@ hide:
 -->
 {% if is_surrey %}
 
+
 <!-- The align attribute does not support centering.
      so we use a blank caption to centre an image.
      We also suppport swapping of the logo to 
      support a dark and light theme
 -->
+<br>
+<br>
+<br>
 ![](assets/cover-centre-logo-black.png#only-light){ width="40%" }
 ![](assets/cover-centre-logo-white.png#only-dark){ width="40%" }
 /// caption
@@ -39,12 +41,11 @@ hide:
 ///
 
 <!-- the different title line use styles defined in the extras.css file -->
-<p class="title-ctr-b4">
-Faculty of Engineering and Physical Sciences<br>
-School of Computer Science and Electronic Engineering</p>
+<p class="title-ctr-b4"> Faculty of Engineering and Physical Sciences</p>
 
-<p class="title-ctr-4">
-MSc programmes in Computer Science</p>
+<p class="title-ctr-b4"> School of Computer Science and Electronic Engineering</p>
+
+<p class="title-ctr-4"> MSc programmes in Computer Science</p>
 
 
 <p class="title-ctr-b2">module_id - module_name</p>
@@ -62,7 +63,9 @@ MSc programmes in Computer Science</p>
 
 <!-- the different title line use styles defined in the extras.css file -->
 <p class="title-ctr-b4">
-Crested Eagle Labs<br>
+Crested Eagle Labs</p>
+
+<p class="title-ctr-b4">
 University of the World</p>
 
 <p class="title-ctr-4">

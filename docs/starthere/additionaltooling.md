@@ -71,7 +71,8 @@ First install `pandoc` if you haven't already. You can find installation instruc
     === "macOS using Homebrew"
 
         ``` bash
-        brew install pandoc
+        brew install pandoc mactex-fonts-recommended mactex
+        brew install --cask font-inter font-jetbrains-mono
         ```
 
     === "Windows 11 using PowerShell"
@@ -80,11 +81,18 @@ First install `pandoc` if you haven't already. You can find installation instruc
         winget install jgm.pandoc
         ```
 
+        For Windows 11, download and install MiKTex from [https://miktex.org/download](https://miktex.org/download){target="_blank"} and then run the following commands in a PowerShell session running as an administrator:   
+
+        ```Powershell
+        choco install inter-font jetbrainsmono
+        ```
+
     === "Linux (Ubuntu/Debian) using bash"
 
         ``` bash
-        sudo apt update
-        sudo apt install pandoc
+        apt-get update
+        apt-get install -y pandoc texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra
+        apt-get install -y fonts-inter fonts-jetbrains-mono
         ```
 
 </div>
@@ -102,25 +110,6 @@ Then you can count the total number of words in a Markdown file by running the f
 ```bash
 find docs -name "*.md" -exec pandoc -f markdown-yaml_metadata_block -t plain {} + | wc -w
 ```
-
-### ßInstall for pdf generation
-
-
-```bash
-brew install pandoc weasyprint
-brew install --cask font-inter font-jetbrains-mono
-```
-
-```bash
-sudo apt update
-sudo apt install pandoc weasyprint
-sudo apt install fonts-inter fonts-jetbrains-mono
-```
-
-```Powershell
-choco install pandoc weasyprint
-choco install inter-font jetbrainsmono
-``` 
 
 
 ## Installing GitLab or GitHub extensions

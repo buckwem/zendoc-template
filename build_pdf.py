@@ -49,7 +49,7 @@ def preprocess_markdown(file_path, output_path):
                 new_lines.append("> ")
             else:
                 in_admonition = False
-                new_lines.append("")  
+                new_lines.append("")  # Force-inject empty line to break lazy blockquotes
                 new_lines.append(line)
         else:
             new_lines.append(line)
@@ -83,7 +83,7 @@ def main():
         print("❌ Error: No valid markdown files found.")
         sys.exit(1)
         
-    # Extract font configurations directly from site theme profiles
+    # Extract font configurations
     theme_section = project_section.get('theme', {}) if isinstance(project_section, dict) else config.get('theme', {})
     font_section = theme_section.get('font', {}) if isinstance(theme_section, dict) else {}
     
@@ -104,108 +104,75 @@ def main():
         preprocess_markdown(path, temp_out_path)
         processed_paths.append(temp_out_path)
 
-    # Destination folder route for Zensical live asset links
-    output_pdf = "docs/site_documentation.pdf"
-    
-    # 1. Inject a layout separation marker block right after the cover page
-    toc_marker_path = os.path.join(temp_build_dir, "toc_marker.md")
-    with open(toc_marker_path, "w", encoding="utf-8") as f:
-        f.write("\n\n<div class=\"cover-break\"></div>\n\n")
-        
+    # Table of contents logic configuration
+    toc_trigger_path = os.path.join(temp_build_dir, "toc_trigger_temp.md")
+    with open(toc_trigger_path, "w", encoding="utf-8") as f:
+        f.write("\n\\newpage\n\\tableofcontents\n\\newpage\n")
+
     compiled_paths = []
     if "index.md" in os.path.basename(valid_paths[0]).lower():
-        compiled_paths.append(processed_paths[0])  # Page 1: Cover Page (index.md)
-        compiled_paths.append(toc_marker_path)     # Drop zone marker position
-        compiled_paths.extend(processed_paths[1:]) # Core text pages
+        compiled_paths.append(processed_paths[0])   # Page 1: Cover Page
+        compiled_paths.append(toc_trigger_path)      # Page 2: Table of Contents
+        compiled_paths.extend(processed_paths[1:])   # Page 3+: Core Content
     else:
-        compiled_paths = [toc_marker_path] + processed_paths
+        compiled_paths = [toc_trigger_path] + processed_paths
 
-    temp_html_path = os.path.join(temp_build_dir, "temp_doc.html")
+    output_pdf = "docs/site_documentation.pdf"
     
-    # 2. Use Pandoc to build a clean web HTML map structure with a dynamic TOC
-    print("🏗️ Assembling raw semantic HTML document...")
-    pandoc_cmd = [
+    # Configure global quote environment styling override using mdframed
+    style_header_path = os.path.join(temp_build_dir, "admonition_styles.tex")
+    with open(style_header_path, "w", encoding="utf-8") as f:
+        f.write(
+            "\\usepackage{xcolor}\n"
+            "\\usepackage[framemethod=default]{mdframed}\n"
+            "\\renewenvironment{quote}{\n"
+            "  \\begin{mdframed}[\n"
+            "    backgroundcolor=gray!10,\n"
+            "    linecolor=gray!40,\n"
+            "    linewidth=0.4mm,\n"
+            "    roundcorner=1mm,\n"
+            "    innerleftmargin=12pt,\n"
+            "    innerrightmargin=12pt,\n"
+            "    innertopmargin=10pt,\n"
+            "    innerbottommargin=10pt,\n"
+            "    skipabove=\\medskipamount,\n"
+            "    skipbelow=\\medskipamount\n"
+            "  ]\n"
+            "}{\n"
+            "  \\end{mdframed}\n"
+            "}\n"
+        )
+
+    # 🌎 Smart Cross-Platform PDF Engine Resolution
+    if sys.platform == "darwin":
+        # On macOS, target MacTeX path explicitly if available
+        pdf_engine = "/Library/TeX/texbin/xelatex" if os.path.exists("/Library/TeX/texbin/xelatex") else "xelatex"
+    else:
+        # On Linux and Windows, call the global xelatex system binary
+        pdf_engine = "xelatex"
+
+    cmd = [
         "pandoc",
         *compiled_paths,
-        "-o", temp_html_path,
+        "-o", output_pdf,
+        f"--pdf-engine={pdf_engine}",
         "-f", "markdown",
-        "-t", "html",
-        "-s",  # Builds out a standalone structured file schema
-        "--toc"
+        "-V", "papersize=a4",
+        "-V", "geometry=margin=2cm",
+        f"--include-in-header={style_header_path}"
     ]
-    subprocess.run(pandoc_cmd, check=True)
     
-    # 3. Read the file stream and move the TOC container below the cover marker
-    with open(temp_html_path, "r", encoding="utf-8") as f:
-        html_content = f.read()
-        
-    start_toc = html_content.find('<nav id="TOC">')
-    if start_toc != -1:
-        end_toc = html_content.find('</nav>', start_toc) + len('</nav>')
-        toc_html = html_content[start_toc:end_toc]
-        
-        # Excise the original table of contents block from the top position
-        html_content = html_content[:start_toc] + html_content[end_toc:]
-        
-        # Re-insert the table of contents block right below the cover marker
-        marker = '<div class="cover-break"></div>'
-        marker_idx = html_content.find(marker)
-        if marker_idx != -1:
-            insert_idx = marker_idx + len(marker)
-            html_content = html_content[:insert_idx] + "\n" + toc_html + "\n" + html_content[insert_idx:]
-    
-    # 4. Inject web-standard CSS Paged Media rules for page sizing, layout spacing, and fonts
-    css_styles = f"""
-    <style>
-    @page {{
-        size: a4;
-        margin: 2cm;
-    }}
-    body {{
-        font-family: "{main_font}", "Helvetica", sans-serif;
-        font-size: 11pt;
-        line-height: 1.6;
-        color: #333333;
-    }}
-    code, pre {{
-        font-family: "{mono_font}", "Menlo", monospace;
-    }}
-    /* Render callout blocks cleanly using uniform web properties */
-    blockquote {{
-        background-color: #f5f5f5 !important;
-        border-left: 1mm solid #cccccc !important; /* Elegant accent border line */
-        border: 0.4mm solid #e0e0e0;
-        border-radius: 4px !important;
-        padding: 14pt !important;
-        margin: 16pt 0 !important;
-    }}
-    blockquote ** {{
-        display: block;
-        margin-bottom: 6pt;
-    }}
-    /* Force proper isolated page boundaries using clean CSS breaks */
-    #TOC {{
-        break-before: page !important;
-        break-after: page !important;
-    }}
-    .cover-break {{
-        break-after: page !important;
-    }}
-    </style>
-    """
-    html_content = html_content.replace("</body>", f"{css_styles}\n</body>")
-    
-    final_html_path = os.path.join(temp_build_dir, "final_doc.html")
-    with open(final_html_path, "w", encoding="utf-8") as f:
-        f.write(html_content)
-        
-    # 5. Compile directly into a polished PDF using WeasyPrint
-    print("🚀 Rendering print-ready layout document via WeasyPrint engine...")
+    if main_font:
+        cmd.extend(["-V", f"mainfont={main_font}"])
+    if mono_font:
+        cmd.extend(["-V", f"monofont={mono_font}"])
+
+    print(f"🚀 Compiling via XeLaTeX pipeline ({pdf_engine})...")
     try:
-        subprocess.run(["weasyprint", final_html_path, output_pdf], check=True)
-        print(f"\n🎉 Success! Verified WeasyPrint PDF is ready: {output_pdf}")
+        subprocess.run(cmd, check=True)
+        print(f"\n🎉 Success! PDF generated cleanly: {output_pdf}")
     except subprocess.CalledProcessError:
-        print("\n❌ Error: WeasyPrint failed to compile the PDF.")
+        print("\n❌ Error: Pandoc/XeLaTeX failed to compile the PDF.")
     finally:
         if os.path.exists(temp_build_dir):
             shutil.rmtree(temp_build_dir)

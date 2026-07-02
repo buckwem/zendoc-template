@@ -105,12 +105,15 @@ find docs -name "*.md" -exec pandoc -f markdown-yaml_metadata_block -t plain {} 
 
 ### ßInstall for pdf generation
 
+
 ```bash
+brew install pandoc weasyprint
 brew install --cask font-inter font-jetbrains-mono
 ```
 
 ```bash
 sudo apt update
+sudo apt install pandoc weasyprint
 sudo apt install fonts-inter fonts-jetbrains-mono
 ```
 

@@ -446,8 +446,10 @@ The instructions below are for installing Python 3.8 or later. If you have an ol
         1. Download and run the official python installer from the [python.org](https://www.python.org/downloads/).
         1. Open *PowerShell* as an Administrator in your project folder and run:
 
+
         !!! Critical
             Make sure to check the box that says "Add Python to PATH" during the installation process. This will allow you to run Python from the command line. 
+
 
         ```PowerShell
         # 1. Create the virtual environment

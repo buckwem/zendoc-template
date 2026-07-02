@@ -38,7 +38,7 @@ def preprocess_markdown(file_path, output_path):
             adm_title = parts[2].strip('"') if len(parts) > 2 else adm_type.capitalize()
             
             new_lines.append(f"> **{adm_title}**")
-            new_lines.append("> ")  # Spacing line for inner markdown tracking
+            new_lines.append("> ")  
             continue
 
         if in_admonition:
@@ -48,9 +48,8 @@ def preprocess_markdown(file_path, output_path):
             elif line.strip() == "":
                 new_lines.append("> ")
             else:
-                # ✨ THE FIX: We hit an unindented line. The admonition is over!
                 in_admonition = False
-                new_lines.append("")  # Force-inject a true empty line to kill the blockquote
+                new_lines.append("")  
                 new_lines.append(line)
         else:
             new_lines.append(line)
@@ -84,6 +83,22 @@ def main():
         print("❌ Error: No valid markdown files found.")
         sys.exit(1)
         
+    # 🔤 Extract font options from zensical.toml
+    theme_section = project_section.get('theme', {}) if isinstance(project_section, dict) else config.get('theme', {})
+    font_section = theme_section.get('font', {}) if isinstance(theme_section, dict) else {}
+    
+    # Defaults used by Zensical framework out-of-the-box
+    main_font = "Inter"
+    mono_font = "JetBrains Mono"
+    
+    if isinstance(font_section, dict):
+        main_font = font_section.get('text', main_font)
+        mono_font = font_section.get('code', mono_font)
+    elif font_section is False:
+        # If user explicitly disabled Google Fonts fallback in site configurations
+        main_font = None
+        mono_font = None
+
     temp_build_dir = "pdf_build_workspace"
     os.makedirs(temp_build_dir, exist_ok=True)
     
@@ -107,7 +122,7 @@ def main():
     else:
         compiled_paths = [toc_trigger_path] + processed_paths
 
-    # Configure global quote environment styling override
+    # Set up global blockquote style overrides
     style_header_path = os.path.join(temp_build_dir, "admonition_styles.tex")
     with open(style_header_path, "w", encoding="utf-8") as f:
         f.write(
@@ -144,10 +159,18 @@ def main():
         f"--include-in-header={style_header_path}"
     ]
     
+    # Append the fonts to the execution parameters if discovered
+    if main_font:
+        print(f"🎨 Setting Document Font: {main_font}")
+        cmd.extend(["-V", f"mainfont={main_font}"])
+    if mono_font:
+        print(f"💻 Setting Monospace Code Font: {mono_font}")
+        cmd.extend(["-V", f"monofont={mono_font}"])
+    
     print(f"🚀 Compiling print-ready PDF structure via MacTeX...")
     try:
         subprocess.run(cmd, check=True)
-        print(f"\n🎉 Success! Beautifully styled boxes applied safely. PDF generated: {output_pdf}")
+        print(f"\n🎉 Success! Custom site typography applied. PDF generated: {output_pdf}")
     except subprocess.CalledProcessError:
         print("\n❌ Error: Pandoc failed to compile the PDF.")
     finally:

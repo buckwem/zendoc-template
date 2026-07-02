@@ -103,6 +103,20 @@ Then you can count the total number of words in a Markdown file by running the f
 find docs -name "*.md" -exec pandoc -f markdown-yaml_metadata_block -t plain {} + | wc -w
 ```
 
+### ßInstall for pdf generation
+
+```bash
+brew install --cask font-inter font-jetbrains-mono
+```
+
+```bash
+sudo apt update
+sudo apt install fonts-inter fonts-jetbrains-mono
+```
+
+```Powershell
+choco install inter-font jetbrainsmono
+``` 
 
 
 ## Installing GitLab or GitHub extensions

@@ -7,5 +7,5 @@ zensical
 mkdocstrings-python
 pandoc
 toml
-wkhtmltopdf
+weasyprint
 beautifulsoup4

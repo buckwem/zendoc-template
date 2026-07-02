@@ -9,7 +9,7 @@ pages:
     - pages
   script:
     - apt-get update
-    - apt-get install -y pandoc wkhtmltopdf
+    - apt-get install -y pandoc weasyprint
     - pip install -r requirements.txt
     - python build_pdf.py
     - zensical build --clean 

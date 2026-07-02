@@ -433,3 +433,4 @@ inherited_members = true
 show_source = false
  
 # [project.markdown_extensions."neoteroi.spantable"]
+

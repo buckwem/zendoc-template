@@ -58,6 +58,50 @@ or you can you can use the VS Code GUI to enable commit signing.
 1. Check the box for **Git: Enable Commit Signing** and **Git: Signoff**.
 
 
+## Count number of words in Markdown files
+
+To count the number of words in Markdown files, you can use the `pandoc` command-line tool. Pandoc is a universal document converter that can convert files from one markup format to another. It can also be used to count the number of words in a Markdown file.
+
+First install `pandoc` if you haven't already. You can find installation instructions on the [Pandoc website](https://pandoc.org/installing.html){target="_blank"}, with a short version of the instructions below for macOS, Windows 11, and Linux (Ubuntu/Debian):
+
+<div class="grid cards one-column" markdown>
+    
+-   :material-clock-fast:{ .lg .middle } __Install Visual Studio__
+
+    === "macOS using Homebrew"
+
+        ``` bash
+        brew install pandoc
+        ```
+
+    === "Windows 11 using PowerShell"
+
+        ``` Powershell
+        winget install jgm.pandoc
+        ```
+
+    === "Linux (Ubuntu/Debian) using bash"
+
+        ``` bash
+        sudo apt update
+        sudo apt install pandoc
+        ```
+
+</div>
+
+Check that `pandoc` is installed correctly by running the following command in your terminal:
+
+```bash
+pandoc --version
+```
+
+This command will display the installed version of Pandoc, confirming that it is installed correctly.       
+
+Then you can count the total number of words in a Markdown file by running the following command in your Visual Studio Code terminal:
+
+```bash
+find docs -name "*.md" -exec pandoc -f markdown-yaml_metadata_block -t plain {} + | wc -w
+```
 
 
 

@@ -1,4 +1,5 @@
 import os
+from bs4 import BeautifulSoup
 import subprocess
 import shutil
 from pathlib import Path
@@ -44,7 +45,7 @@ def define_env(env):
 
     # Bind the variable to your markdown files
     env.variables['is_surrey'] = final_result
-    
+
     # ==========================================
     # 2. GLOBAL LOGO SWAP ON STARTUP
     # ==========================================
@@ -97,4 +98,5 @@ def define_env(env):
         
         # Return a silent HTML comment so it doesn't print text on your page
         return f""
-    
+
+

@@ -1,11 +1,11 @@
 ---
-icon: lucide/book-open
+icon: lucide/book-open 
 ---
 
 <!-- 
-# Copyright (c) 2025-2026 Mark Buckwell and contributors
-# SPDX-License-Identifier: MIT
-# All contributions are certified under the DCO
+Copyright (c) 2025-2026 Mark Buckwell and contributors
+SPDX-License-Identifier: MIT
+All contributions are certified under the DCO
 -->
 
 <style>
@@ -34,7 +34,7 @@ The steps below will help you install VS Code and some essential plugins to edit
 
 ### Install Visual Studio Code
 
-2. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, Windows 11, and Linux (Ubuntu/Debian) are below:
+1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, Windows 11, and Linux (Ubuntu/Debian) are below:
 
     <div class="grid cards one-column" markdown>
     
@@ -50,7 +50,7 @@ The steps below will help you install VS Code and some essential plugins to edit
         === "Windows 11 using PowerShell"
 
             1. Download the VS Code User setup for Windows.
-            2. Run the installer, `VSCodeUserSetuo-{version}.exe`. By default the User setup installs Visual Studio Code to your user profile directory. You can change the install location if you want to install it for all users.
+            2. Run the installer, `VSCodeUserSetup-{version}.exe`. By default the User setup installs Visual Studio Code to your user profile directory. You can change the install location if you want to install it for all users.
          
             Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/windows){target="_blank"}.
 
@@ -125,7 +125,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
     </div>
 
-3. Before connecting to any cloud provider, open your terminal (Terminal on macOS/Debian, Git Bash or PowerShell on Windows 11) and set your global username and email. This is the identity stamped onto your commits. Make sure you use the same email address that you used to register for your GitLab or GitHub account.
+1. Before connecting to any cloud provider, open your terminal (Terminal on macOS/Debian, Git Bash or PowerShell on Windows 11) and set your global username and email. This is the identity stamped onto your commits. Make sure you use the same email address that you used to register for your GitLab or GitHub account.
 
     ``` bash
     git config --global user.name "Your Name"
@@ -346,7 +346,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
 2. Next, fork the documentation template to create a copy of the template in your own Git cloud account. Follow the instructions below to fork the repository.
     <div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Add SSH Key to cloud Git account__
+    -   :material-clock-fast:{ .lg .middle } __Fork the document template__
 
         ---
 
@@ -375,7 +375,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
 
         === "GitHub"
 
-            x
+            xxx
 
 {% endif %}
    
@@ -445,7 +445,7 @@ The instructions below are for installing Python 3.8 or later. If you have an ol
 
         1. Download and run the official python installer from the [python.org](https://www.python.org/downloads/).
         1. Open *PowerShell* as an Administrator in your project folder and run:
-        1. 
+
         !!! Critical
             Make sure to check the box that says "Add Python to PATH" during the installation process. This will allow you to run Python from the command line. 
 

@@ -33,33 +33,31 @@ hide:
 -->
 <br>
 <br>
-<br>
-![](assets/cover-centre-logo-black.png#only-light){ width="40%" }
-![](assets/cover-centre-logo-white.png#only-dark){ width="40%" }
-/// caption
 
-///
+![](assets/cover-centre-logo-black.png#only-light){ width="40%" style="display: block; margin: 0 auto;" }
+![](assets/cover-centre-logo-white.png#only-dark){ width="40%" style="display: block; margin: 0 auto;" }
+
+<br>
+<br>
 
 <!-- the different title line use styles defined in the extras.css file -->
-<p class="title-ctr-b4"> Faculty of Engineering and Physical Sciences</p>
-
-<p class="title-ctr-b4"> School of Computer Science and Electronic Engineering</p>
+<p class="title-ctr-b4">
+Faculty of Engineering and Physical Sciences<br>
+School of Computer Science and Electronic Engineering
+</p>
 
 <p class="title-ctr-4"> MSc programmes in Computer Science</p>
 
 
-<p class="title-ctr-b2">module_id - module_name</p>
+<p class="title-ctr-b4">module_id - module_name</p>
 
 <!--
 /*================== TITLE PAGE GITHUB OR OTHER GITLAB ==================*/
 -->
 {% else %}
 
-![](assets/logo_default_black.png#only-light){ width="10%" }
-![](assets/logo_default_white.png#only-dark){ width="60%" }
-/// caption
-
-///
+![](assets/logo_default_black.png#only-light){ width="10%" style="display: block; margin: 0 auto;" }
+![](assets/logo_default_white.png#only-dark){ width="60%" style="display: block; margin: 0 auto;" }
 
 <!-- the different title line use styles defined in the extras.css file -->
 <p class="title-ctr-b4">
@@ -82,7 +80,8 @@ Research programmes in Cyber Security</p>
   In using this style, it's been applied to multiple lines using the line break
   Fill in your own name and the date the document is released.
 -->
-<p class="title-left-6">
-Author: Insert Name Here<br>
+<p class="title-left-5">
+Author: Insert Name Here
+<br>
 Date: Submission Date
 </p>

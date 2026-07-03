@@ -21,20 +21,20 @@ def extract_md_files(nav_element):
     return files
 
 def preprocess_markdown(file_path, output_path, config, calculated_vars, is_index=False):
-    """Parses template conditionals, applies dark/light asset filtering, and wraps 
+    """Parses template conditionals, applies global light/dark asset filtering, and compiles
 
-    typography and layout utility classes using safe inline raw LaTeX structural tags.
+    custom typography classes into balanced block-level environments to ensure perfect alignment.
     """
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # ☀️/🌙 THE IMAGE FILTER: Discard dark mode images and strip light mode hash tags
+    # ☀️/🌙 THE IMAGE FILTER: Discard dark mode rows and sanitize light mode configurations
     processed_lines = []
     for line in content.splitlines():
         if '#only-dark' in line:
-            continue  # Discard the dark-mode graphic row completely
+            continue  # Drop dark mode assets completely
         if '#only-light' in line:
-            line = line.replace('#only-light', '')  # Keep asset but strip the trailing hash
+            line = line.replace('#only-light', '')  # Clean hash modifier out of paths
         processed_lines.append(line)
     content = '\n'.join(processed_lines)
 
@@ -45,12 +45,14 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
     if isinstance(project_vars, dict): vars_dict.update(project_vars)
     if isinstance(extra_vars, dict): vars_dict.update(extra_vars)
     vars_dict.update(calculated_vars)
+    
+    docs_dir = config.get('docs_dir', 'docs')
 
+    # 1. Evaluate Template Conditional Rules
     lines = content.splitlines()
     filtered_lines = []
     state_stack = []
 
-    # 1. Evaluate Template Conditional Rules
     for line in lines:
         if re.search(r'[{(]%\s*if\s+(\w+)\s*%', line):
             match = re.search(r'if\s+(\w+)', line)
@@ -83,44 +85,99 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
 
     content = '\n'.join(filtered_lines)
 
-    # 🎨 COVER PAGE & SYSTEM CSS MATRIX TRANSLATION
+    # 🎨 THE UNIFIED COVER PAGE COMPLIER ENGINE
     if is_index:
-        # Strip web-specific layout container blocks
+        # Clear away standard comment tags as well as smart-punctuation arrow anomalies
+        content = re.sub(r'[<]![-\s–—]*.*?[-–—\s]*[>⟶]', '', content, flags=re.DOTALL)
+
+        # Strip YAML front matter blocks cleanly
+        content = re.sub(r'^---.*?---', '', content, flags=re.DOTALL)
+        
+        # Remove raw PDF download buttons from print outputs
+        content = re.sub(r'\[:material-file-pdf-box: PDF\].*$', '', content, flags=re.MULTILINE)
+        
+        # Strip web-specific layout container tags and hidden styling headers
+        content = re.sub(r'<style>.*?</style>', '', content, flags=re.DOTALL | re.IGNORECASE)
         content = re.sub(r'<div[^>]*>', '', content, flags=re.IGNORECASE)
         content = re.sub(r'</div>', '', content, flags=re.IGNORECASE)
+        content = re.sub(r':material-[\w-]+:', '', content)
+        content = re.sub(r'\{\s*\.md-button[^}]*\}', '', content)
+        
+        # Discard web page navigation headers (e.g. # Cover Page)
+        content = re.sub(r'^#{1,6}\s+.*$', '', content, flags=re.MULTILINE)
 
-        # Matched style configurations: 18 Title Classes
+        # 1. Map Markdown Images to Precise Non-Floating Graphic Environments
+        def convert_images(img_match):
+            path = img_match.group(2).strip().split('#')[0]
+            
+            width_val = "0.4\\textwidth"
+            width_match = re.search(r'width="(\d+)%"', img_match.group(0))
+            if width_match:
+                pct = int(width_match.group(1)) / 100.0
+                width_val = f"{pct:.2f}\\textwidth"
+                
+            if not os.path.isabs(path) and not path.replace('\\', '/').startswith(docs_dir + '/'):
+                path = os.path.join(docs_dir, path)
+            path = path.replace('\\', '/')
+            
+            return f"\n\\vspace{{0.5cm}}\n{{\\centering\\includegraphics[width={width_val}]{{{path}}}\\par}}\n\\vspace{{0.5cm}}\n"
+            
+        content = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)(?:\{\s*[^}]*\}|)', convert_images, content)
+
+        # 2. Map standard Markdown links to safe LaTeX \href structures
+        def convert_links(match):
+            label = match.group(1).strip().replace('_', '\\_').replace('&', '\\&')
+            url = match.group(2).strip().replace('_', '\\_')
+            return f"\\href{{{url}}}{{{label}}}"
+            
+        content = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', convert_links, content)
+
+        # 3. Map your 18 Custom Typography Grid Classes into perfectly scoped formatting blocks
         def convert_html_typography(match):
             align = match.group(1)          # 'ctr' or 'left'
-            is_bold = bool(match.group(2))     # True if '-b' is matched
+            is_bold = bool(match.group(2))     # True if 'b' is matched
             size_num = match.group(3)        # '1' through '6'
             text = match.group(4).strip()
             
-            text = re.sub(r'<br\s*/?>', r' \\\\ ', text, flags=re.IGNORECASE)
+            # Convert internal HTML breaks and strip out tracking layout newlines
+            text = re.sub(r'<br\s*/?>', lambda m: r' \\ ', text, flags=re.IGNORECASE)
+            text = re.sub(r'\s+', ' ', text)
             
+            # Sanitize character strings inside the custom LaTeX block
+            text = text.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%').replace('$', '\\$')
+            
+            # ✨ THE TYPOGRAPHY MATRIX OVERHAUL: We explicitly set absolute point sizes
+            # and matching baseline line-height steps to scale beautifully on print profiles.
             size_map = {
-                '1': r'\LARGE', '2': r'\Large', '3': r'\large',
-                '4': r'\normalsize', '5': r'\small', '6': r'\footnotesize'
+                '1': r'\fontsize{26pt}{32pt}\selectfont',  # ~1.5rem prominent title
+                '2': r'\fontsize{22pt}{28pt}\selectfont',  # ~1.4rem
+                '3': r'\fontsize{18pt}{24pt}\selectfont',  # ~1.3rem crisp metadata block
+                '4': r'\fontsize{15pt}{20pt}\selectfont',  # ~1.2rem
+                '5': r'\fontsize{13pt}{17pt}\selectfont',  # ~1.1rem
+                '6': r'\fontsize{11pt}{15pt}\selectfont'   # ~1.0rem
             }
-            latex_size = size_map.get(size_num, r'\normalsize')
-            latex_bold = r' \bfseries' if is_bold else ''
+            latex_size = size_map.get(size_num, r'\fontsize{12pt}{16pt}\selectfont')
+            latex_bold = r'\bfseries ' if is_bold else ''
             latex_align = r'\centering' if align == 'ctr' else r'\raggedright'
             
-            return f" `{{{latex_align} {latex_size}{latex_bold}`{{=latex}} {text}`\\par}}`{{=latex}} "
+            return f"\n{{{latex_align} {latex_size} {latex_bold}{text}\\par}}\n"
 
+        # Quote-agnostic attribute scanner translates custom elements seamlessly
         content = re.sub(
-            r'<p\s+class="title-(ctr|left)(-b)?([1-6])"[^>]*>(.*?)</p>',
+            r'<p\s+class=[^>]*title-(ctr|left)-(b)?([1-6])[^>]*>(.*?)</p>',
             convert_html_typography,
             content,
             flags=re.DOTALL | re.IGNORECASE
         )
 
-        # ✨ THE LAYOUT UTILITY FIX: Dynamic mapping parser for general text classes
+        # 4. Map Text Utilities (.text-center, .text-right, .text-justify) into Scoped Blocks
         def convert_html_text_alignment(match):
-            align = match.group(1).lower()  # 'center', 'right', 'justify'
+            align = match.group(1).lower()
             text = match.group(2).strip()
             
-            text = re.sub(r'<br\s*/?>', r' \\\\ ', text, flags=re.IGNORECASE)
+            text = re.sub(r'<br\s*/?>', lambda m: r' \\ ', text, flags=re.IGNORECASE)
+            text = re.sub(r'\s+', ' ', text)
+            text = text.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%').replace('$', '\\$')
             
             if align == 'center':
                 latex_align = r'\centering'
@@ -129,28 +186,37 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
             else:
                 latex_align = r'\justifying'
                 
-            return f" `{{{latex_align}`{{=latex}} {text}`\\par}}`{{=latex}} "
+            return f"\n{{{latex_align} {text}\\par}}\n"
 
         content = re.sub(
-            r'<p\s+class="text-(center|right|justify)"[^>]*>(.*?)</p>',
+            r'<p\s+class=[^>]*text-(center|right|justify)[^>]*>(.*?)</p>',
             convert_html_text_alignment,
             content,
             flags=re.DOTALL | re.IGNORECASE
         )
 
-        # Convert web line breaks into clear LaTeX vertical spacing blocks
-        content = re.sub(r'<br\s*/?>', r'\n\n```{=latex}\n\\vspace{1.5cm}\n```\n\n', content, flags=re.IGNORECASE)
-        
-        # Sandwich the cover text layout using standalone, separate block fences.
+        # 5. Translate spacing break tags into vertical spacing markers
+        content = re.sub(r'<br\s*/?>', r'\n\\vspace{1cm}\n', content, flags=re.IGNORECASE)
+
+        # 6. Sweep remaining plain text elements to center and escape formatting parameters
+        final_cover_lines = []
+        for line in content.splitlines():
+            trimmed = line.strip()
+            if trimmed:
+                if trimmed.startswith('\\') or trimmed.startswith('{') or trimmed.startswith('}'):
+                    final_cover_lines.append(trimmed)
+                else:
+                    trimmed = trimmed.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%').replace('$', '\\$')
+                    final_cover_lines.append(f"{{\\centering \\normalsize {trimmed}\\par}}")
+        latex_body = '\n'.join(final_cover_lines)
+
         content = (
             "```{=latex}\n"
             "\\begin{titlepage}\n"
             "\\centering\n"
-            "\\vspace*{2cm}\n"
-            "```\n\n"
-            + content +
-            "\n\n```{=latex}\n"
-            "\\end{titlepage}\n"
+            "\\vspace*{1.5cm}\n"
+            + latex_body +
+            "\n\\end{titlepage}\n"
             "```\n"
         )
 
@@ -293,7 +359,7 @@ def main():
         f.write(
             "\\usepackage{graphicx}\n"
             "\\usepackage{xcolor}\n"
-            "\\usepackage{ragged2e}\n"  # Added package reference to unlock the \justifying switch environment
+            "\\usepackage{ragged2e}\n"  
             "\\usepackage[framemethod=default]{mdframed}\n"
             "\\renewenvironment{quote}{\n"
             "  \\begin{mdframed}[\n"
@@ -318,6 +384,8 @@ def main():
     else:
         pdf_engine = "xelatex"
 
+    # ✨ THE GLOBAL BASES FIX: Configured standard 12pt document baseline scaling 
+    # to elevate body readability text across all child pages dynamically.
     cmd = [
         "pandoc",
         *compiled_paths,
@@ -326,6 +394,7 @@ def main():
         "-f", "markdown",
         "--resource-path=.",
         f"--resource-path={docs_dir}",
+        "-V", "fontsize=12pt",
         "-V", "papersize=a4",
         "-V", "geometry=margin=2cm",
         f"--include-in-header={style_file_path}"

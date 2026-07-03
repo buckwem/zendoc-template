@@ -25,20 +25,11 @@ hide:
 -->
 {% if is_surrey %}
 
-
-<!-- The align attribute does not support centering.
-     so we use a blank caption to centre an image.
-     We also suppport swapping of the logo to 
-     support a dark and light theme
--->
 <br>
 <br>
-
+<br>
 ![](assets/cover-centre-logo-black.png#only-light){ width="40%" style="display: block; margin: 0 auto;" }
 ![](assets/cover-centre-logo-white.png#only-dark){ width="40%" style="display: block; margin: 0 auto;" }
-
-<br>
-<br>
 
 <!-- the different title line use styles defined in the extras.css file -->
 <p class="title-ctr-b4">

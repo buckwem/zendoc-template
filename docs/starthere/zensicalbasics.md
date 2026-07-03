@@ -15,7 +15,7 @@ icon: lucide/book-open
   /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
 </style>
 
-# Using Zensical {: .reset-heading-counter-2 }
+# Using Zensical
 
 Some brief Zensical notation is below. For full documentation visit [zensical.org](https://zensical.org/docs/).
 

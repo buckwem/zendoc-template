@@ -128,25 +128,6 @@ All contributions are certified under the DCO
 .md-typeset h3::before {
   content: counter(h1-count) "." counter(h2-count) "." counter(h3-count) " "; }
 
-/* ============================================================= */
-/* ======== Styles for numbered Table of Contents (TOC) ======== */
-/* ============================================================= */
-
-/* 1. Set the Level 1 number in the nav configuration in zensical.toml */
-
-/* 2. Insert at the top of each .md page before the first H1 to reset the TOC counters for each new page. This ensures that each page starts with the correct numbering based on its position in the nav. h1-count is set to one less than the desired starting number because the first H1 on the page will increment it to the correct value. toc1 is set to the exact starting number for the TOC entries
-
-<style>
-  .md-typeset {
-    counter-reset: h1-count 1 !important; 
-  }
-  .md-nav--primary {
-    counter-reset: toc1 2 !important;
-  }
-</style>
-
-*/
-
 /* 3. Level 2 (The subsections) */
 .md-nav--secondary > .md-nav__list > .md-nav__item {
   counter-increment: toc2;

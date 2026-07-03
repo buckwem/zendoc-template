@@ -21,14 +21,18 @@ def extract_md_files(nav_element):
     return files
 
 def preprocess_markdown(file_path, output_path, config, calculated_vars, is_index=False):
-    """Parses template conditionals, applies global light/dark asset filtering, and compiles
+    """Parses template conditionals, extracts explicit CSS counter-reset parameters, 
 
-    custom typography classes into balanced block-level environments to ensure perfect alignment.
+    and maps typography/layout utilities into matching LaTeX print targets with precise scaling.
     """
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # ☀️/🌙 THE IMAGE FILTER: Discard dark mode rows and sanitize light mode configurations
+    # Dynamically parse the explicit h1-count reset value directly out of the page style blocks
+    reset_match = re.search(r'counter-reset:\s*h1-count\s+(\d+)', content)
+    section_reset_val = int(reset_match.group(1)) if reset_match else 0
+
+    # ☀️/🌙 THE IMAGE FILTER: Process light and dark mode image rows line by line
     processed_lines = []
     for line in content.splitlines():
         if '#only-dark' in line:
@@ -85,7 +89,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
 
     content = '\n'.join(filtered_lines)
 
-    # 🎨 THE UNIFIED COVER PAGE COMPLIER ENGINE
+    # 🎨 THE UNIFIED COVER PAGE COMPILER ENGINE
     if is_index:
         # Clear away standard comment tags as well as smart-punctuation arrow anomalies
         content = re.sub(r'[<]![-\s–—]*.*?[-–—\s]*[>⟶]', '', content, flags=re.DOTALL)
@@ -139,22 +143,19 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
             size_num = match.group(3)        # '1' through '6'
             text = match.group(4).strip()
             
-            # Convert internal HTML breaks and strip out tracking layout newlines
             text = re.sub(r'<br\s*/?>', lambda m: r' \\ ', text, flags=re.IGNORECASE)
             text = re.sub(r'\s+', ' ', text)
             
             # Sanitize character strings inside the custom LaTeX block
             text = text.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%').replace('$', '\\$')
             
-            # ✨ THE TYPOGRAPHY MATRIX OVERHAUL: We explicitly set absolute point sizes
-            # and matching baseline line-height steps to scale beautifully on print profiles.
             size_map = {
-                '1': r'\fontsize{26pt}{32pt}\selectfont',  # ~1.5rem prominent title
-                '2': r'\fontsize{22pt}{28pt}\selectfont',  # ~1.4rem
-                '3': r'\fontsize{18pt}{24pt}\selectfont',  # ~1.3rem crisp metadata block
-                '4': r'\fontsize{15pt}{20pt}\selectfont',  # ~1.2rem
-                '5': r'\fontsize{13pt}{17pt}\selectfont',  # ~1.1rem
-                '6': r'\fontsize{11pt}{15pt}\selectfont'   # ~1.0rem
+                '1': r'\fontsize{26pt}{32pt}\selectfont',  
+                '2': r'\fontsize{22pt}{28pt}\selectfont',  
+                '3': r'\fontsize{18pt}{24pt}\selectfont',  
+                '4': r'\fontsize{15pt}{20pt}\selectfont',  
+                '5': r'\fontsize{13pt}{17pt}\selectfont',  
+                '6': r'\fontsize{11pt}{15pt}\selectfont'   
             }
             latex_size = size_map.get(size_num, r'\fontsize{12pt}{16pt}\selectfont')
             latex_bold = r'\bfseries ' if is_bold else ''
@@ -162,7 +163,6 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
             
             return f"\n{{{latex_align} {latex_size} {latex_bold}{text}\\par}}\n"
 
-        # Quote-agnostic attribute scanner translates custom elements seamlessly
         content = re.sub(
             r'<p\s+class=[^>]*title-(ctr|left)-(b)?([1-6])[^>]*>(.*?)</p>',
             convert_html_typography,
@@ -207,7 +207,9 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
                     final_cover_lines.append(trimmed)
                 else:
                     trimmed = trimmed.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%').replace('$', '\\$')
-                    final_cover_lines.append(f"{{\\centering \\normalsize {trimmed}\\par}}")
+                    # ✨ THE COVER INSULATION FIX: Reverted this text sweeper back to an absolute 12pt 
+                    # size so it stays perfectly preserved regardless of changes to body page layouts.
+                    final_cover_lines.append(f"{{\\fontsize{{12pt}}{{16pt}}\\selectfont \\centering {trimmed}\\par}}")
         latex_body = '\n'.join(final_cover_lines)
 
         content = (
@@ -249,6 +251,15 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
         else:
             new_lines.append(line)
 
+    if not is_index:
+        reset_prefix = [
+            "```{=latex}",
+            f"\\setcounter{{section}}{{{section_reset_val}}}",
+            "```",
+            ""
+        ]
+        new_lines = reset_prefix + new_lines
+
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(new_lines))
 
@@ -278,7 +289,6 @@ def main():
         print("❌ Error: No valid markdown files found.")
         sys.exit(1)
 
-    # Read calculated macros.py values via runtime mock environment context
     calculated_vars = {}
     if os.path.exists('macros.py'):
         print("🔧 Executing macros.py environment maps...")
@@ -332,6 +342,7 @@ def main():
     
     print("🧹 Preprocessing markdown file layouts and compiling typography matrix...")
     processed_paths = []
+    
     for path in valid_paths:
         safe_name = path.replace('/', '_').replace('\\', '_')
         temp_out_path = os.path.join(temp_build_dir, safe_name)
@@ -384,17 +395,17 @@ def main():
     else:
         pdf_engine = "xelatex"
 
-    # ✨ THE GLOBAL BASES FIX: Configured standard 12pt document baseline scaling 
-    # to elevate body readability text across all child pages dynamically.
+    # ✨ THE 11PT BODY CONFIGURATION: Global variable updated down below
     cmd = [
         "pandoc",
         *compiled_paths,
         "-o", output_pdf,
         f"--pdf-engine={pdf_engine}",
         "-f", "markdown",
+        "--number-sections",
         "--resource-path=.",
         f"--resource-path={docs_dir}",
-        "-V", "fontsize=12pt",
+        "-V", "fontsize=11pt",
         "-V", "papersize=a4",
         "-V", "geometry=margin=2cm",
         f"--include-in-header={style_file_path}"
@@ -408,7 +419,7 @@ def main():
     print(f"🚀 Compiling via XeLaTeX pipeline ({pdf_engine})...")
     try:
         subprocess.run(cmd, check=True)
-        print(f"\n🎉 Success! Custom site typography and layout utilities applied. PDF ready at: {output_pdf}")
+        print(f"\n🎉 Success! Cover preserved, document body downscaled to a clean 11pt. PDF ready at: {output_pdf}")
     except subprocess.CalledProcessError:
         print("\n❌ Error: Pandoc/XeLaTeX failed to compile the PDF.")
     finally:

@@ -1,0 +1,95 @@
+/* ==========================================================================
+   Page Setup & Margins (CSS Paged Media)
+   ========================================================================== */
+@page {
+    size: letter; /* Options: A4, letter, portrait, landscape */
+    margin: 20mm 20mm 25mm 20mm; /* Top, Right, Bottom, Left */
+    
+    /* Native running footer for page numbers */
+    @bottom-right {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 9pt;
+        color: #666;
+    }
+}
+
+/* ==========================================================================
+   Web UI Removal (Essential if using Zensical/Static Site HTML)
+   ========================================================================== */
+header, 
+nav, 
+footer, 
+.md-sidebar, 
+.md-header, 
+.md-footer, 
+.md-search,
+#search {
+    display: none !important; /* Nukes website navigation elements */
+}
+
+/* Forces the remaining main content container to use full print width */
+body, 
+main, 
+article, 
+.md-content {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    float: none !important;
+}
+
+/* ==========================================================================
+   Typography & Elements Customization
+   ========================================================================== */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #111;
+}
+
+h1, h2, h3 {
+    color: #1a365d; /* Sleek corporate blue */
+    font-weight: 700;
+}
+
+h1 { font-size: 24pt; margin-top: 0; }
+h2 { font-size: 18pt; margin-top: 20pt; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+h3 { font-size: 14pt; }
+
+/* Code Blocks Styling */
+pre, code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background-color: #f7fafc;
+    font-size: 10pt;
+}
+
+pre {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+/* ==========================================================================
+   Page-Break Layout Controls
+   ========================================================================== */
+/* Prevent headings from being stranded at the bottom of a page */
+h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+}
+
+/* Prevent images, code blocks, and blockquotes from splitting across pages */
+img, pre, blockquote, table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Force standard Markdown horizontal rules (---) to act as a hard page break */
+hr {
+    page-break-before: always;
+    break-before: always;
+    visibility: hidden; /* Hides the actual line graphical element */
+}

@@ -36,37 +36,31 @@ The steps below will help you install VS Code and some essential plugins to edit
 
 1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, Windows 11, and Linux (Ubuntu/Debian) are below:
 
-    <div class="grid cards one-column" markdown>
-    
-    -   :material-clock-fast:{ .lg .middle } __Install Visual Studio__
+    === "macOS using Homebrew"
 
-        === "macOS using Homebrew"
+        If you use the Homebrew package manager, run this command in your Terminal:
+        ``` bash
+        brew install --cask visual-studio-code
+        ```
 
-            If you use the Homebrew package manager, run this command in your Terminal:
-            ``` bash
-            brew install --cask visual-studio-code
-            ```
+    === "Windows 11 using PowerShell"
 
-        === "Windows 11 using PowerShell"
-
-            1. Download the VS Code User setup for Windows.
-            2. Run the installer, `VSCodeUserSetup-{version}.exe`. By default the User setup installs Visual Studio Code to your user profile directory. You can change the install location if you want to install it for all users.
+        1. Download the VS Code User setup for Windows.
+        2. Run the installer, `VSCodeUserSetup-{version}.exe`. By default the User setup installs Visual Studio Code to your user profile directory. You can change the install location if you want to install it for all users.
          
-            Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/windows){target="_blank"}.
+        Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/windows){target="_blank"}.
 
-        === "Linux (Ubuntu/Debian) using bash"
+    === "Linux (Ubuntu/Debian) using bash"
 
-            1. Download the `.deb` package from the [official website](https://code.visualstudio.com/).
-            2. Open a terminal and navigate to the directory where you downloaded the `.deb` package.
-            3. Run the following command to install Visual Studio Code:
-            ``` bash
-            sudo apt install ./<file>.deb
-            ```
-            Replace `<file>` with the name of the downloaded `.deb` file.
+        1. Download the `.deb` package from the [official website](https://code.visualstudio.com/).
+        2. Open a terminal and navigate to the directory where you downloaded the `.deb` package.
+        3. Run the following command to install Visual Studio Code:
+        ``` bash
+        sudo apt install ./<file>.deb
+        ```
+        Replace `<file>` with the name of the downloaded `.deb` file.
 
-            Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
-
-    </div>
+        Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
 
 ### Install Visual Studio Code plugins
 

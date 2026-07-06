@@ -81,7 +81,12 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
             cleaned_attrs = re.sub(r'=["\']([^"\']+)["\']', r'=\1', attrs).strip()
             pandoc_attrs = f"{{{cleaned_attrs}}}"
             
-        return f"\n\n{indent}::: {{.text-center}}\n{indent}![{alt_text}]({img_url}){pandoc_attrs}\n\n{indent}*{caption_body}*\n{indent}:::\n\n"
+        return (
+            f"\n\n{indent}<figure class=\"text-center\">\n"
+            f"{indent}  <img src=\"{img_url}\" alt=\"{alt_text}\" style=\"width: 70%;\" />\n"
+            f"{indent}  <figcaption class=\"text-center-italic\" style=\"margin-top: 8px;\">{caption_body}</figcaption>\n"
+            f"{indent}</figure>\n\n"
+        )
 
     content = re.sub(
         r'^([ \t]*)!\[([^\]]*)\]\(([^)]*)\)(?:\{([^}]*)\})?[ \t]*\n(?:[ \t]*\n)*\1///\s*caption\s*\n(.*?)\n\1///',
@@ -292,7 +297,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
         content = re.sub(r'^#{1,6}\s+.*$', tag_unnumbered, content, flags=re.MULTILINE)
         content = f'<div class="cover-page">\n{content}\n</div>\n'
 
-    # 🧹 INDENTATION PASSTHROUGH STATE MACHINE
+    # 🧹 HIGH-FIDELITY ADMONITION FENCED DIV STATE MACHINE
     final_lines = content.splitlines()
     new_lines = []
     in_tab = False
@@ -309,7 +314,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
         current_indent = len(line) - len(stripped)
         
         if stripped == "":
-            new_lines.append("> " if in_admonition else "")
+            new_lines.append("")
             continue
 
         # INTERCEPT STRICLY TARGETED 'class="grid cards"' RAW HTML CONTAINER BLOCKS
@@ -356,33 +361,41 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
         # Close open containers dynamically if indentation parameters contract
         if in_tab and not stripped.startswith('==='):
             if current_indent <= tab_indent_level:
-                new_lines.append("\n:::\n")
+                new_lines.append("\n:::::\n")
                 in_tab = False
-                in_admonition = False
+                if in_admonition:
+                    new_lines.append("\n::::\n")
+                    in_admonition = False
                 
         if in_admonition and not in_tab and not stripped.startswith('!!!'):
             if current_indent < adm_indent_level + 4:
                 in_admonition = False
-                new_lines.append("") 
+                new_lines.append("\n::::\n") 
 
-        # INTERCEPT CONTENT TABS
+        # INTERCEPT CONTENT TABS (5 Colons to prevent nesting collapse)
         if stripped.startswith('==='):
             if in_tab:
-                new_lines.append("\n:::\n")
+                new_lines.append("\n:::::\n")
             match = re.search(r'^===\s*["\'“‘]?(.*?)["\'”’]?\s*$', stripped)
             tab_title = match.group(1).strip() if match else "Tab"
             tab_indent_level = current_indent
             in_tab = True
-            in_admonition = False
-            new_lines.append(f'\n::: {{.tabbox title="{tab_title}"}}')
+            if in_admonition:
+                new_lines.append("\n::::\n")
+                in_admonition = False
+            new_lines.append(f'\n::::: {{.tabbox title="{tab_title}"}}')
             continue
             
-        # INTERCEPT ADMONITION CONTAINERS
+        # INTERCEPT ADMONITION CONTAINERS (4 Colons to maintain separate nesting tracking)
         if stripped.startswith('!!!'):
+            if in_admonition:
+                new_lines.append("\n::::\n")
             parts = stripped.split(maxsplit=2)
-            adm_type = parts[1] if len(parts) > 1 else "Note"
-            adm_title = parts[2].strip('"\'包装“”区域區域位‘’') if len(parts) > 2 else adm_type.capitalize()
-            new_lines.append(f"\n> **{adm_title}**\n> ")
+            adm_type = parts[1].lower() if len(parts) > 1 else "note"
+            adm_title = parts[2].strip('"\'') if len(parts) > 2 else adm_type.capitalize()
+            
+            new_lines.append(f"\n::: {{.admonition .{adm_type}}}")
+            new_lines.append(f"::: {{.admonition-title}}\n{adm_title}\n::::\n")
             in_admonition = True
             adm_indent_level = current_indent
             continue
@@ -393,10 +406,14 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
             content_stripped = content_line.lstrip()
             
             if content_stripped.startswith('!!!'):
+                if in_admonition:
+                    new_lines.append("\n::::\n")
                 parts = content_stripped.split(maxsplit=2)
-                adm_type = parts[1] if len(parts) > 1 else "Note"
-                adm_title = parts[2].strip('"\'“”指標‘’') if len(parts) > 2 else adm_type.capitalize()
-                new_lines.append(f"\n> **{adm_title}**\n> ")
+                adm_type = parts[1].lower() if len(parts) > 1 else "note"
+                adm_title = parts[2].strip('"\'') if len(parts) > 2 else adm_type.capitalize()
+                
+                new_lines.append(f"\n::: {{.admonition .{adm_type}}}")
+                new_lines.append(f"::: {{.admonition-title}}\n{adm_title}\n::::\n")
                 in_admonition = True
                 adm_indent_level = len(content_line) - len(content_stripped)
                 continue
@@ -405,12 +422,12 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
                 content_indent = len(content_line) - len(content_stripped)
                 if content_indent < adm_indent_level + 4 and not content_stripped.startswith('!!!'):
                     in_admonition = False
-                    new_lines.append("") 
+                    new_lines.append("\n::::\n") 
                 
                 if in_admonition:
                     adm_strip = adm_indent_level + 4
                     adm_content = content_line[adm_strip:] if content_line.startswith(' ' * adm_strip) else content_stripped
-                    new_lines.append(f"> {adm_content}")
+                    new_lines.append(adm_content)
                 else:
                     new_lines.append(content_line)
             else:
@@ -419,12 +436,14 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, is_inde
         elif in_admonition:
             strip_count = adm_indent_level + 4
             content_line = line[strip_count:] if line.startswith(' ' * strip_count) else stripped
-            new_lines.append(f"> {content_line}")
+            new_lines.append(content_line)
         else:
             new_lines.append(line)
 
     if in_tab:
-        new_lines.append("\n:::\n")
+        new_lines.append("\n:::::\n")
+    if in_admonition:
+        new_lines.append("\n::::\n")
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(new_lines))
@@ -727,6 +746,33 @@ h1 {
 }
 
 /* ==========================================================================
+   TABLE LAYOUT STYLING MATRIX
+   ========================================================================== */
+table {
+    border-collapse: collapse !important;
+    border: 0.25pt solid #555555 !important; /* 0.25pt dark grey outer perimeter line */
+    width: 100% !important;
+    margin: 1.2em 0 !important;
+}
+table th {
+    background-color: rgba(0, 0, 0, 0.1) !important; /* 10% dark grey heading shading */
+    font-weight: bold !important;
+}
+table th, table td {
+    padding: 8px 12px !important;
+    border-top: 0.25pt solid #555555 !important;    /* 0.25pt internal horizontal row splits */
+    border-bottom: 0.25pt solid #555555 !important; /* 0.25pt internal horizontal row splits */
+    border-left: none !important;                 /* Erase internal vertical lines */
+    border-right: none !important;                /* Erase internal vertical lines */
+}
+table tr:first-child th, table tr:first-child td {
+    border-top: none !important; /* Defer to master table outer frame line */
+}
+table tr:last-child td {
+    border-bottom: none !important; /* Defer to master table outer frame line */
+}
+
+/* ==========================================================================
    ADMONITIONS & TABS LAYOUT OVERRIDES (Unified Multi-Page Support Matrix)
    ========================================================================== */
 blockquote {
@@ -782,16 +828,43 @@ blockquote {
     page-break-after: avoid !important;
     break-after: avoid !important;
 }
-.admonition.note { border-left-color: #448aff !important; }
-.admonition.note .admonition-title { color: #448aff !important; }
-.admonition.warning { border-left-color: #ff9100 !important; }
-.admonition.warning .admonition-title { color: #ff9100 !important; }
-.admonition.danger, .admonition.error, .admonition.critical { border-left-color: #ff5252 !important; }
-.admonition.danger .admonition-title, .admonition.error .admonition-title, .admonition.critical .admonition-title { color: #ff5252 !important; }
-.admonition.success { border-left-color: #00e676 !important; }
-.admonition.success .admonition-title { color: #00e676 !important; }
-.admonition.info { border-left-color: #00b0ff !important; }
-.admonition.info .admonition-title { color: #00b0ff !important; }
+
+/* ZENSICAL NATIVE ALIGNED ADMONITION COLOR SPECIFICATION MATRIX */
+.admonition.note     { border-left-color: #448aff !important; background-color: rgba(68, 138, 255, 0.05) !important; }
+.admonition.note     .admonition-title { color: #448aff !important; }
+
+.admonition.abstract { border-left-color: #00b0ff !important; background-color: rgba(0, 176, 255, 0.05) !important; }
+.admonition.abstract .admonition-title { color: #00b0ff !important; }
+
+.admonition.info     { border-left-color: #00b8d4 !important; background-color: rgba(0, 184, 212, 0.05) !important; }
+.admonition.info     .admonition-title { color: #00b8d4 !important; }
+
+.admonition.tip      { border-left-color: #00bfa5 !important; background-color: rgba(0, 191, 165, 0.05) !important; }
+.admonition.tip      .admonition-title { color: #00bfa5 !important; }
+
+.admonition.success  { border-left-color: #00c853 !important; background-color: rgba(0, 200, 83, 0.05) !important; }
+.admonition.success  .admonition-title { color: #00c853 !important; }
+
+.admonition.question { border-left-color: #64dd17 !important; background-color: rgba(100, 221, 23, 0.05) !important; }
+.admonition.question .admonition-title { color: #64dd17 !important; }
+
+.admonition.warning  { border-left-color: #ff9100 !important; background-color: rgba(255, 145, 0, 0.05) !important; }
+.admonition.warning  .admonition-title { color: #ff9100 !important; }
+
+.admonition.failure  { border-left-color: #ff5252 !important; background-color: rgba(255, 82, 82, 0.05) !important; }
+.admonition.failure  .admonition-title { color: #ff5252 !important; }
+
+.admonition.danger   { border-left-color: #ff1744 !important; background-color: rgba(255, 23, 68, 0.05) !important; }
+.admonition.danger   .admonition-title { color: #ff1744 !important; }
+
+.admonition.bug      { border-left-color: #ec407a !important; background-color: rgba(236, 64, 122, 0.05) !important; }
+.admonition.bug      .admonition-title { color: #ec407a !important; }
+
+.admonition.example  { border-left-color: #651fff !important; background-color: rgba(101, 31, 255, 0.05) !important; }
+.admonition.example  .admonition-title { color: #651fff !important; }
+
+.admonition.quote    { border-left-color: #9e9e9e !important; background-color: rgba(158, 158, 158, 0.05) !important; }
+.admonition.quote    .admonition-title { color: #9e9e9e !important; }
 
 /* ==========================================================================
    ZENSICAL GRID CARD CANVAS ARCHITECTURE
@@ -826,8 +899,7 @@ blockquote {
     display: inline !important;
 }
 
-/* 🎯 CRITICAL CODE BLOCK SHADING OVERRIDES */
-/* Implements explicit 12.5% background opacity fills on code platforms */
+/* CRITICAL CODE BLOCK SHADING OVERRIDES */
 pre, code {
     font-family: "__MONO_FONT__", monospace !important;
     background-color: rgba(0, 0, 0, 0.125) !important;
@@ -845,6 +917,20 @@ code {
 pre code {
     padding: 0 !important;
     background-color: transparent !important;
+}
+
+/* ADVANCED FIGURE & ASSET PROTECTION BINDINGS */
+/* Global 130% intrinsic print asset scale metric lookup override */
+img {
+    image-resolution: 74dpi !important;
+    width: auto !important;  /* 🎯 Force override of inline percentage styles inside tab containers */
+    max-width: 100% !important;
+    height: auto !important;
+}
+.text-center img, .text-center-italic img {
+    display: inline-block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 /* Inline vector mappings */
@@ -894,13 +980,6 @@ pre code {
 .text-center-italic { text-align: center !important; font-style: italic !important; display: block !important; }
 .text-right-italic { text-align: right !important; font-style: italic !important; display: block !important; }
 .text-justify-italic { text-align: justify !important; font-style: italic !important; display: block !important; }
-
-/* ADVANCED FIGURE & ASSET PROTECTION BINDINGS */
-.text-center img, .text-center-italic img {
-    display: inline-block !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
 
 /* Allow grid alignments to break across pages, but explicitly lock content tabs */
 .gridcard-matrix, .gridcard-item,

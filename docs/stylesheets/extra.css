@@ -102,6 +102,10 @@ All contributions are certified under the DCO
 .text-right { text-align: right;  display: block; }
 .text-justify { text-align: justify; display: block; }
 
+.text-center-italic { text-align: center; font-style: italic; display: block; }
+.text-right-italic { text-align: right; font-style: italic; display: block; }
+.text-justify-italic { text-align: justify; font-style: italic; display: block; }
+
 /* ============================================================= */
 /* ============ Styles for numbering page headings ============= */
 /* ============================================================= */

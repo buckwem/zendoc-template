@@ -9,13 +9,11 @@ All contributions are certified under the DCO
 -->
 
 <style>
-  /* Reset the page and sidebar to start at 2 */
-  .md-typeset { counter-reset: h1-count 1 !important; }
-  .md-nav--primary { counter-reset: toc1 2 !important; }
+  /* Reset the page and sidebar to start at 7 */
+  .md-typeset { counter-reset: h1-count 6 !important; }
+  .md-nav--primary { counter-reset: toc1 7 !important; }
   /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
 </style>
-
-
 
 # Install tooling
 
@@ -34,33 +32,37 @@ The steps below will help you install VS Code and some essential plugins to edit
 
 ### Install Visual Studio Code
 
-1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, Windows 11, and Linux (Ubuntu/Debian) are below:
+1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, 
 
-    === "macOS using Homebrew"
+    <div class="grid cards one-column" markdown>
+    
+    -   :material-clock-fast:{ .lg .middle } __Install Visual Studio Code__
 
-        If you use the Homebrew package manager, run this command in your Terminal:
-        ``` bash
-        brew install --cask visual-studio-code
-        ```
+        === "macOS using Homebrew"
 
-    === "Windows 11 using PowerShell"
+            1. If you use the Homebrew package manager, run this command in your Terminal:
+                ``` bash
+                brew install --cask visual-studio-code
+                ```
 
-        1. Download the VS Code User setup for Windows.
-        2. Run the installer, `VSCodeUserSetup-{version}.exe`. By default the User setup installs Visual Studio Code to your user profile directory. You can change the install location if you want to install it for all users.
+        === "Windows 11 using PowerShell"
+
+            1. Download the VS Code User setup for Windows.
+            2. Run the installer, `VSCodeUserSetup-{version}.exe`. By default the User setup installs Visual Studio Code to your user profile directory. You can change the install location if you want to install it for all users.
          
-        Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/windows){target="_blank"}.
+        === "Linux (Ubuntu/Debian) using bash"
 
-    === "Linux (Ubuntu/Debian) using bash"
-
-        1. Download the `.deb` package from the [official website](https://code.visualstudio.com/).
-        2. Open a terminal and navigate to the directory where you downloaded the `.deb` package.
-        3. Run the following command to install Visual Studio Code:
-        ``` bash
-        sudo apt install ./<file>.deb
-        ```
-        Replace `<file>` with the name of the downloaded `.deb` file.
-
+            1. Download the `.deb` package from the [official website](https://code.visualstudio.com/).
+            2. Open a terminal and navigate to the directory where you downloaded the `.deb` package.
+            3. Run the following command to install Visual Studio Code:
+                ``` bash
+                sudo apt install ./<file>.deb
+                ```
+            Replace `<file>` with the name of the downloaded `.deb` file.
+            
         Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
+
+    </div>
 
 ### Install Visual Studio Code plugins
 
@@ -82,12 +84,12 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
     <div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Install Git Command__
+    -   :material-clock-fast:{ .lg .middle } __Install Git__
 
         === "macOS using Homebrew"
 
             If you use the Homebrew package manager, run this command in your Terminal to either install or update `git` to the latest stable version:
-
+                
             ``` bash
             brew update
             brew install git
@@ -95,31 +97,29 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
         === "Windows 11 using PowerShell"
 
-            Open up a **PowerShell** window and install `git` using the command:
-
-            ``` powershell
+            Open up a **PowerShell** window and install `git` using the command, or you can download and installthe official git installer from [git-scm.com](https://git-scm.com/download/win){target="_blank"}.
+                
+            ``` PowerShell
             winget install Git.Git
             ```
-
-            or you can download the official git installer from [git-scm.com](https://git-scm.com/download/win){target="_blank"} and run the installer.
-
+        
             If you just require an updated version of `git`, you can run the following command in **PowerShell**:
-
-            ``` powershell
+                
+            ``` PowerShell
             winget upgrade Git.Git
             ```
 
         === "Linux (Ubuntu/Debian) using bash"
 
             Open a terminal and run the following command to install or update `git` to the latest stable version:
+            
             ``` bash
             sudo apt update
             sudo apt install git
             ```
-
     </div>
 
-1. Before connecting to any cloud provider, open your terminal (Terminal on macOS/Debian, Git Bash or PowerShell on Windows 11) and set your global username and email. This is the identity stamped onto your commits. Make sure you use the same email address that you used to register for your GitLab or GitHub account.
+    Before connecting to any cloud provider, open your terminal (Terminal on macOS/Debian, Git Bash or PowerShell on Windows 11) and set your global username and email. This is the identity stamped onto your commits. Make sure you use the same email address that you used to register for your GitLab or GitHub account.
 
     ``` bash
     git config --global user.name "Your Name"
@@ -137,36 +137,38 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
     <div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Generate SSH Key Pair__
+    -   :material-clock-fast:{ .lg .middle } __Generate ssh keys__
 
         === "macOS using Homebrew"
 
             1. Open the **Terminal** application.
             2. Run the following command to generate a new SSH key pair for GitHub and GitLab. Make sure to replace `your.gitxxx.email@example.com` with your actual email address:
-            ``` bash
-            ssh-keygen -t ed25519 -C "your.github.email@example.com" -f ~/.ssh/id_ed25519_github
-            ssh-keygen -t ed25519 -C "your.gitlab.email@example.com" -f ~/.ssh/id_ed25519_gitlab
-            ```
+            
+                ``` bash
+                ssh-keygen -t ed25519 -C "your.github.email@example.com" -f ~/.ssh/id_ed25519_github
+                ssh-keygen -t ed25519 -C "your.gitlab.email@example.com" -f ~/.ssh/id_ed25519_gitlab
+                ```
             3. When prompted, type a strong passphrase.
 
         === "Windows 11 using PowerShell"
 
             1. Open the **PowerShell** application.
             2. Run the following command to generate a new SSH key pair for GitHub and GitLab. Make sure to replace `your.gitxxx.email@example.com` with your actual email address:
-            ``` powershell
-            ssh-keygen -t ed25519 -C "your.github.email@example.com" -f $env:USERPROFILE\.ssh\id_ed25519_github
-            ssh-keygen -t ed25519 -C "your.gitlab.email@example.com" -f $env:USERPROFILE\.ssh\id_ed25519_gitlab
-            ```
+            
+                ``` powershell
+                ssh-keygen -t ed25519 -C "your.github.email@example.com" -f $env:USERPROFILE\.ssh\id_ed25519_github
+                ssh-keygen -t ed25519 -C "your.gitlab.email@example.com" -f $env:USERPROFILE\.ssh\id_ed25519_gitlab
+                ```
             3. When prompted, type a strong passphrase.
             
         === "Linux (Ubuntu/Debian) using bash"
-
             1. Open the **Terminal** application.
             2. Run the following command to generate a new SSH key pair for GitHub and GitLab. Make sure to replace `your.gitxxx.email@example.com` with your actual email address:
-            ``` bash
-            ssh-keygen -t ed25519 -C "your.github.email@example.com" -f ~/.ssh/id_ed25519_github
-            ssh-keygen -t ed25519 -C "your.gitlab.email@example.com" -f ~/.ssh/id_ed25519_gitlab
-            ```
+            
+                ``` bash
+                ssh-keygen -t ed25519 -C "your.github.email@example.com" -f ~/.ssh/id_ed25519_github
+                ssh-keygen -t ed25519 -C "your.gitlab.email@example.com" -f ~/.ssh/id_ed25519_gitlab
+                ```
             3. When prompted, type a strong passphrase.
     
     </div>
@@ -178,6 +180,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
     ```bash
     nano ~/.ssh/config
     ```
+    
     paste the following configuration into the file:
 
     ```text
@@ -226,37 +229,39 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
     <div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Start SSH Agent__
+    -   :material-clock-fast:{ .lg .middle } __Adding ssh keys__
 
         === "macOS using Homebrew"
 
             1. Add your SSH private keys to the already running ssh agent:
-            ``` bash
-            ssh-add ~/.ssh/id_ed25519_github
-            ssh-add ~/.ssh/id_ed25519_gitlab
-            ```
+        
+                ``` bash
+                ssh-add ~/.ssh/id_ed25519_github
+                ssh-add ~/.ssh/id_ed25519_gitlab
+                ```
 
         === "Windows 11 using PowerShell"
 
             1. Start the SSH agent in the background and set it to start automatically with Windows:
-            ``` powershell
-            Start-Service ssh-agent
-            Set-Service -Name ssh-agent -StartupType Automatic
-            ```
+        
+                ``` powershell
+                Start-Service ssh-agent
+                Set-Service -Name ssh-agent -StartupType Automatic
+                ```
             2. Add your SSH private keys to the agent:
-            ``` powershell
-            ssh-add $env:USERPROFILE\.ssh\id_ed25519_github
-            ssh-add $env:USERPROFILE\.ssh\id_ed25519_gitlab
-            ```
+        
+                ``` powershell
+                ssh-add $env:USERPROFILE\.ssh\id_ed25519_github
+                ```
 
         === "Linux (Ubuntu/Debian) using bash"
 
             1. Add your SSH private keys tto the already running ssh agent:
-            ``` bash
-            ssh-add ~/.ssh/id_ed25519_github
-            ssh-add ~/.ssh/id_ed25519_gitlab
-            ```
-
+        
+                ``` bash
+                ssh-add ~/.ssh/id_ed25519_github
+                ssh-add ~/.ssh/id_ed25519_gitlab
+                ```
     </div>
 
 !!! Note "Essential Practice Moving Forward"
@@ -271,9 +276,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
     <div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Add SSH Key to GitHub and GitLab__
-
-        ---
+    -   :material-clock-fast:{ .lg .middle } __Integrate Visual Studio Code with Git__
 
         === "GitLab"
 
@@ -304,9 +307,9 @@ Forking the documentation template creates a copy of the template into your own 
 Cloning the documentation template creates a local copy of the template on your computer. You will then be able to edit the template locally in Visual Studio Code and publish your own documentation website.
 
 <br>
-/// caption
-Fork and Clone Comparison at a Glance
-///
+<p class="text-center-italic">
+Table 7.3-1: Fork and Clone Comparison at a Glance
+</p>
 | Feature | Fork | Clone |
 |----|----|---|
 | Where's the copy made? | On the remote host (GitHub / GitLab) | On your local computer |
@@ -338,42 +341,36 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
 {% endif %}
 
 2. Next, fork the documentation template to create a copy of the template in your own Git cloud account. Follow the instructions below to fork the repository.
+
     <div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Fork the document template__
+    -   :material-clock-fast:{ .lg .middle } __Fork the documentation template__
 
-        ---
-
-{% if is_surrey %}
+        {% if is_surrey %}
         === "GitLab"
 
             1. Click on the link to [fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/doc-template/-/forks/new){target="_blank"} to create a copy of the template for your use.
-
-            ![fork project](images/gitlab-fork-project.png){ width="70%" }
-            /// caption
-            GitLab fork project
-            ///
-
-            3. Enter your *Project name* using to the format the coursework specifies. For example, for coursework 1 for the module COMM058 in the year 2026 for your GitLab ID az1234, enter 'cw1-az1234' in the project name field. Edit the *Project slug* to match the project name. Use all lowercase and a dash between words with no spaces.
-
-            4. Then select the project namespace for the module as directed by your course tutor.
-
-            5. Change the *Visibility Level* to *Private*.
-
-            6. Press the button **Fork Project**{: .bg-blue} to create your own copy of the project in the group namespace.
             
-            !!! Warning
-                Don't forget to set the visibility to private, otherwise other students can see your coursework. Ask another student to check whether they can see your site.
-
-{% else %}
+                ![Image title](images/gitlab-fork-project.png){ width=70% }
+                /// caption
+                Figure 7.3.1-1: GitLab fork project
+                ///
+           
+            3. Enter your *Project name* using to the format the coursework specifies. For example, for coursework 1 for the module COMM058 in the year 2026 for your GitLab ID az1234, enter 'cw1-az1234' in the project name field. Edit the *Project slug* to match the project name. Use all lowercase and a dash between words with no spaces.
+            4. Then select the project namespace for the module as directed by your course tutor.
+            5. Change the *Visibility Level* to *Private*.
+            6. Press the button **Fork Project**{: .bg-blue} to create your own copy of the project in the group namespace.
+        
+        {% endif %}
 
         === "GitHub"
 
             xxx
 
-{% endif %}
-   
     </div>
+
+!!! Warning
+    Don't forget to set the visibility to private, otherwise others can see your repository. Ask someone else to check whether they can see your repository.
 
 ### Clone the doc-template
 
@@ -408,78 +405,69 @@ python --version
 The instructions below are for installing Python 3.8 or later. If you have an older version, please update to Python 3.8 or later.
 
 
-<div class="grid cards one-column" markdown>
+=== "macOS - Terminal"
+
+    1. Install python using the Homebrew package manager. If you don't have Homebrew installed, you can install it by following the instructions on the [Homebrew website](https://brew.sh/).
         
--   :material-clock-fast:{ .lg .middle } __Install Python and Zensical__
-
-    ---
-
-    === "macOS - Terminal"
-
-        1. Install python using the Homebrew package manager. If you don't have Homebrew installed, you can install it by following the instructions on the [Homebrew website](https://brew.sh/).
+    ``` bash
+    brew install python
+    ```
         
-        ``` bash
-        brew install python
-        ```
-        
-        2. Open *Terminal* and run the following commands to create a virtual environment and install Zensical:
+    2. Open *Terminal* and run the following commands to create a virtual environment and install Zensical:
 
-        ```bash
-        # 1. Create the virtual environment
-        python3 -m venv .venv
+    ```bash
+    # 1. Create the virtual environment
+    python3 -m venv .venv
 
-        # 2. Activate it
-        source .venv/bin/activate
+    # 2. Activate it
+    source .venv/bin/activate
 
-        # 3. Install Zensical
-        pip install zensical
-        ```
+    # 3. Install Zensical
+    pip install zensical
+    ```
 
-    === "Windows 11 - PowerShell"
+=== "Windows 11 - PowerShell"
 
-        1. Download and run the official python installer from the [python.org](https://www.python.org/downloads/).
-        1. Open *PowerShell* as an Administrator in your project folder and run:
+    1. Download and run the official python installer from the [python.org](https://www.python.org/downloads/).
+    1. Open *PowerShell* as an Administrator in your project folder and run:
 
-
-        !!! Critical
-            Make sure to check the box that says "Add Python to PATH" during the installation process. This will allow you to run Python from the command line. 
+    !!! Critical
+        Make sure to check the box that says "Add Python to PATH" during the installation process. This will allow you to run Python from the command line. 
 
 
-        ```PowerShell
-        # 1. Create the virtual environment
-        python -m venv .venv
+    ```PowerShell
+    # 1. Create the virtual environment
+    python -m venv .venv
 
-        # 2. Activate it (Choose the line matching your terminal)
-        .\.venv\Scripts\Activate.ps1     # <-- Use this if you are in PowerShell
-        .\.venv\Scripts\activate.bat     # <-- Use this if you are in classic CMD
+    # 2. Activate it (Choose the line matching your terminal)
+    .\.venv\Scripts\Activate.ps1     # <-- Use this if you are in PowerShell
+    .\.venv\Scripts\activate.bat     # <-- Use this if you are in classic CMD
 
-        # 3. Install Zensical inside the environment
-        pip install zensical
-        ```
+    # 3. Install Zensical inside the environment
+    pip install zensical
+    ```
 
-    === "Linux - Ubuntu/Debian"
+=== "Linux - Ubuntu/Debian"
 
-        1. Download the `.deb` package from the [official website](https://code.visualstudio.com/).
-        2. Open a terminal and navigate to the directory where you downloaded the `.deb` package.
-        3. Run the following command to install Visual Studio Code:
+    1. Download the `.deb` package from the [official website](https://code.visualstudio.com/).
+    2. Open a terminal and navigate to the directory where you downloaded the `.deb` package.
+    3. Run the following command to install Visual Studio Code:
 
-        ``` bash
-        # 1. Create the virtual environment
-        python -m venv .venv
+    ``` bash
+    # 1. Create the virtual environment
+    python -m venv .venv
 
-        # 2. Activate it (Choose the line matching your terminal)
-        .\.venv\Scripts\Activate.ps1     # <-- Use this if you are in PowerShell
-        .\.venv\Scripts\activate.bat     # <-- Use this if you are in classic CMD
+    # 2. Activate it (Choose the line matching your terminal)
+    .\.venv\Scripts\Activate.ps1     # <-- Use this if you are in PowerShell
+    .\.venv\Scripts\activate.bat     # <-- Use this if you are in classic CMD
 
-        # 3. Install Zensical inside the environment
-        pip install zensical
-        ```
+    # 3. Install Zensical inside the environment
+    pip install zensical
+    ```
 
-        Replace `<file>` with the name of the downloaded `.deb` file.
+    Replace `<file>` with the name of the downloaded `.deb` file.
 
-        Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
-
-</div>
+    Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
 
 ### Install Zensical Studio plugin
 

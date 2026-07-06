@@ -10,8 +10,8 @@ icon: lucide/book-open
 
 <style>
   /* Reset the page and sidebar to start at 1 */
-  .md-typeset { counter-reset: h1-count -1 !important; }
-  .md-nav--primary { counter-reset: toc1 0 !important; }
+  .md-typeset { counter-reset: h1-count 0 !important; }
+  .md-nav--primary { counter-reset: toc1 1 !important; }
   /* Also change the numbering of the overall ti number in the sidebar by editing zensical.toml */
 </style>
 

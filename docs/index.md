@@ -11,14 +11,14 @@ hide:
 # All contributions are certified under the DCO
 -->
 
-[:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;"}
+[:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;" .hidden}
 
 <!-- Hide heading 1 on the page as hide: title does not seem to work -->
 <style> .md-typeset h1 { display: none; } </style>
 <!-- We still need a title set for the next/previous page navigation
      to work, so we set it here but hide it from the page.
 -->
-# Cover Page
+# Cover Page {.unnumbered .unlisted .hidden}
 
 <!--
 /*================== TITLE PAGE SURREY GITLAB ==================*/ 

@@ -11,7 +11,7 @@ pages:
     - apt-get update
     - apt-get install -y pandoc texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra
     - pip install -r requirements.txt
-    - python build_pdf.py
+    - python build_pdf_final.py
     - zensical build --clean 
   pages:
     publish: public

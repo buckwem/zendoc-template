@@ -9,9 +9,9 @@ icon: lucide/book-open
 -->
 
 <style>
-  /* Reset the page and sidebar to start at 1 */
-  .md-typeset { counter-reset: h1-count 0 !important; }
-  .md-nav--primary { counter-reset: toc1 1 !important; }
+  /* Reset the page and sidebar to start at 6 */
+  .md-typeset { counter-reset: h1-count 5 !important; }
+  .md-nav--primary { counter-reset: toc1 6 !important; }
   /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
 </style>
 
@@ -62,7 +62,7 @@ To move from using a word processor or simple website to a scalable and effectiv
 As a student, you will be following a simplified workflow, as you aren't working with documentation that spans thousands of pages and is maintained by a large development team. Nevertheless, understanding the approach used at scale can help you appreciate the value of the skills you will develop. GitLab provides a video that outlines the entire process for their documentation and highlights the importance of the skills acquired through a docs-as-code methodology.
 
 <div style="display: flex; justify-content: center;">
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/ZlabtdA-gZE?si=_3GQjj5C6EDpMP8Z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/ZlabtdA-gZE?si=_3GQjj5C6EDpMP8Z" title="Introduction to using GitLab as a technical writing team Youtube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 </div>
 
 ## Zensical for docs-as-code
@@ -103,7 +103,7 @@ The [*Markdown basics*](./markdown.md) section describes the principles of Markd
 
 `Additional tooling`
 
-: The [*Additional tooling*](additionaltooling.md) section describes additional tools that can be installed to help you create quality docs-as-code documents. They will take additional effort to install and configure.
+: The [*Additional tooling*](./additionaltooling.md) section describes additional tools that can be installed to help you create quality docs-as-code documents. They will take additional effort to install and configure.
 
 `Shell commands`
 

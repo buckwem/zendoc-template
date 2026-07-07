@@ -470,7 +470,6 @@ The instructions below are for installing Python 3.8 or later. If you have an ol
             Replace `<file>` with the name of the downloaded `.deb` file.
 
     </div>
-
 Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
 
 ### Install Zensical Studio plugin

@@ -9,3 +9,4 @@ pandoc
 toml
 weasyprint
 beautifulsoup4
+emoji

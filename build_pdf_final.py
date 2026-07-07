@@ -7,6 +7,67 @@ import re
 import importlib.util
 import glob
 import base64
+import urllib.request
+
+# In-process cache so the same emoji is never fetched/read twice within a single build
+_TWEMOJI_SVG_CACHE = {}
+
+def resolve_twemoji_svg(unicode_str, icon_registry):
+    """Resolves a genuine (non-icon-set) emoji's Unicode sequence to twemoji SVG data.
+
+    Checks the already-discovered icon registry and an on-disk cache under
+    ./.icons/twemoji first (fully offline once populated), then falls back to
+    fetching the matching asset from the twemoji CDN and caching it locally so
+    future builds no longer need network access for that emoji.
+    """
+    codepoints_full = "-".join(f"{ord(ch):x}" for ch in unicode_str)
+    codepoints_stripped = "-".join(f"{ord(ch):x}" for ch in unicode_str if ch != '️')
+    candidates = list(dict.fromkeys(c for c in [codepoints_full, codepoints_stripped] if c))
+
+    for cp in candidates:
+        if cp in _TWEMOJI_SVG_CACHE:
+            return _TWEMOJI_SVG_CACHE[cp]
+
+        abs_path = icon_registry.get(f"twemoji-{cp}") or icon_registry.get(cp)
+        if abs_path and os.path.exists(abs_path):
+            with open(abs_path, 'r', encoding='utf-8') as f:
+                svg_data = f.read()
+            _TWEMOJI_SVG_CACHE[cp] = svg_data
+            return svg_data
+
+    cache_dir = os.path.join(os.getcwd(), ".icons", "twemoji")
+    for cp in candidates:
+        cache_path = os.path.join(cache_dir, f"{cp}.svg")
+        if os.path.exists(cache_path):
+            with open(cache_path, 'r', encoding='utf-8') as f:
+                svg_data = f.read()
+            icon_registry[f"twemoji-{cp}"] = cache_path
+            icon_registry.setdefault(cp, cache_path)
+            _TWEMOJI_SVG_CACHE[cp] = svg_data
+            return svg_data
+
+    for cp in candidates:
+        url = f"https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/{cp}.svg"
+        try:
+            with urllib.request.urlopen(url, timeout=5) as resp:
+                svg_data = resp.read().decode('utf-8')
+        except Exception:
+            continue
+
+        try:
+            os.makedirs(cache_dir, exist_ok=True)
+            cache_path = os.path.join(cache_dir, f"{cp}.svg")
+            with open(cache_path, 'w', encoding='utf-8') as f:
+                f.write(svg_data)
+            icon_registry[f"twemoji-{cp}"] = cache_path
+            icon_registry.setdefault(cp, cache_path)
+        except Exception:
+            pass
+
+        _TWEMOJI_SVG_CACHE[cp] = svg_data
+        return svg_data
+
+    return None
 
 def extract_md_files(nav_element):
     """Recursively walks the Zensical navigation tree to extract .md files in order."""
@@ -306,26 +367,32 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         try:
             import emoji
             emojized = emoji.emojize(f":{shortcode}:", language='alias')
-            if emojized != f":{shortcode}:": return emojized
+            if emojized != f":{shortcode}:":
+                svg_data = resolve_twemoji_svg(emojized, icon_registry)
+                if svg_data:
+                    token = register_icon_token(None, raw_svg_data=svg_data)
+                    if token: return token
+                return emojized
         except Exception:
             pass
         return match.group(0)
 
     # Single-pass parsing configuration protecting inline code `...` and fenced blocks ```...```
-    code_protected_shortcode_pattern = r'(```[\s\S]*?```)|(`[^`\n]*`)|:([a-zA-Z0-9_-]+):'
+    # Character class includes +/- so Gemoji-style shortcodes like :+1: and :-1: are matched too
+    code_protected_shortcode_pattern = r'(```[\s\S]*?```)|(`[^`\n]*`)|:([a-zA-Z0-9_+-]+):'
     content = re.sub(code_protected_shortcode_pattern, icon_replacer, content)
 
     # AUTOMATED NATIVE LUCIDE HTML TAG INTERCEPTOR ENGINE
     def lucide_html_replacer(match):
-        if match.group(1) or match.group(2): return match.group(0)
-        icon_name = match.group(3).lower().strip()
+        if match.group(1): return match.group(0)
+        icon_name = match.group(2).lower().strip()
         abs_url = icon_registry.get(f"lucide-{icon_name}") or icon_registry.get(icon_name)
         if abs_url:
             token = register_icon_token(abs_url)
             if token: return token
         return match.group(0)
 
-    content = re.sub(r'(?:`[^`\n]+`|```.*?```)|<i[^>]+data-lucide=["\']([^"\']+)["\'][^>]*>.*?</i>', lucide_html_replacer, content, flags=re.IGNORECASE | re.DOTALL)
+    content = re.sub(r'(```[\s\S]*?```|`[^`\n]*`)|<i[^>]+data-lucide=["\']([^"\']+)["\'][^>]*>.*?</i>', lucide_html_replacer, content, flags=re.IGNORECASE | re.DOTALL)
 
     # AUTOMATED FONTAWESOME HTML CODES INTERCEPTOR ENGINE
     def fontawesome_html_replacer(match):

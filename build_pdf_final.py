@@ -833,9 +833,6 @@ h1, h2, h3, h4, h5, h6 {
 pre, code {
     font-family: "__MONO_FONT__", monospace !important;
 }
-.hidden {
-    display: none !important;
-}
 
 /* ==========================================================================
    CRITICAL WEASYPRINT STRUCTURAL CANVAS RESET 
@@ -895,18 +892,6 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
 }
 h1 { break-before: page !important; }
 .cover-page h1 { break-before: auto !important; }
-
-/* ==========================================================================
-   TABLE OF CONTENTS STYLING
-   ========================================================================== */
-.toc ul { list-style-type: none !important; padding-left: 0 !important; margin-left: 0 !important; }
-.toc li { margin-bottom: 0.6em !important; }
-.toc li ul { padding-left: 1.5em !important; margin-top: 0.3em !important; }
-.toc a { text-decoration: none !important; color: #111111 !important; display: block !important; }
-.toc a::after {
-    content: " " leader(dotted) " " target-counter(attr(href), page);
-    color: #555555 !important; font-weight: normal !important;
-}
 
 /* ==========================================================================
    TABLE LAYOUT STYLING MATRIX
@@ -1065,13 +1050,6 @@ img.twemoji, i.fa-solid, i.fa-regular, i.fa-brands, i.material-icons, i[class*="
 [class*="title-"][class*="-4"] { font-size: 15pt; line-height: 20pt; margin-bottom: 0.6em; }
 [class*="title-"][class*="-5"] { font-size: 13pt; line-height: 17pt; margin-bottom: 0.6em; }
 [class*="title-"][class*="-6"] { font-size: 11pt; line-height: 15pt; margin-bottom: 0.6em; }
-
-.text-center { text-align: center !important; display: block !important; }
-.text-right { text-align: right !important;  display: block !important; }
-.text-justify { text-align: justify !important; display: block !important; }
-.text-center-italic { text-align: center !important; font-style: italic !important; display: block !important; }
-.text-right-italic { text-align: right !important; font-style: italic !important; display: block !important; }
-.text-justify-italic { text-align: justify !important; font-style: italic !important; display: block !important; }
 
 .gridcard-matrix, .gridcard-item,
 .text-center, .text-right, .text-justify,

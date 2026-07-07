@@ -1003,6 +1003,10 @@ blockquote {
 pre, code { font-family: "__MONO_FONT__", monospace !important; }
 pre { padding: 10px !important; border-radius: 4px !important; margin: 1em 0 !important; white-space: pre-wrap !important; background-color: rgba(0, 0, 0, 0.125) !important; }
 code { padding: 2px 4px !important; border-radius: 3px !important; background-color: transparent !important; }
+/* Multi-line <code> inside <pre> is a single inline box split across hard line
+   breaks; without this, the padding above lands only on the first line (default
+   box-decoration-break: slice), making it look indented relative to the rest. */
+pre code { padding: 0 !important; }
 
 /* ==========================================================================
    ADVANCED GLOBAL IMAGE AND VECTOR PROTECTION STANDARDS

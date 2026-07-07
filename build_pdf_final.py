@@ -787,11 +787,30 @@ def main():
             "end\n"
         )
     
+    # Rewrites CSS url(...) references (relative to the source CSS file) to base64 data
+    # URIs, since the compiled CSS is written to a different directory (temp_build_dir)
+    # where the original relative paths would no longer resolve.
+    def inline_css_urls(css_text, css_dir):
+        def url_replacer(match):
+            quote, ref = match.group(1), match.group(2)
+            if ref.startswith(('data:', 'http://', 'https://', '#')):
+                return match.group(0)
+            asset_path = os.path.abspath(os.path.join(css_dir, ref))
+            if not os.path.isfile(asset_path):
+                return match.group(0)
+            ext = os.path.splitext(asset_path)[1].lower().strip('.')
+            mime_type = {"svg": "image/svg+xml", "jpg": "image/jpeg"}.get(ext, f"image/{ext}")
+            with open(asset_path, 'rb') as f:
+                b64_payload = base64.b64encode(f.read()).decode('utf-8')
+            return f'url({quote}data:{mime_type};base64,{b64_payload}{quote})'
+        return re.sub(r'url\((["\']?)([^)"\']+)\1\)', url_replacer, css_text)
+
     temp_compiled_css = os.path.join(temp_build_dir, "_temp_compiled_print.css")
     original_css_content = ""
     for css_src in [os.path.join(docs_dir, "stylesheets", "extra.css"), os.path.join(docs_dir, "stylesheets", "print.css")]:
         if os.path.exists(css_src):
-            with open(css_src, "r", encoding="utf-8") as f: original_css_content += f.read() + "\n"
+            with open(css_src, "r", encoding="utf-8") as f:
+                original_css_content += inline_css_urls(f.read(), os.path.dirname(css_src)) + "\n"
 
     cleaned_original_css = re.sub(r'@charset[^;{]*(\{.*?\}|;)', '', original_css_content, flags=re.IGNORECASE | re.DOTALL)
     cleaned_original_css = re.sub(r'^.*user-select.*$\n?', '', cleaned_original_css, flags=re.MULTILINE | re.IGNORECASE)

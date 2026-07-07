@@ -315,6 +315,22 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     content = re.sub(r'<img[^>]+src=["\']([^"\']+)["\']', html_img_replacer, content, flags=re.IGNORECASE)
 
     content = re.sub(r'^\s*---\s*$', '***', content, flags=re.MULTILINE)
+
+    # AUTOMATED ATTR_LIST TO BRACKETED-SPAN TRANSLATION ENGINE
+    # Python-Markdown's inline attr_list syntax (**text**{: .class}) isn't understood by
+    # Pandoc; rewrite it to Pandoc's native bracketed-span syntax ([**text**]{.class}).
+    def attr_list_span_replacer(match):
+        if match.group(1) or match.group(2): return match.group(0)
+        inline_text = match.group(3)
+        attrs = match.group(4).strip()
+        return f"[{inline_text}]{{{attrs}}}"
+
+    content = re.sub(
+        r'(```[\s\S]*?```)|(`[^`\n]*`)|(\*\*[^*\n]+\*\*|\*[^*\n]+\*)\{:\s*([^}]+)\}',
+        attr_list_span_replacer,
+        content
+    )
+
     content = re.sub(r'\{\s*target=[^}]*\}', '', content, flags=re.IGNORECASE)
     content = re.sub(r'^(#{1,6})\s+Footnotes\s*$', r'\1 Footnotes {#custom-footnotes-heading}', content, flags=re.MULTILINE | re.IGNORECASE)
 
@@ -773,7 +789,7 @@ def main():
     
     temp_compiled_css = os.path.join(temp_build_dir, "_temp_compiled_print.css")
     original_css_content = ""
-    for css_src in [os.path.join("stylesheets", "extra.css"), os.path.join("stylesheets", "print.css")]:
+    for css_src in [os.path.join(docs_dir, "stylesheets", "extra.css"), os.path.join(docs_dir, "stylesheets", "print.css")]:
         if os.path.exists(css_src):
             with open(css_src, "r", encoding="utf-8") as f: original_css_content += f.read() + "\n"
 

@@ -863,8 +863,8 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
     @bottom-center { content: none !important; }
     @bottom-left {
         content: "__COPYRIGHT__" !important;
-        font-family: "__MAIN_FONT__", sans-serif !important;
-        font-size: 9pt !important;
+        font-family: "__MAIN_FONT__", -apple-system, sans-serif !important;
+        font-size: 10pt !important;
         color: #555555 !important;
         vertical-align: top !important;
         border-top: 1px solid #e2e8f0 !important;
@@ -874,8 +874,8 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
     }
     @bottom-right {
         content: "Page " counter(page) " of " counter(pages) !important;
-        font-family: "__MAIN_FONT__", sans-serif !important;
-        font-size: 9pt !important;
+        font-family: "__MAIN_FONT__", -apple-system, sans-serif !important;
+        font-size: 10pt !important;
         color: #555555 !important;
         vertical-align: top !important;
         border-top: 1px solid #e2e8f0 !important;

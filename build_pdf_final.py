@@ -101,23 +101,20 @@ def discover_icon_dirs(config):
             site_paths.append(site.getusersitepackages())
         
         for sp in site_paths:
-            for pkg in ["material", "mkdocs_material"]:
+            for pkg in ["material", "mkdocs_material", "zensical"]:
                 dirs.append(os.path.join(sp, pkg, "templates", ".icons"))
                 dirs.append(os.path.join(sp, pkg, ".icons"))
     except Exception:
         pass
-    
+
     for local_dir in [".venv", "venv", "env"]:
         base_venv = os.path.join(os.getcwd(), local_dir)
         if os.path.isdir(base_venv):
-            dirs.extend(glob.glob(os.path.join(base_venv, "lib", "python*", "site-packages", "material", "templates", ".icons")))
-            dirs.extend(glob.glob(os.path.join(base_venv, "lib", "python*", "site-packages", "material", ".icons")))
-            dirs.extend(glob.glob(os.path.join(base_venv, "lib", "python*", "site-packages", "mkdocs_material", "templates", ".icons")))
-            dirs.extend(glob.glob(os.path.join(base_venv, "lib", "python*", "site-packages", "mkdocs_material", ".icons")))
-            dirs.extend(glob.glob(os.path.join(base_venv, "Lib", "site-packages", "material", "templates", ".icons")))
-            dirs.extend(glob.glob(os.path.join(base_venv, "Lib", "site-packages", "material", ".icons")))
-            dirs.extend(glob.glob(os.path.join(base_venv, "Lib", "site-packages", "mkdocs_material", "templates", ".icons")))
-            dirs.extend(glob.glob(os.path.join(base_venv, "Lib", "site-packages", "mkdocs_material", ".icons")))
+            for pkg in ["material", "mkdocs_material", "zensical"]:
+                dirs.extend(glob.glob(os.path.join(base_venv, "lib", "python*", "site-packages", pkg, "templates", ".icons")))
+                dirs.extend(glob.glob(os.path.join(base_venv, "lib", "python*", "site-packages", pkg, ".icons")))
+                dirs.extend(glob.glob(os.path.join(base_venv, "Lib", "site-packages", pkg, "templates", ".icons")))
+                dirs.extend(glob.glob(os.path.join(base_venv, "Lib", "site-packages", pkg, ".icons")))
 
     valid_dirs = []
     for d in dirs:

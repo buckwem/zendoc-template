@@ -492,6 +492,25 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
 
     content = re.sub(r'^([ \t]*)```([a-zA-Z0-9_-]*)\s*\n(.*?)\n\1```', shell_prompt_replacer, content, flags=re.MULTILINE | re.DOTALL)
 
+    # AUTOMATED SUPERFENCES ATTRIBUTE-LIST TRANSLATION ENGINE
+    # pymdownx.superfences allows extended fence info strings like ```python hl_lines="2"
+    # title="Code blocks"`, but Pandoc's markdown reader only recognises a bare language
+    # name straight after the fence - anything trailing it isn't a valid info string, so
+    # Pandoc gives up on the whole fence and falls back to a plain paragraph (fence
+    # markers and attributes rendered as literal text). Rewrite it to Pandoc's own
+    # attribute-list fence syntax (```{.python hl_lines="2" title="Code blocks"}`) so it's
+    # parsed as a real, syntax-highlighted code block.
+    def superfences_attr_replacer(match):
+        indent, lang, attrs = match.group(1), match.group(2), match.group(3).strip()
+        return f'{indent}```{{.{lang} {attrs}}}'
+
+    content = re.sub(
+        r'^([ \t]*)```[ \t]*([a-zA-Z][\w+-]*)[ \t]+(\S.*)$',
+        superfences_attr_replacer,
+        content,
+        flags=re.MULTILINE
+    )
+
     # THE IMAGE FILTER: Process light and dark mode asset rows line by line
     processed_lines = []
     for line in content.splitlines():

@@ -173,6 +173,12 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
 
     content = re.sub(r'^.*user-select.*$\n?', '', content, flags=re.MULTILINE | re.IGNORECASE)
 
+    # Strips the website-only heading_counter_reset(page) Jinja macro call (injects a
+    # CSS counter-reset <style> block for the live site); the PDF numbers headings
+    # separately via the Lua filter's Header() function, so this has no PDF equivalent
+    # and would otherwise leak through as literal text since Pandoc doesn't render Jinja.
+    content = re.sub(r'^[ \t]*\{\{\s*heading_counter_reset\([^)]*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
+
     # AUTOMATED VIDEO EMBEDDING INTERCEPTOR ENGINE
     def video_iframe_replacer(match):
         indent = match.group(1) or ""

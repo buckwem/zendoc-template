@@ -398,74 +398,79 @@ python --version
 
 The instructions below are for installing Python 3.8 or later. If you have an older version, please update to Python 3.8 or later.
 
+1. Follow the instructions below to install Python, create a virtual environment, and install Zensical inside it for your operating system.
 
-<div class="grid cards one-column" markdown>
-    
--   :material-clock-fast:{ .lg .middle } __Install Python and Zensical__
+    <div class="grid cards one-column" markdown>
 
-    === "macOS - Terminal"
+    -   :material-clock-fast:{ .lg .middle } __Install Python and Zensical__
 
-        1. Install python using the Homebrew package manager. If you don't have Homebrew installed, you can install it by following the instructions on the [Homebrew website](https://brew.sh/).
-        
-            ``` bash
-            brew install python
-            ```
-        
-        2. Open *Terminal* and run the following commands to create a virtual environment and install Zensical:
+        === "macOS using Homebrew"
 
-            ```bash
-            # 1. Create the virtual environment
-            python3 -m venv .venv
+            1. If you use the Homebrew package manager, run this command in your Terminal to install Python. If you don't have Homebrew installed, you can install it by following the instructions on the [Homebrew website](https://brew.sh/){target="_blank"}.
 
-            # 2. Activate it
-            source .venv/bin/activate
+                ``` bash
+                brew install python
+                ```
 
-            # 3. Install Zensical
-            pip install zensical
-            ```
+            2. Open **Terminal** in your project folder and run the following commands to create a virtual environment and install Zensical inside it:
 
-    === "Windows 11 - PowerShell"
+                ``` bash
+                # 1. Create the virtual environment
+                python3 -m venv .venv
 
-        1. Download and run the official python installer from the [python.org](https://www.python.org/downloads/).
-        1. Open *PowerShell* as an Administrator in your project folder and run:
+                # 2. Activate it
+                source .venv/bin/activate
 
-            !!! Critical
-                Make sure to check the box that says "Add Python to PATH" during the installation process. This will allow you to run Python from the command line. 
+                # 3. Install Zensical
+                pip install zensical
+                ```
 
-            ```PowerShell
-            # 1. Create the virtual environment
-            python -m venv .venv
+        === "Windows 11 using PowerShell"
 
-            # 2. Activate it (Choose the line matching your terminal)
-            .\.venv\Scripts\Activate.ps1     # <-- Use this if you are in PowerShell
-            .\.venv\Scripts\activate.bat     # <-- Use this if you are in classic CMD
+            1. Download and run the official Python installer from [python.org](https://www.python.org/downloads/){target="_blank"}.
 
-            # 3. Install Zensical inside the environment
-            pip install zensical
-            ```
+                !!! Critical
+                    Make sure to check the box to add Python to your `PATH` during the installation process. This allows you to run Python from the command line.
 
-    === "Linux - Ubuntu/Debian"
+            2. Open **PowerShell** in your project folder and run the following commands to create a virtual environment and install Zensical inside it:
 
-        1. Download the `.deb` package from the [official website](https://code.visualstudio.com/).
-        2. Open a terminal and navigate to the directory where you downloaded the `.deb` package.
-        3. Run the following command to install Visual Studio Code:
+                ``` powershell
+                # 1. Create the virtual environment
+                python -m venv .venv
 
-            ``` bash
-            # 1. Create the virtual environment
-            python -m venv .venv
+                # 2. Activate it (choose the line matching your terminal)
+                .\.venv\Scripts\Activate.ps1     # <-- Use this if you are in PowerShell
+                .\.venv\Scripts\activate.bat     # <-- Use this if you are in classic CMD
 
-            # 2. Activate it (Choose the line matching your terminal)
-            .\.venv\Scripts\Activate.ps1     # <-- Use this if you are in PowerShell
-            .\.venv\Scripts\activate.bat     # <-- Use this if you are in classic CMD
+                # 3. Install Zensical inside the environment
+                pip install zensical
+                ```
 
-            # 3. Install Zensical inside the environment
-            pip install zensical
-            ```
+        === "Linux (Ubuntu/Debian) using bash"
 
-            Replace `<file>` with the name of the downloaded `.deb` file.
+            1. Open a terminal and run the following command to install Python and the `venv` module:
+
+                ``` bash
+                sudo apt update
+                sudo apt install python3 python3-venv python3-pip
+                ```
+
+            2. Navigate to your project folder and run the following commands to create a virtual environment and install Zensical inside it:
+
+                ``` bash
+                # 1. Create the virtual environment
+                python3 -m venv .venv
+
+                # 2. Activate it
+                source .venv/bin/activate
+
+                # 3. Install Zensical
+                pip install zensical
+                ```
 
     </div>
-Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
+
+    Once installed, open the Command Palette (`Ctrl+Shift+P`/`Cmd+Shift+P`) and run **Python: Select Interpreter**, then choose the one under `.venv` in your project folder. Visual Studio Code will then activate this virtual environment automatically in any new integrated terminal you open.
 
 ### Install Zensical Studio plugin
 

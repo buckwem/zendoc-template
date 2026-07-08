@@ -613,11 +613,11 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
 
         if in_tab and not stripped.startswith('==='):
             if current_indent <= tab_indent_level:
-                new_lines.append("\n:::\n")
-                in_tab = False
                 if in_admonition:
                     new_lines.append("\n:::\n")
                     in_admonition = False
+                new_lines.append("\n:::\n")
+                in_tab = False
                 
         if in_admonition and not in_tab and not stripped.startswith(('!!!', '???')):
             if current_indent < adm_indent_level + 4:
@@ -625,7 +625,10 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
                 new_lines.append("\n:::\n") 
 
         if stripped.startswith('==='):
-            if in_tab: new_lines.append("\n:::\n")
+            if in_tab:
+                if in_admonition:
+                    new_lines.append("\n:::\n")
+                new_lines.append("\n:::\n")
             match = re.search(r'^===\s*["\'\u201c\u2018]?(.*?)["\'\u201d\u2019]?\s*$', stripped)
             tab_title = match.group(1).strip() if match else "Tab"
             tab_indent_level = current_indent
@@ -633,7 +636,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
             new_lines.append(f'\n::: {{.tabbox title="{tab_title}"}}')
             continue
             
-        if stripped.startswith(('!!!', '???')):
+        if not in_tab and stripped.startswith(('!!!', '???')):
             if in_admonition: new_lines.append("\n:::\n")
             parts = stripped.split(maxsplit=2)
             adm_type = parts[1].lower() if len(parts) > 1 else "note"

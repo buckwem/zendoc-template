@@ -600,7 +600,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
                     new_lines.append("\n:::\n")
                     in_admonition = False
                 
-        if in_admonition and not in_tab and not stripped.startswith('!!!'):
+        if in_admonition and not in_tab and not stripped.startswith(('!!!', '???')):
             if current_indent < adm_indent_level + 4:
                 in_admonition = False
                 new_lines.append("\n:::\n") 
@@ -614,7 +614,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
             new_lines.append(f'\n::: {{.tabbox title="{tab_title}"}}')
             continue
             
-        if stripped.startswith('!!!'):
+        if stripped.startswith(('!!!', '???')):
             if in_admonition: new_lines.append("\n:::\n")
             parts = stripped.split(maxsplit=2)
             adm_type = parts[1].lower() if len(parts) > 1 else "note"
@@ -629,7 +629,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
             strip_count = tab_indent_level + 4
             content_line = line[strip_count:] if len(line) >= strip_count and line.startswith(' ' * strip_count) else line.lstrip()
             content_stripped = content_line.lstrip()
-            if content_stripped.startswith('!!!'):
+            if content_stripped.startswith(('!!!', '???')):
                 if in_admonition: new_lines.append("\n:::\n")
                 parts = content_stripped.split(maxsplit=2)
                 adm_type = parts[1].lower() if len(parts) > 1 else "note"
@@ -641,7 +641,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
                 continue
             if in_admonition:
                 content_indent = len(content_line) - len(content_stripped)
-                if content_indent < adm_indent_level + 4 and not content_stripped.startswith('!!!'):
+                if content_indent < adm_indent_level + 4 and not content_stripped.startswith(('!!!', '???')):
                     in_admonition = False
                     new_lines.append("\n:::\n") 
                 if in_admonition:

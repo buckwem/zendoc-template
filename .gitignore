@@ -33,3 +33,6 @@ tmp
 .cache/
 public/
 docs/*.pdf
+
+# Local Claude Code config (dev-preview launch config, personal permissions)
+.claude/

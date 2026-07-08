@@ -301,10 +301,6 @@ Forking the documentation template creates a copy of the template into your own 
 
 Cloning the documentation template creates a local copy of the template on your computer. You will then be able to edit the template locally in Visual Studio Code and publish your own documentation website.
 
-<br>
-<p class="text-center-italic">
-Table 7.3-1: Fork and Clone Comparison at a Glance
-</p>
 | Feature | Fork | Clone |
 |----|----|---|
 | Where's the copy made? | On the remote host (GitHub / GitLab) | On your local computer |
@@ -312,6 +308,10 @@ Table 7.3-1: Fork and Clone Comparison at a Glance
 | Who owns the target? | You (it's copied to your account) | You (it's on your machine) |
 | Can you push to it? | Yes | Yes (if you have write access to the remote source) |
 | Primary purpose | To propose changes to a project you don't own | To actually do development work, write code, and make commits |
+
+/// caption
+Table 7.3-1: Fork and Clone Comparison at a Glance
+///
 
 The features of forking and cloning are complementary. You can fork a repository to create your own copy on the remote host, and then clone that fork to your local machine to work on it. The standard workflow is:
 

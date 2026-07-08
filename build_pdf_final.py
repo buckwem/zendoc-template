@@ -229,6 +229,26 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         flags=re.MULTILINE | re.DOTALL
     )
 
+    # AUTOMATED ZENSICAL TABLE CAPTION TRANSLATION ENGINE
+    # Converts a caption block following a table into Pandoc's native table-caption
+    # syntax ("Table: ..." immediately after the table), which Pandoc renders as a
+    # real <caption> bound inside the <table> element - keeping it structurally
+    # attached to the table so it can't be orphaned from it across a page break.
+    # Caption must come AFTER the table: pymdownx.blocks.caption (used on the live
+    # site) attaches a caption block to whichever sibling precedes it, so a caption
+    # placed before the table would wrongly attach to the paragraph above instead.
+    def table_caption_replacer(match):
+        table_lines = match.group(1)
+        caption_body = match.group(3).strip()
+        return f"{table_lines}\nTable: {caption_body}\n\n"
+
+    content = re.sub(
+        r'((?:^[ \t]*\|[^\n]*\n)+)(?:[ \t]*\n)*^([ \t]*)///\s*caption\s*\n(.*?)\n\2///[ \t]*\n?',
+        table_caption_replacer,
+        content,
+        flags=re.MULTILINE | re.DOTALL
+    )
+
     # GLOBAL LOCAL ASSET BASE64 ENCODING ENGINE
     def to_base64_data_uri(img_src, base_dir):
         if img_src.startswith('data:'):
@@ -922,6 +942,16 @@ table tr {
 thead {
     display: table-header-group;
 }
+/* Bound inside <table> itself, so it can never be separated from the start
+   of the table across a page break (unlike a plain preceding paragraph). */
+table caption {
+    caption-side: top !important;
+    text-align: center !important;
+    font-style: italic !important;
+    margin-bottom: 8px !important;
+    page-break-after: avoid !important;
+    break-after: avoid-page !important;
+}
 table th { background-color: rgba(0, 0, 0, 0.1) !important; font-weight: bold !important; }
 table th, table td {
     padding: 8px 12px !important;
@@ -1018,6 +1048,12 @@ pre code { padding: 0 !important; }
    ========================================================================== */
 img {
     max-width: 100% !important;
+}
+/* Keeps an image and its /// caption /// figcaption together as one atomic
+   unit, so the caption can never be pushed to a page apart from its image. */
+figure {
+    page-break-inside: avoid !important;
+    break-inside: avoid-page !important;
 }
 img.twemoji, i.fa-solid, i.fa-regular, i.fa-brands, i.material-icons, i[class*="fa-"], span[class*="octicon-"], .octicon {
     image-resolution: 96dpi !important;

@@ -658,6 +658,34 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     if in_tab: new_lines.append("\n:::\n")
     if in_admonition: new_lines.append("\n:::\n")
 
+    # FENCED CODE BLOCK LAZY-CONTINUATION GUARD
+    # Pandoc's markdown reader only lets a fenced code block interrupt an
+    # immediately preceding text line (list item text, tab/admonition content, etc.)
+    # when the fence has zero indentation. Any indented fence - unavoidable for code
+    # nested inside list items, tabs, or admonitions - gets swallowed as a lazy
+    # continuation of the prior line when there's no blank line before it, so it
+    # renders as inline text instead of a code block. Force a separating blank line
+    # before every indented fence opener that doesn't already have one.
+    guarded_lines = []
+    in_fence, fence_char, fence_len = False, None, 0
+    for line in new_lines:
+        stripped = line.strip()
+        if not in_fence:
+            fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
+            if fence_match:
+                indent = len(line) - len(line.lstrip())
+                if indent > 0 and guarded_lines and guarded_lines[-1].strip() != "":
+                    guarded_lines.append("")
+                in_fence = True
+                fence_char = fence_match.group(1)[0]
+                fence_len = len(fence_match.group(1))
+        else:
+            close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
+            if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
+                in_fence = False
+        guarded_lines.append(line)
+    new_lines = guarded_lines
+
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(new_lines))
 

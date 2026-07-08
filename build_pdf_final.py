@@ -1160,7 +1160,7 @@ img.twemoji, i.fa-solid, i.fa-regular, i.fa-brands, i.material-icons, i[class*="
     page-break-inside: auto !important;
     break-inside: auto !important;
 }
-.tabbox-container, .tabbox-body, .tabbox-header {
+.tabbox-header {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
 }

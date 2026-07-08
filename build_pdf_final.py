@@ -874,6 +874,11 @@ def main():
 
     lua_icon_db_string = "local icon_db = {\n" + ",\n".join(lua_table_entries) + "\n}\n\n"
 
+    math_dir = os.path.abspath(os.path.join(temp_build_dir, "math_diagrams"))
+    os.makedirs(math_dir, exist_ok=True)
+    tex2svg_script = os.path.abspath(os.path.join("tools", "mathjax", "tex2svg.js"))
+    mathjax_available = os.path.exists(os.path.join("tools", "mathjax", "node_modules", "mathjax-full"))
+
     lua_filter_path = os.path.join(temp_build_dir, "tabbox_filter.lua")
     with open(lua_filter_path, "w", encoding="utf-8") as f:
         f.write(lua_icon_db_string)
@@ -912,6 +917,24 @@ def main():
             "  local html = pandoc.write(pandoc.Pandoc(el.content), 'html')\n"
             "  html = html:gsub('^%s*<p>', ''):gsub('</p>%s*$', '')\n"
             "  return pandoc.RawInline('html', '<span class=\"pdf-footnote\">' .. html .. '</span>')\n"
+            "end\n\n"
+            f"local mathjax_available = {'true' if mathjax_available else 'false'}\n"
+            f"local math_dir = \"{math_dir}\"\n"
+            f"local tex2svg_script = \"{tex2svg_script}\"\n"
+            "local math_counter = 0\n\n"
+            "function Math(el)\n"
+            "  if not mathjax_available then return nil end\n"
+            "  math_counter = math_counter + 1\n"
+            "  local is_display = (el.mathtype == 'DisplayMath')\n"
+            "  local ok, svg = pcall(pandoc.pipe, 'node', {tex2svg_script, is_display and 'display' or 'inline'}, el.text)\n"
+            "  if not ok or not svg or svg == '' then return nil end\n"
+            "  local svg_path = math_dir .. '/formula_' .. math_counter .. '.svg'\n"
+            "  local out = io.open(svg_path, 'w')\n"
+            "  if not out then return nil end\n"
+            "  out:write(svg)\n"
+            "  out:close()\n"
+            "  local css_class = is_display and 'pdf-math-display' or 'pdf-math-inline'\n"
+            "  return pandoc.RawInline('html', '<img class=\"' .. css_class .. '\" src=\"' .. svg_path .. '\" />')\n"
             "end\n\n"
             "function Str(el)\n"
             "  if icon_db[el.text] then\n"
@@ -1117,6 +1140,23 @@ blockquote {
 .pdf-footnote {
     float: footnote !important;
     font-size: 9pt !important;
+}
+/* Renders TeX math ($...$/$$...$$, see https://zensical.org/docs/authoring/math/)
+   as pre-rendered SVGs, since WeasyPrint has no JS engine to run MathJax
+   client-side like the live Zensical site does. The Lua filter's Math()
+   function replaces each formula with one of these images at build time. */
+.pdf-math-display {
+    display: block !important;
+    margin: 1em auto !important;
+    text-align: center !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+.pdf-math-inline {
+    display: inline !important;
+    height: 1em !important;
+    width: auto !important;
+    vertical-align: middle !important;
 }
 @page {
     @footnote {

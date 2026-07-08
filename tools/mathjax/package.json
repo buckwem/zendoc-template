@@ -1,0 +1,8 @@
+{
+  "name": "doc-template-mathjax-tools",
+  "private": true,
+  "description": "Local mathjax-full install used by build_pdf_final.py to pre-render TeX math for the PDF build.",
+  "dependencies": {
+    "mathjax-full": "^3.2.2"
+  }
+}

@@ -20,10 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Only needed so build_pdf_final.py can pre-render ```mermaid fenced code
-      # blocks to static images via mermaid-cli/Puppeteer (WeasyPrint has no JS
-      # engine to run Mermaid.js client-side like Zensical does). Using the
-      # apt-installed Google Chrome below instead of Puppeteer's own bundled
-      # download avoids guessing at headless-Chrome shared-library package names.
+      # blocks to static images via mermaid-cli/Puppeteer, and TeX math
+      # ($...$/$$...$$) to static images via mathjax-full (pure Node, no
+      # browser needed for that one) - WeasyPrint has no JS engine to run
+      # Mermaid.js/MathJax client-side like the live Zensical site does. Using
+      # the apt-installed Google Chrome below instead of Puppeteer's own
+      # bundled download avoids guessing at headless-Chrome shared-library
+      # package names.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
     steps:
@@ -43,6 +46,7 @@ jobs:
       - run: sudo apt update
       - run: sudo apt install -y google-chrome-stable
       - run: npm ci --prefix tools/mermaid
+      - run: npm ci --prefix tools/mathjax
       - run: pip install -r requirements.txt
       - run: python build_pdf_final.py
       - run: zensical build --clean

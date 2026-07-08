@@ -14,6 +14,11 @@
 # -----------------------------------------------------------------------------
 tools/mermaid/node_modules
 
+# -----------------------------------------------------------------------------
+# Node (mathjax-full, used by build_pdf_final.py to pre-render TeX math)
+# -----------------------------------------------------------------------------
+tools/mathjax/node_modules
+
 # Artifacts
 /target
 __pycache__

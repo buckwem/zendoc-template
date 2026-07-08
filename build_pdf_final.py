@@ -644,6 +644,8 @@ def main():
         config = toml.load(f)
         
     project_section = config.get('project', {})
+    project_extra = project_section.get('extra', {}) if isinstance(project_section, dict) else {}
+    heading_numbering_enabled = bool(project_extra.get('heading_numbering', True)) if isinstance(project_extra, dict) else True
     nav = project_section.get('nav', []) if isinstance(project_section, dict) else []
     if not nav: nav = config.get('nav', [])
     if not nav:
@@ -738,7 +740,8 @@ def main():
     with open(lua_filter_path, "w", encoding="utf-8") as f:
         f.write(lua_icon_db_string)
         f.write(
-            "local h1, h2, h3 = 0, 0, 0\n\n"
+            "local h1, h2, h3 = 0, 0, 0\n"
+            f"local heading_numbering_enabled = {'true' if heading_numbering_enabled else 'false'}\n\n"
             "function Div(el)\n"
             "  if el.classes:includes('tabbox') then\n"
             "    local title = el.attributes['title'] or 'Tab'\n"
@@ -750,7 +753,7 @@ def main():
             "  end\n"
             "end\n\n"
             "function Header(block)\n"
-            "  if not block.classes:includes('unnumbered') then\n"
+            "  if heading_numbering_enabled and not block.classes:includes('unnumbered') then\n"
             "    if block.level == 1 then\n"
             "      h1 = h1 + 1\n"
             "      h2 = 0\n"

@@ -367,6 +367,12 @@ quote = "fontawesome/solid/quote-left"
 #icon = "fontawesome/brands/github"
 #link = "https://github.com/user/repo"
 
+[project.extra]
+# Set to false to turn off automatic sequential heading numbering (e.g. "7.2.1")
+# on both the website and the PDF build. When false, headings show as plain
+# text with no number prefix anywhere (content or sidebar).
+heading_numbering = true
+
 # ----------------------------------------------------------------------------
 # Python Extensions
 #

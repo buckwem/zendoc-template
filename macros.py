@@ -56,6 +56,17 @@ def _count_top_level_headings(path):
     return count
 
 
+def _heading_numbering_enabled():
+    """Reads project.extra.heading_numbering from zensical.toml (defaults to True)."""
+    config_path = Path('zensical.toml')
+    if not config_path.exists():
+        return True
+    config = toml.load(config_path)
+    project = config.get('project', {}) if isinstance(config.get('project'), dict) else {}
+    extra = project.get('extra', {}) if isinstance(project.get('extra'), dict) else {}
+    return bool(extra.get('heading_numbering', True))
+
+
 def _heading_start_counts():
     """Maps each nav markdown file (relative to docs_dir) to the cumulative count of
     top-level headings on every page before it in nav order, so that heading numbering
@@ -174,7 +185,21 @@ def define_env(env):
         matching sidebar numbering) continues seamlessly across pages - the same
         way section numbering continues across chapters in the PDF build.
         Usage: place `{{ heading_counter_reset(page) }}` near the top of each page;
-        nothing else needs to change when you reorder pages or add/remove headings."""
+        nothing else needs to change when you reorder pages or add/remove headings.
+        Set project.extra.heading_numbering = false in zensical.toml to turn
+        numbering off entirely (content and sidebar) across the whole site."""
+        if not _heading_numbering_enabled():
+            return (
+                '<style>\n'
+                '  .md-typeset h1::before,\n'
+                '  .md-typeset h2::before,\n'
+                '  .md-typeset h3::before,\n'
+                '  .md-nav--secondary > .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before,\n'
+                '  .md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {\n'
+                '    content: "" !important;\n'
+                '  }\n'
+                '</style>'
+            )
         starts = _heading_start_counts()
         n = starts.get(getattr(page, 'path', ''), 0)
         return (

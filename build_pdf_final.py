@@ -198,7 +198,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         
         return (
             f"\n\n{indent}!!! info \"{video_title}\"\n"
-            f"{indent}    🔗 **[Watch Video]({video_url})**\n\n"
+            f"{indent}    **[Watch Video]({video_url})**\n\n"
         )
 
     content = re.sub(
@@ -834,7 +834,7 @@ def main():
    DYNAMIC TYPOGRAPHY CONFIGURATION (Injected from settings)
    ========================================================================== */
 body {
-    font-family: "__MAIN_FONT__", -apple-system, sans-serif !important;
+    font-family: "__MAIN_FONT__", sans-serif !important;
 }
 h1, h2, h3, h4, h5, h6 {
     font-family: "__MAIN_FONT__", sans-serif !important;
@@ -869,7 +869,7 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
     @bottom-center { content: none !important; }
     @bottom-left {
         content: "__COPYRIGHT__" !important;
-        font-family: "__MAIN_FONT__", -apple-system, sans-serif !important;
+        font-family: "__MAIN_FONT__", sans-serif !important;
         font-size: 10pt !important;
         color: #555555 !important;
         vertical-align: top !important;
@@ -880,7 +880,7 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
     }
     @bottom-right {
         content: "Page " counter(page) " of " counter(pages) !important;
-        font-family: "__MAIN_FONT__", -apple-system, sans-serif !important;
+        font-family: "__MAIN_FONT__", sans-serif !important;
         font-size: 10pt !important;
         color: #555555 !important;
         vertical-align: top !important;

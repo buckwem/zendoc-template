@@ -61,8 +61,8 @@ pre {
    Page-Break Structural Rules
    ========================================================================== */
 h1, h2, h3, h4, h5, h6 {
-    page-break-after: avoid;
-    break-after: avoid;
+    page-break-after: avoid !important;
+    break-after: avoid-page !important;
 }
 
 img, pre, blockquote, table, .tabbox-container {

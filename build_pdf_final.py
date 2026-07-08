@@ -910,6 +910,17 @@ table {
     border: 0.25pt solid #555555 !important;
     width: 100% !important;
     margin: 1.2em 0 !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+}
+/* Rows never split mid-row - a page break only ever falls between rows */
+table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+/* Repeats the header row on every page the table spans across */
+thead {
+    display: table-header-group;
 }
 table th { background-color: rgba(0, 0, 0, 0.1) !important; font-weight: bold !important; }
 table th, table td {

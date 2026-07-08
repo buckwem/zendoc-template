@@ -795,7 +795,7 @@ def main():
 
     toc_trigger_path = os.path.join(temp_build_dir, "toc_trigger_temp.md")
     with open(toc_trigger_path, "w", encoding="utf-8") as f:
-        f.write("\n<div class=\"page-break\"></div>\n\n# Table of Contents {.unnumbered .unlisted}\n\n<div class=\"page-break\"></div>\n")
+        f.write("\n# Table of Contents {.unnumbered .unlisted}\n\n<div class=\"page-break\"></div>\n")
 
     compiled_paths = [processed_paths[0], toc_trigger_path] + processed_paths[1:] if "index.md" in os.path.basename(valid_paths[0]).lower() else [toc_trigger_path] + processed_paths
 

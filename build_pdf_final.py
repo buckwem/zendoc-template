@@ -632,6 +632,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     new_lines = []
     in_tab, in_admonition, in_gridcard, in_card_item = False, False, False, False
     gridcard_base_indent, tab_indent_level, adm_indent_level = 0, 0, 0
+    adm_output_prefix = ''
 
     for line in final_lines:
         stripped = line.lstrip()
@@ -678,11 +679,11 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
                     in_admonition = False
                 new_lines.append("\n:::\n")
                 in_tab = False
-                
+
         if in_admonition and not in_tab and not stripped.startswith(('!!!', '???')):
             if current_indent < adm_indent_level + 4:
                 in_admonition = False
-                new_lines.append("\n:::\n") 
+                new_lines.append(f"\n{adm_output_prefix}:::\n")
 
         if stripped.startswith('==='):
             if in_tab:
@@ -695,16 +696,27 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
             in_tab, in_admonition = True, False
             new_lines.append(f'\n::: {{.tabbox title="{tab_title}"}}')
             continue
-            
+
         if not in_tab and stripped.startswith(('!!!', '???')):
-            if in_admonition: new_lines.append("\n:::\n")
+            if in_admonition: new_lines.append(f"\n{adm_output_prefix}:::\n")
             parts = stripped.split(maxsplit=2)
             adm_type = parts[1].lower() if len(parts) > 1 else "note"
             adm_title = parts[2].strip('"\'') if len(parts) > 2 else adm_type.capitalize()
-            new_lines.append(f"\n::: {{.admonition .{adm_type}}}")
-            new_lines.append(f"::: {{.admonition-title}}\n{adm_title}\n:::\n")
-            in_admonition = True
             adm_indent_level = current_indent
+            # Nesting an admonition inside a list item matters for two reasons: (1)
+            # visually, it should render indented under that item, matching the live
+            # site; (2) numerically, Pandoc only treats content as *continuing* the
+            # list (keeping items 1/2/3 in one <ol>) if it's indented to the item's
+            # content column - otherwise it starts a new <ol start="2">, which
+            # WeasyPrint then ignores, rendering every split-off list as "1.". Pandoc
+            # only recognises a ::: fence as nested content at exactly that column
+            # (3 spaces, matching a single-digit "N. " marker) - going deeper, e.g.
+            # to match this doc's own 4-space code-fence indent convention, makes
+            # Pandoc treat the ::: fence as literal paragraph text instead.
+            adm_output_prefix = '   ' if adm_indent_level > 0 else ''
+            new_lines.append(f"\n{adm_output_prefix}::: {{.admonition .{adm_type}}}")
+            new_lines.append(f"{adm_output_prefix}::: {{.admonition-title}}\n{adm_output_prefix}{adm_title}\n{adm_output_prefix}:::\n")
+            in_admonition = True
             continue
 
         if in_tab:
@@ -712,28 +724,34 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
             content_line = line[strip_count:] if len(line) >= strip_count and line.startswith(' ' * strip_count) else line.lstrip()
             content_stripped = content_line.lstrip()
             if content_stripped.startswith(('!!!', '???')):
-                if in_admonition: new_lines.append("\n:::\n")
+                if in_admonition: new_lines.append(f"\n{adm_output_prefix}:::\n")
                 parts = content_stripped.split(maxsplit=2)
                 adm_type = parts[1].lower() if len(parts) > 1 else "note"
                 adm_title = parts[2].strip('"\'') if len(parts) > 2 else adm_type.capitalize()
-                new_lines.append(f"\n::: {{.admonition .{adm_type}}}")
-                new_lines.append(f"::: {{.admonition-title}}\n{adm_title}\n:::\n")
-                in_admonition = True
+                # See the matching comment above: Pandoc requires this ::: fence at
+                # exactly a 3-space indent to be recognised as nested list-item
+                # content (rather than as flattened column-0 or this doc's own
+                # 4-space code-fence convention, both of which break either the
+                # list numbering or the fence recognition itself).
                 adm_indent_level = len(content_line) - len(content_stripped)
+                adm_output_prefix = '   ' if adm_indent_level > 0 else ''
+                new_lines.append(f"\n{adm_output_prefix}::: {{.admonition .{adm_type}}}")
+                new_lines.append(f"{adm_output_prefix}::: {{.admonition-title}}\n{adm_output_prefix}{adm_title}\n{adm_output_prefix}:::\n")
+                in_admonition = True
                 continue
             if in_admonition:
                 content_indent = len(content_line) - len(content_stripped)
                 if content_indent < adm_indent_level + 4 and not content_stripped.startswith(('!!!', '???')):
                     in_admonition = False
-                    new_lines.append("\n:::\n") 
+                    new_lines.append(f"\n{adm_output_prefix}:::\n")
                 if in_admonition:
-                    new_lines.append(content_line[adm_indent_level + 4:] if content_line.startswith(' ' * (adm_indent_level + 4)) else content_stripped)
+                    new_lines.append(adm_output_prefix + (content_line[adm_indent_level + 4:] if content_line.startswith(' ' * (adm_indent_level + 4)) else content_stripped))
                 else:
                     new_lines.append(content_line)
             else:
                 new_lines.append(content_line)
         elif in_admonition:
-            new_lines.append(line[adm_indent_level + 4:] if line.startswith(' ' * (adm_indent_level + 4)) else stripped)
+            new_lines.append(adm_output_prefix + (line[adm_indent_level + 4:] if line.startswith(' ' * (adm_indent_level + 4)) else stripped))
         else:
             new_lines.append(line)
 

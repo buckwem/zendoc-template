@@ -9,6 +9,11 @@
 # Environments
 .venv
 
+# -----------------------------------------------------------------------------
+# Node (mermaid-cli, used by build_pdf_final.py to pre-render mermaid diagrams)
+# -----------------------------------------------------------------------------
+tools/mermaid/node_modules
+
 # Artifacts
 /target
 __pycache__

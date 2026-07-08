@@ -157,7 +157,61 @@ def build_icon_registry(icon_dirs):
                         registry[flat_key] = full_path
     return registry
 
-def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, is_index=False):
+def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
+    """Pre-renders ```mermaid fenced code blocks (see
+    https://zensical.org/docs/authoring/diagrams/) to static SVGs via a local
+    mermaid-cli install under tools/mermaid. WeasyPrint has no JS engine to
+    run Mermaid.js client-side the way the live Zensical site does, so the
+    diagram source must become an image before Pandoc ever sees it. The
+    emitted markdown image tag is then picked up and base64-inlined by the
+    existing image encoder further down in preprocess_markdown().
+    """
+    mmdc_bin = os.path.abspath(os.path.join("tools", "mermaid", "node_modules", ".bin", "mmdc"))
+    if not os.path.exists(mmdc_bin):
+        return content
+    # Mermaid's default node/edge labels are HTML <foreignObject> content, which
+    # WeasyPrint's SVG renderer can't display (text silently vanishes). Forcing
+    # htmlLabels off makes mermaid emit plain SVG <text>/<tspan> labels instead.
+    mmdc_config = os.path.abspath(os.path.join("tools", "mermaid", "mermaid_pdf_config.json"))
+
+    mermaid_dir = os.path.join(temp_build_dir, "mermaid_diagrams")
+
+    def replace(match):
+        indent = match.group(1)
+        raw_block = match.group(2)
+        diagram_source = "\n".join(
+            line[len(indent):] if line.startswith(indent) else line.lstrip()
+            for line in raw_block.splitlines()
+        )
+
+        mermaid_state['count'] += 1
+        idx = mermaid_state['count']
+        os.makedirs(mermaid_dir, exist_ok=True)
+        mmd_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.mmd"))
+        svg_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.svg"))
+        with open(mmd_path, "w", encoding="utf-8") as f:
+            f.write(diagram_source)
+
+        try:
+            subprocess.run(
+                [mmdc_bin, "-i", mmd_path, "-o", svg_path, "-b", "transparent", "-c", mmdc_config],
+                check=True, capture_output=True, text=True, timeout=60
+            )
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+            detail = getattr(e, "stderr", None) or str(e)
+            print(f"\u26a0\ufe0f  Mermaid render failed for diagram {idx}: {detail}")
+            return match.group(0)
+
+        return f'{indent}![Mermaid diagram]({svg_path})'
+
+    return re.sub(
+        r'^([ \t]*)```[ \t]*\{?\.?mermaid\}?[ \t]*\n(.*?)\n\1```[ \t]*$',
+        replace,
+        content,
+        flags=re.MULTILINE | re.DOTALL
+    )
+
+def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, is_index=False):
     """Parses template conditionals, applies global asset filtering, and converts raw shortcodes
     to alphanumeric tokens while ignoring those nested inside code block environments.
     """
@@ -170,6 +224,8 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         parts = content.split('---', 2)
         if len(parts) >= 3:
             content = parts[2]
+
+    content = render_mermaid_diagrams(content, temp_build_dir, mermaid_state)
 
     content = re.sub(r'^.*user-select.*$\n?', '', content, flags=re.MULTILINE | re.IGNORECASE)
 
@@ -783,6 +839,7 @@ def main():
     
     # Global state tracker maps unfragmented safe tokens to their Base64 payloads
     global_placeholder_map = {}
+    mermaid_state = {'count': 0}
 
     print("🧹 Preprocessing markdown file layouts...")
     processed_paths = []
@@ -790,7 +847,7 @@ def main():
         safe_name = path.replace('/', '_').replace('\\', '_')
         temp_out_path = os.path.join(temp_build_dir, safe_name)
         is_index = "index.md" in os.path.basename(path).lower()
-        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, is_index=is_index)
+        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, is_index=is_index)
         processed_paths.append(temp_out_path)
 
     toc_trigger_path = os.path.join(temp_build_dir, "toc_trigger_temp.md")

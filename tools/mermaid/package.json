@@ -1,0 +1,8 @@
+{
+  "name": "doc-template-mermaid-tools",
+  "private": true,
+  "description": "Local mermaid-cli install used by build_pdf_final.py to pre-render mermaid diagrams for the PDF build.",
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "^11.4.2"
+  }
+}

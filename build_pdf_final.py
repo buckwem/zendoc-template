@@ -846,6 +846,11 @@ def main():
             "  end\n"
             "  return block\n"
             "end\n\n"
+            "function Note(el)\n"
+            "  local html = pandoc.write(pandoc.Pandoc(el.content), 'html')\n"
+            "  html = html:gsub('^%s*<p>', ''):gsub('</p>%s*$', '')\n"
+            "  return pandoc.RawInline('html', '<span class=\"pdf-footnote\">' .. html .. '</span>')\n"
+            "end\n\n"
             "function Str(el)\n"
             "  if icon_db[el.text] then\n"
             "    return pandoc.RawInline('html', '<img class=\"twemoji\" src=\"data:image/svg+xml;base64,' .. icon_db[el.text] .. '\" />')\n"
@@ -1018,6 +1023,21 @@ table tr:last-child td { border-bottom: none !important; }
 blockquote {
     background-color: #f8fafc !important; border-left: 4px solid #cbd5e1 !important;
     padding: 12px 16px !important; margin: 1em 0 !important;
+}
+/* Renders footnotes at the bottom of the page they're referenced on (like a
+   printed book), instead of Pandoc's default of collecting every footnote in
+   the whole document into one section at the very end of the PDF. The Lua
+   filter replaces each Note with this inline span at its reference point. */
+.pdf-footnote {
+    float: footnote !important;
+    font-size: 9pt !important;
+}
+@page {
+    @footnote {
+        border-top: 0.5pt solid #cbd5e1;
+        padding-top: 6px;
+        margin-top: 8px;
+    }
 }
 .tabbox-container {
     border: 1px solid #cbd5e1; border-radius: 4px; margin: 1em 0;

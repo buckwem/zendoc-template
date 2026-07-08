@@ -773,6 +773,7 @@ def main():
         mono_font = font_section.get('code', mono_font)
 
     copyright_text = project_section.get('copyright') or config.get('copyright') or "Copyright 2026"
+    site_name_text = project_section.get('site_name') or config.get('site_name') or ""
 
     icon_dirs = discover_icon_dirs(config)
     icon_registry = build_icon_registry(icon_dirs)
@@ -899,10 +900,14 @@ def main():
     cleaned_original_css = re.sub(r'@charset[^;{]*(\{.*?\}|;)', '', original_css_content, flags=re.IGNORECASE | re.DOTALL)
     cleaned_original_css = re.sub(r'^.*user-select.*$\n?', '', cleaned_original_css, flags=re.MULTILINE | re.IGNORECASE)
 
-    clean_copyright = copyright_text.strip().replace('\n', ' ').replace('\r', ' ')
-    sanitized_copyright = clean_copyright.replace('&copy;', '©').replace('&#169;', '©')
-    css_escaped_copyright = "".join(f"\\{ord(char):04X} " if ord(char) > 127 else char for char in sanitized_copyright)
-    safe_copyright = css_escaped_copyright.replace('"', '\\"')
+    def css_escape_content_string(text):
+        clean_text = text.strip().replace('\n', ' ').replace('\r', ' ')
+        sanitized_text = clean_text.replace('&copy;', '©').replace('&#169;', '©')
+        css_escaped_text = "".join(f"\\{ord(char):04X} " if ord(char) > 127 else char for char in sanitized_text)
+        return css_escaped_text.replace('"', '\\"')
+
+    safe_copyright = css_escape_content_string(copyright_text)
+    safe_site_name = css_escape_content_string(site_name_text)
 
     css_blueprint = """
 /* ==========================================================================
@@ -936,11 +941,28 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
 }
 
 /* ==========================================================================
-   A4 PAGE LAYOUT & UNIFIED FOOTER CONFIGURATION
+   A4 PAGE LAYOUT & UNIFIED HEADER/FOOTER CONFIGURATION
    ========================================================================== */
 @page {
     size: A4;
     margin: 2cm !important;
+    @top-center { content: none !important; }
+    @top-left {
+        content: "__SITE_NAME__" !important;
+        font-family: "__MAIN_FONT__", sans-serif !important;
+        font-size: 10pt !important;
+        color: #555555 !important;
+        vertical-align: bottom !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding-bottom: 8px !important;
+        /* Margin (not padding) below the border: pushes the box's bottom
+           edge away from the content boundary, so content that lands
+           flush against a page break (e.g. a table/tabbox continuation
+           fragment) never touches the header divider line. */
+        margin-bottom: 3mm !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
     @bottom-center { content: none !important; }
     @bottom-left {
         content: "__COPYRIGHT__" !important;
@@ -950,6 +972,7 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
         vertical-align: top !important;
         border-top: 1px solid #e2e8f0 !important;
         padding-top: 8px !important;
+        margin-top: 3mm !important;
         width: 85% !important;
         text-align: left !important;
     }
@@ -961,11 +984,13 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
         vertical-align: top !important;
         border-top: 1px solid #e2e8f0 !important;
         padding-top: 8px !important;
+        margin-top: 3mm !important;
         width: 15% !important;
         text-align: right !important;
     }
 }
 @page :first {
+    @top-left { content: none !important; border-bottom: none !important; }
     @bottom-left { content: none !important; border-top: none !important; }
     @bottom-right { content: none !important; border-top: none !important; }
 }
@@ -1191,7 +1216,8 @@ img.twemoji, i.fa-solid, i.fa-regular, i.fa-brands, i.material-icons, i[class*="
 
     final_css_payload = css_blueprint.replace("__MAIN_FONT__", main_font)\
                                      .replace("__MONO_FONT__", mono_font)\
-                                     .replace("__COPYRIGHT__", safe_copyright)
+                                     .replace("__COPYRIGHT__", safe_copyright)\
+                                     .replace("__SITE_NAME__", safe_site_name)
 
     with open(temp_compiled_css, "w", encoding="utf-8") as f:
         f.write(cleaned_original_css + "\n\n" + final_css_payload)

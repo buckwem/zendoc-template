@@ -10,9 +10,22 @@ pages:
   script:
     - apt-get update
     - apt-get install -y pandoc texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra
+    # Node + Chrome are only needed so build_pdf_final.py can pre-render
+    # ```mermaid fenced code blocks to static images via mermaid-cli/Puppeteer
+    # (WeasyPrint has no JS engine to run Mermaid.js client-side like Zensical does).
+    - apt-get install -y curl gnupg ca-certificates
+    - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    - apt-get install -y nodejs
+    - curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+    - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+    - apt-get update
+    - apt-get install -y google-chrome-stable
+    - export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+    - export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+    - npm ci --prefix tools/mermaid
     - pip install -r requirements.txt
     - python build_pdf_final.py
-    - zensical build --clean 
+    - zensical build --clean
   pages:
     publish: public
   rules:

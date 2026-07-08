@@ -18,14 +18,31 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      # Only needed so build_pdf_final.py can pre-render ```mermaid fenced code
+      # blocks to static images via mermaid-cli/Puppeteer (WeasyPrint has no JS
+      # engine to run Mermaid.js client-side like Zensical does). Using the
+      # apt-installed Google Chrome below instead of Puppeteer's own bundled
+      # download avoids guessing at headless-Chrome shared-library package names.
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
     steps:
       - uses: actions/configure-pages@v5
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - run: sudo apt update
       - run: sudo apt install -y pandoc texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra
+      - run: sudo apt install -y curl gnupg ca-certificates
+      - run: curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor | sudo tee /usr/share/keyrings/google-chrome.gpg > /dev/null
+      - run: echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+      - run: sudo apt update
+      - run: sudo apt install -y google-chrome-stable
+      - run: npm ci --prefix tools/mermaid
       - run: pip install -r requirements.txt
       - run: python build_pdf_final.py
       - run: zensical build --clean

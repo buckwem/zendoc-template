@@ -173,6 +173,9 @@ def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
     # WeasyPrint's SVG renderer can't display (text silently vanishes). Forcing
     # htmlLabels off makes mermaid emit plain SVG <text>/<tspan> labels instead.
     mmdc_config = os.path.abspath(os.path.join("tools", "mermaid", "mermaid_pdf_config.json"))
+    # --no-sandbox: CI runners launch Chromium as root, where its sandbox refuses
+    # to start without this; harmless when running unprivileged locally too.
+    puppeteer_config = os.path.abspath(os.path.join("tools", "mermaid", "puppeteer_config.json"))
 
     mermaid_dir = os.path.join(temp_build_dir, "mermaid_diagrams")
 
@@ -194,7 +197,8 @@ def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
 
         try:
             subprocess.run(
-                [mmdc_bin, "-i", mmd_path, "-o", svg_path, "-b", "transparent", "-c", mmdc_config],
+                [mmdc_bin, "-i", mmd_path, "-o", svg_path, "-b", "transparent",
+                 "-c", mmdc_config, "-p", puppeteer_config],
                 check=True, capture_output=True, text=True, timeout=60
             )
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:

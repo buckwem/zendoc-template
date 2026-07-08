@@ -8,12 +8,7 @@ icon: lucide/book-open
 # All contributions are certified under the DCO
 -->
 
-<style>
-  /* Reset the page and sidebar to start at 6 */
-  .md-typeset { counter-reset: h1-count 5 !important; }
-  .md-nav--primary { counter-reset: toc1 6 !important; }
-  /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
-</style>
+{{ heading_counter_reset(page) }}
 
 # Start here
 

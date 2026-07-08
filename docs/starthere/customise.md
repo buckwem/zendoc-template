@@ -8,12 +8,7 @@ icon: lucide/book-open
 # All contributions are certified under the DCO
 -->
 
-<style>
-  /* Reset the page and sidebar to start at 11  */
-  .md-typeset { counter-reset: h1-count 10 !important; }
-  .md-nav--primary { counter-reset: toc1 11 !important; }
-  /* Also change the numbering of the overall title number in the sidebar by editing zensical.toml */
-</style>
+{{ heading_counter_reset(page) }}
 
 # Customising
 
@@ -58,10 +53,9 @@ As a starting point, the documentation template has the following directory stru
 If the documentation website is part of the university's GitLab service or the location of the website is hosted under the University of Surrey domain, the site logo is automatically changed to the University of Surrey logo. Otherwise, the site logo will use the default logos in the `docs/assets/` directory. You can change the default logo by replacing the existing default logo files with your own logo files named `logo_default_black.png` and `logo_default_white.png`.
 
 
-
-
+!!! warning
+    Only one heading 1 per markdown file is permitted. If you need to add a heading 1, please create a new markdown file and add the heading 1 there. This is to ensure that the document structure is maintained correctly and that the table of contents is generated accurately.
 
 
 !!! warning
-
     Before releasing your document, comment out the 5 lines of the START HERE section in the zensical.toml file.

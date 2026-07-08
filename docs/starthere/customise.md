@@ -48,14 +48,37 @@ As a starting point, the documentation template has the following directory stru
 
 
 
-### Changing the site logo
+## Changing the site logo
 
 If the documentation website is part of the university's GitLab service or the location of the website is hosted under the University of Surrey domain, the site logo is automatically changed to the University of Surrey logo. Otherwise, the site logo will use the default logos in the `docs/assets/` directory. You can change the default logo by replacing the existing default logo files with your own logo files named `logo_default_black.png` and `logo_default_white.png`.
 
+## Changing heading numbering
+
+By default, heading numbering is enabled in the documentation template. If you want to disable heading numbering, you can do so by adding the following line to the `[project.extra]` section of the `zensical.toml` file:
+
+```toml
+heading_numbering = false
+```
+
+This will also disable heading numbering in the generated PDF output. If you want to enable heading numbering again, simply set the value to `true`:
+
+```toml
+heading_numbering = true
+```
+
+The top level heading numbering on the left menu is set through the explicit heading under nav in the zensical.toml file. If you want to change the top level heading numbering, you can do so by changing the heading under nav in the zensical.toml file. For example, if you want to change the top level heading numbering to "Chapter 1", you can do so by changing the heading under nav in the zensical.toml file to:
+
+```toml
+[[project.nav]]
+heading = "Chapter 1"
+```
 
 !!! warning
     Only one heading 1 per markdown file is permitted. If you need to add a heading 1, please create a new markdown file and add the heading 1 there. This is to ensure that the document structure is maintained correctly and that the table of contents is generated accurately.
 
 
-!!! warning
-    Before releasing your document, comment out the 5 lines of the START HERE section in the zensical.toml file.
+## Finalising your document
+
+Before you release your document, please ensure that you have completed the following steps:
+1. Comment out the 5 lines of the START HERE section in the zensical.toml file. This is to ensure that the START HERE section isn't included in the final output of your document.
+1. Remove the Warning box on the Originality page as this isn't part of your document. You can do this by deleting the first Warning admonition box in the `originality.md` file.

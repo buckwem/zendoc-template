@@ -426,7 +426,31 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         return full_tag.replace(src, to_base64_data_uri(src, os.path.dirname(file_path)))
     content = re.sub(r'<img[^>]+src=["\']([^"\']+)["\']', html_img_replacer, content, flags=re.IGNORECASE)
 
-    content = re.sub(r'^\s*---\s*$', '***', content, flags=re.MULTILINE)
+    # Pandoc's markdown reader treats a standalone "---" line as a Setext H2
+    # underline (turning the preceding paragraph into a heading) rather than a
+    # thematic break, so rewrite it to the unambiguous "***" form - but only
+    # outside fenced code blocks, so literal "---" shown as example syntax
+    # (e.g. YAML frontmatter delimiters, horizontal rule examples) survives intact.
+    def _dashes_to_asterisks_outside_fences(text):
+        lines = text.split('\n')
+        in_fence, fence_char, fence_len = False, None, 0
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if not in_fence:
+                fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
+                if fence_match:
+                    in_fence = True
+                    fence_char = fence_match.group(1)[0]
+                    fence_len = len(fence_match.group(1))
+                elif re.match(r'^\s*---\s*$', line):
+                    lines[i] = '***'
+            else:
+                close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
+                if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
+                    in_fence = False
+        return '\n'.join(lines)
+
+    content = _dashes_to_asterisks_outside_fences(content)
 
     # AUTOMATED ATTR_LIST TO BRACKETED-SPAN TRANSLATION ENGINE
     # Python-Markdown's inline attr_list syntax (**text**{: .class}) isn't understood by

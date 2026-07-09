@@ -11,7 +11,7 @@ hide:
 # All contributions are certified under the DCO
 -->
 
-[:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;" .hidden}
+[:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;" .web-only}
 
 <!-- Hide heading 1 on the page as hide: title does not seem to work -->
 <style> .md-typeset h1 { display: none; } </style>

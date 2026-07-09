@@ -77,11 +77,18 @@ heading = "Chapter 1"
     Only one heading 1 per markdown file is permitted. If you need to add a heading 1, please create a new markdown file and add the heading 1 there. This is to ensure that the document structure is maintained correctly and that the table of contents is generated accurately.
 
 
-## Word count and repository link
+## Customising front page
 
-By default, the cover page of the generated PDF shows an automated word count of your document's content (excluding the cover page itself and the Table of Contents), and the fully-qualified URL of your project's Git repository. Neither is shown anywhere on the live website by default.
+`.pdf-only` and `.web-only` are two general-purpose CSS marker classes. Add either to any element on any page, not just the cover page (`docs/index.md`), to show it in only one output:
 
-**To remove the word count from the PDF**, open `docs/index.md` and delete the following line:
+* `.pdf-only` - shown in the generated PDF, hidden on the live website.
+* `.web-only` - shown on the live website, hidden in the generated PDF.
+
+For static content, just add the relevant class - it looks identical either way, so hiding it from the other output is all that's needed. Computed values are different: the PDF and the website fill them in using two separate mechanisms - a `{MARKER}` placeholder substituted only during the PDF build, and a `{% raw %}{{ macro_variable }}{% endraw %}` Jinja variable evaluated only by the live website - so each only works paired with its own class. The word count and repository link below are examples of this.
+
+Three elements on the cover page use these markers out of the box: the automated word count, the repository link, and the "Download PDF" button.
+
+**Word count**: `.pdf-only`, shows an automated word count of your document's content (excluding the cover page itself and the Table of Contents). To remove it from the PDF, open `docs/index.md` and delete the following line:
 
 ```markdown
 <p class="pdf-only">Word count: {WORDCOUNT}</p>
@@ -89,7 +96,7 @@ By default, the cover page of the generated PDF shows an automated word count of
 
 The `{WORDCOUNT}` marker is replaced with the actual count during the PDF build. If you delete the line, the PDF simply builds without a word count - no other change is needed.
 
-**To remove the repository link from the PDF**, open `docs/index.md` and delete the following line:
+**Repository link**: `.pdf-only`, shows the fully-qualified URL of your project's Git repository. To remove it from the PDF, open `docs/index.md` and delete the following line:
 
 ```markdown
 <p class="pdf-only">Repo: {REPOURL}</p>
@@ -97,7 +104,13 @@ The `{WORDCOUNT}` marker is replaced with the actual count during the PDF build.
 
 The `{REPOURL}` marker is replaced with your repository's `origin` remote URL during the PDF build. If you delete the line, the PDF simply builds without a repository link - no other change is needed.
 
-**To add either to the website**, add a line like one of the following to any page, for example next to the lines you just deleted on the cover page:
+**Download PDF button**: `.web-only`, links to the generated PDF so website visitors can download it. It isn't shown inside the PDF itself, since that would be circular. To remove it from the website, open `docs/index.md` and delete the following line:
+
+```markdown
+[:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;" .web-only}
+```
+
+**To add the word count or repository link to the website**, add a line like one of the following to any page, for example next to the lines you just deleted on the cover page:
 
 ```markdown
 {% raw %}Word count: {{ word_count }}

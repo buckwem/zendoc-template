@@ -31,6 +31,15 @@ pre {
     display: none !important;
 }
 
+/* Marker for content meant only for the live website (e.g. the "Download
+   PDF" button on the cover page) - mirrors .pdf-only in extra.css/
+   build_pdf_final.py. Shown normally on the website by default (print.css
+   isn't loaded there - see extra_css in zensical.toml), hidden here since
+   print.css is only ever read by the PDF build. */
+.web-only {
+    display: none !important;
+}
+
 /* ==========================================================================
    TABLE OF CONTENTS ARCHITECTURE
    ========================================================================== */

@@ -27,37 +27,37 @@ The steps below will help you install VS Code and some essential plugins to edit
 
 ### Install Visual Studio Code
 
-1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, Windows 11, and Linux (Ubuntu/Debian) are below.
+Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, Windows 11, and Linux (Ubuntu/Debian) are below.
 
-    <div class="grid cards one-column" markdown>
+<div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Install Visual Studio Code__
+-   :material-clock-fast:{ .lg .middle } __Install Visual Studio Code__
 
-        === "macOS using Homebrew"
+    === "macOS using Homebrew"
 
-            1. If you use the Homebrew package manager, run this command in your Terminal:
-                ``` bash
-                brew install --cask visual-studio-code
-                ```
+        1. If you use the Homebrew package manager, run this command in your Terminal:
+            ``` bash
+            brew install --cask visual-studio-code
+            ```
 
-        === "Windows 11 using PowerShell"
+    === "Windows 11 using PowerShell"
 
-            1. Download the VS Code User setup for Windows from the [official website](https://code.visualstudio.com/download){target="_blank"}.
-            2. Run the installer, `VSCodeUserSetup-{version}.exe`. By default the User setup installs Visual Studio Code to your user profile directory. You can change the install location if you want to install it for all users.
+        1. Download the VS Code User setup for Windows from the [official website](https://code.visualstudio.com/download){target="_blank"}.
+        2. Run the installer, `VSCodeUserSetup-{version}.exe`. By default the User setup installs Visual Studio Code to your user profile directory. You can change the install location if you want to install it for all users.
          
-        === "Linux (Ubuntu/Debian) using bash"
+    === "Linux (Ubuntu/Debian) using bash"
 
-            1. Download the `.deb` package from the [official website](https://code.visualstudio.com/).
-            2. Open a terminal and navigate to the directory where you downloaded the `.deb` package.
-            3. Run the following command to install Visual Studio Code:
-                ``` bash
-                sudo apt install ./<file>.deb
-                ```
-            Replace `<file>` with the name of the downloaded `.deb` file.
+        1. Download the `.deb` package from the [official website](https://code.visualstudio.com/).
+        2. Open a terminal and navigate to the directory where you downloaded the `.deb` package.
+        3. Run the following command to install Visual Studio Code:
+            ``` bash
+            sudo apt install ./<file>.deb
+            ```
+        Replace `<file>` with the name of the downloaded `.deb` file.
 
-            Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
+        Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
 
-    </div>
+</div>
 
 ### Install Visual Studio Code plugins
 
@@ -74,6 +74,8 @@ VS Code has a rich ecosystem of plugins that can enhance your editing experience
 Next, install the `git` command and configure it for Visual Studio Code. The instructions below are for use with both *GitLab* and *GitHub*.
 
 ### Install and configure Git
+
+Let's start with installing Git and configuring it for Visual Studio Code. The instructions below are for macOS, Windows 11, and Linux (Ubuntu/Debian).
 
 1. As a start, you need to install the `git` command. Follow the instructions below to install or update `git` to the latest stable version.
 
@@ -114,7 +116,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
             ```
     </div>
 
-    Before connecting to any cloud provider, open your terminal (Terminal on macOS/Debian, Git Bash or PowerShell on Windows 11) and set your global username and email. This is the identity stamped onto your commits. Make sure you use the same email address that you used to register for your GitLab or GitHub account.
+1. Before connecting to any cloud provider, open your terminal (Terminal on macOS/Debian, Git Bash or PowerShell on Windows 11) and set your global username and email. This is the identity stamped onto your commits. Make sure you use the same email address that you used to register for your GitLab or GitHub account.
 
     ``` bash
     git config --global user.name "Your Name"
@@ -125,10 +127,14 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
 {% if is_surrey %}
     !!! Info "University of Surrey GitLab"
-        For the University of Surrey, you will be using the GitLab instance provided by the university at [https://gitlab.surrey.ac.uk](https://gitlab.surrey.ac.uk). When you get to the login page, select the button **Surrey Login**{: .bg-grey} and use your university credentials.
+        For the University of Surrey, you will be using the GitLab instance provided by the university at [https://gitlab.surrey.ac.uk](https://gitlab.surrey.ac.uk){target="_blank"}. When you get to the login page, select the button **Surrey Login**{: .bg-grey} and use your university credentials.
 {% endif %}
 
-1. Now we need to generate ssh keys to use for authentication with your GitLab or GitHub account. Follow the instructions below to generate a new SSH key pair and add it to your GitLab or GitHub account. It's best practice to use modern, secure `ed25519` keys and create separate ones for GitHub and GitLab.
+### Generate and configure ssh keys for Git
+
+Now generate the ssh keys to use for authentication with your GitLab or GitHub account and configure your ssh settings to use these keys. 
+
+1. Follow the instructions below to generate a new SSH key pair and add it to your GitLab or GitHub account. It's best practice to use modern, secure `ed25519` keys and create separate ones for GitHub and GitLab.
 
     <div class="grid cards one-column" markdown>
     
@@ -169,7 +175,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
     
     </div>
 
-1. Then configure the SSH Config file to use the correct SSH key for each service. Open the SSH config file in your preferred text editor (create it if it doesn't exist) and add the following lines:
+1. Then configure the SSH Config file to use the correct SSH key for each service. Open the SSH config file in your preferred [text editor](http://localhost:8000/doc-template/starthere/shcommands/#editing-files){target="_blank"} (create it if it doesn't exist) and add the following lines:
 
     For example using `nano` on macOS or Linux:
 
@@ -215,7 +221,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
     Make sure to replace the paths with the correct paths to your SSH keys if you used different names or locations.
 
-1. Set the correct permissions for the SSH config file and the private keys to ensure they are secure. If you are using macOS or Linux, run the following commands in your terminal:
+1. Set the correct permissions for the SSH config file and the private keys to ensure they're secure. If you are using macOS or Linux, run the following commands in your terminal:
 
     ```bash
     chmod 600 ~/.ssh/config
@@ -293,33 +299,33 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
 ### Integrate Visual Studio Code with Git
 
-1. Once the keys are generated and the configuration is complete, now add the SSH keys to the GitHub and GitLab accounts. Follow the instructions below to add your SSH keys to your GitHub and GitLab accounts.
+Once the keys are generated and the configuration is complete, now add the SSH keys to the GitHub and GitLab accounts. Follow the instructions below to add your SSH keys to your GitHub and GitLab accounts.
 
-    <div class="grid cards one-column" markdown>
+<div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Integrate Visual Studio Code with Git__
+-   :material-clock-fast:{ .lg .middle } __Integrate Visual Studio Code with Git__
 
-        === "GitLab"
+    === "GitLab"
 
-            1. Log in to your **GitLab** account in a web browser.
-            2. In the top-right corner, click on your **profile avatar** and select **Edit profile**.
-            3. On the left-hand sidebar, select **Access > SSH Keys**.
-            4. Click **Add new key**{: .bg-blue} and fill out the following details:
-                * **Title:** Give it a clear name (e.g., VS Code Extension).
-                * **Key:** Paste the contents of your public SSH key file (e.g., `~/.ssh/id_ed25519_gitlab.pub`).
-            5. Click **Add key**{: .bg-blue} to save the key.
+        1. Log in to your **GitLab** account in a web browser.
+        2. In the top-right corner, click on your **profile avatar** and select **Edit profile**.
+        3. On the left-hand sidebar, select **Access > SSH Keys**.
+        4. Click **Add new key**{: .bg-blue} and fill out the following details:
+            * **Title:** Give it a clear name (e.g., VS Code Extension).
+            * **Key:** Paste the contents of your public SSH key file (e.g., `~/.ssh/id_ed25519_gitlab.pub`).
+        5. Click **Add key**{: .bg-blue} to save the key.
 
-        === "GitHub"
+    === "GitHub"
 
-            1. Log in to your **GitHub** account in a web browser.
-            2. In the top-right corner, click on your **profile avatar** and select **Settings**.
-            3. On the left-hand sidebar, select **SSH and GPG keys**.
-            4. Click **New SSH key**{: .bg-green} and fill out the following details:
-                * **Title:** Give it a clear name (e.g., VS Code Extension).
-                * **Key:** Paste the contents of your public SSH key file (e.g., `~/.ssh/id_ed25519_github.pub`).
-            5. Click **Add SSH key**{: .bg-green} to save the key.
+        1. Log in to your **GitHub** account in a web browser.
+        2. In the top-right corner, click on your **profile avatar** and select **Settings**.
+        3. On the left-hand sidebar, select **SSH and GPG keys**.
+        4. Click **New SSH key**{: .bg-green} and fill out the following details:
+            * **Title:** Give it a clear name (e.g., VS Code Extension).
+            * **Key:** Paste the contents of your public SSH key file (e.g., `~/.ssh/id_ed25519_github.pub`).
+        5. Click **Add SSH key**{: .bg-green} to save the key.
 
-    </div>
+</div>
 
 ## Fork and cloning the doc-template
 
@@ -334,7 +340,6 @@ Cloning the documentation template creates a local copy of the template on your 
 | Who owns the target? | You (it's copied to your account) | You (it's on your machine) |
 | Can you push to it? | Yes | Yes (if you have write access to the remote source) |
 | Primary purpose | To propose changes to a project you don't own | To actually do development work, write code, and make commits |
-
 /// caption
 Table 7.3-1: Fork and Clone Comparison at a Glance
 ///
@@ -361,7 +366,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
 1. Start with opening up a browser and go to the [doc-template repository](https://github.com/buckwem/doc-template){target="_blank"} on GitHub.
 {% endif %}
 
-2. Next, fork the documentation template to create a copy of the template in your own Git cloud account. Follow the instructions below to fork the repository.
+1. Next, fork the documentation template to create a copy of the template in your own Git cloud account. Follow the instructions below to fork the repository.
 
     <div class="grid cards one-column" markdown>
     
@@ -420,94 +425,96 @@ This section takes you through the steps to clone the documentation template int
 
 ## Install Python and Zensical
 
-First we need to install Python. I've written brief instructions below for macOS, Windows 11, and Linux (Ubuntu/Debian). You are also recommended to refer to the [official Python installation documentation](https://docs.python.org/3/using/) for your operating system. 
+Brief instructions for installing Python are below for macOS, Windows 11, and Linux (Ubuntu/Debian). However, it's recommended to refer to the [official Python installation documentation](https://docs.python.org/3/using/) for your operating system. 
 
 If you already have Python installed, you can check the version by running the following command in your terminal or command prompt:
+
 ```bash
 python --version
 ```
 
 The instructions below are for installing Python 3.8 or later. If you have an older version, please update to Python 3.8 or later.
 
-1. Follow the instructions below to install Python, create a virtual environment, and install Zensical inside it for your operating system.
+Follow the instructions below to install Python, create a virtual environment, and install Zensical inside it for your operating system.
 
-    <div class="grid cards one-column" markdown>
+<div class="grid cards one-column" markdown>
 
-    -   :material-clock-fast:{ .lg .middle } __Install Python and Zensical__
+-   :material-clock-fast:{ .lg .middle } __Install Python and Zensical__
 
-        === "macOS using Homebrew"
+    === "macOS using Homebrew"
 
-            1. If you use the Homebrew package manager, run this command in your Terminal to install Python. If you don't have Homebrew installed, you can install it by following the instructions on the [Homebrew website](https://brew.sh/){target="_blank"}.
+        1. If you use the Homebrew package manager, run this command in your Terminal to install Python. If you don't have Homebrew installed, you can install it by following the instructions on the [Homebrew website](https://brew.sh/){target="_blank"}.
 
-                ``` bash
-                brew install python
-                ```
+            ``` bash
+            brew install python
+            ```
 
-            2. Open **Terminal** in your project folder and run the following commands to create a virtual environment and install Zensical inside it:
+        2. Open **Terminal** in your project folder and run the following commands to create a virtual environment and install Zensical inside it:
 
-                ``` bash
-                # 1. Create the virtual environment
-                python3 -m venv .venv
+            ``` bash
+            # 1. Create the virtual environment
+            python3 -m venv .venv
 
-                # 2. Activate it
-                source .venv/bin/activate
+            # 2. Activate it
+            source .venv/bin/activate
 
-                # 3. Install Zensical
-                pip install zensical
-                ```
+            # 3. Install Zensical
+            pip install zensical
+            ```
 
-        === "Windows 11 using PowerShell"
+    === "Windows 11 using PowerShell"
 
-            1. Download and run the official Python installer from [python.org](https://www.python.org/downloads/){target="_blank"}.
+        1. Download and run the official Python installer from [python.org](https://www.python.org/downloads/){target="_blank"}.
 
-                !!! Critical
-                    Make sure to check the box to add Python to your `PATH` during the installation process. This allows you to run Python from the command line.
+           !!! Critical
+                Make sure to check the box to add Python to your `PATH` during the installation process. This allows you to run Python from the command line.
 
-            2. Open **PowerShell** in your project folder and run the following commands to create a virtual environment and install Zensical inside it:
+        2. Open **PowerShell** in your project folder and run the following commands to create a virtual environment and install Zensical inside it:
+            
 
-                ``` powershell
-                # 1. Create the virtual environment
-                python -m venv .venv
+            ``` powershell
+            # 1. Create the virtual environment
+            python -m venv .venv
 
-                # 2. Activate it (choose the line matching your terminal)
-                .\.venv\Scripts\Activate.ps1     # <-- Use this if you are in PowerShell
-                .\.venv\Scripts\activate.bat     # <-- Use this if you are in classic CMD
+            # 2. Activate it (choose the line matching your terminal)
+            .\.venv\Scripts\Activate.ps1     # <-- Use this if you are in PowerShell
+            .\.venv\Scripts\activate.bat     # <-- Use this if you are in classic CMD
 
-                # 3. Install Zensical inside the environment
-                pip install zensical
-                ```
+            # 3. Install Zensical inside the environment
+            pip install zensical
+            ```
 
-        === "Linux (Ubuntu/Debian) using bash"
+    === "Linux (Ubuntu/Debian) using bash"
 
-            1. Open a terminal and run the following command to install Python and the `venv` module:
+        1. Open a terminal and run the following command to install Python and the `venv` module:
 
-                ``` bash
-                sudo apt update
-                sudo apt install python3 python3-venv python3-pip
-                ```
+            ``` bash
+            sudo apt update
+            sudo apt install python3 python3-venv python3-pip
+            ```
 
-            2. Navigate to your project folder and run the following commands to create a virtual environment and install Zensical inside it:
+        2. Navigate to your project folder and run the following commands to create a virtual environment and install Zensical inside it:
 
-                ``` bash
-                # 1. Create the virtual environment
-                python3 -m venv .venv
+            ``` bash
+            # 1. Create the virtual environment
+            python3 -m venv .venv
 
-                # 2. Activate it
-                source .venv/bin/activate
+            # 2. Activate it
+            source .venv/bin/activate
 
-                # 3. Install Zensical
-                pip install zensical
-                ```
+            # 3. Install Zensical
+            pip install zensical
+            ```
 
-    </div>
+</div>
 
-    Once installed, open the Command Palette (`Ctrl+Shift+P`/`Cmd+Shift+P`) and run **Python: Select Interpreter**, then choose the one under `.venv` in your project folder. Visual Studio Code will then activate this virtual environment automatically in any new integrated terminal you open.
+Once installed, open the Command Palette (`Ctrl+Shift+P`/`Cmd+Shift+P`) and run **Python: Select Interpreter**, then choose the one under `.venv` in your project folder. Visual Studio Code will then activate this virtual environment automatically in any new integrated terminal you open.
 
 ### Install Zensical Studio plugin
 
-1. Install [Zensical Studio Code Extension](https://marketplace.visualstudio.com/items?itemName=zensical.zensical-studio){target="_blank"} plugin for Visual Studio Code from the marketplace. This extension provides a set of tools to help you work with Zensical projects, including commands to build and preview your site.
+Install [Zensical Studio Code Extension](https://marketplace.visualstudio.com/items?itemName=zensical.zensical-studio){target="_blank"} plugin for Visual Studio Code from the marketplace. This extension provides a set of tools to help you work with Zensical projects, including commands to build and preview your site.
 
-    Follow the instructions on the Zensical Studio plugin page to configure the extension. Add to the `.vscode/settings.json` file in your project directory the following lines:
+Follow the instructions on the Zensical Studio plugin page to configure the extension. Add to the `.vscode/settings.json` file in your project directory the following lines:
 
     ```json
     {
@@ -516,7 +523,6 @@ The instructions below are for installing Python 3.8 or later. If you have an ol
       }
     }
     ```
-
 
 There are many other extensions available for Visual Studio Code that can help you with your documentation. You can explore the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode){target="_blank"} to find more extensions that suit your needs.
 

@@ -749,6 +749,8 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     in_tab, in_admonition, in_gridcard, in_card_item = False, False, False, False
     gridcard_base_indent, tab_indent_level, adm_indent_level = 0, 0, 0
     adm_output_prefix = ''
+    gridcard_output_prefix = ''
+    gridcard_block_start = 0
 
     for line in final_lines:
         stripped = line.lstrip()
@@ -762,16 +764,45 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
             if grid_div_match:
                 in_gridcard = True
                 gridcard_base_indent = current_indent
+                # Same rule as admonitions/tabs (see the matching comment further
+                # below): Pandoc only treats this ::: fence as *continuing* the
+                # enclosing list item (keeping items 1/2/3 in one <ol>) if it's
+                # indented to the item's content column - the state machine below
+                # builds the card's content already de-indented flat against the
+                # card, so the whole block gets this prefix re-applied afterwards
+                # rather than threading it through every intermediate line.
+                gridcard_output_prefix = '   ' if gridcard_base_indent > 0 else ''
+                gridcard_block_start = len(new_lines)
                 style_match = re.search(r'style=["\']([^"\']*)["\']', line, re.IGNORECASE)
                 style_attr = f' style="{style_match.group(1)}"' if style_match else ''
                 new_lines.append(f"\n::: {{.gridcard-matrix{style_attr}}}\n")
                 continue
-                
+
         if in_gridcard:
             if stripped.startswith('</div>'):
+                # Close whatever's still open inside the card, innermost first
+                # (a tab or admonition can still be open here, since the card
+                # markup often ends right after their content with no dedented
+                # line in between to trigger their own natural close below).
+                # Without this, their in_tab/in_admonition state leaks past
+                # the card, wrongly closing the next thing that happens to
+                # dedent far enough outside it and leaving a stray, unmatched
+                # ::: behind as literal text.
+                if in_admonition:
+                    new_lines.append(f"\n{adm_output_prefix}:::\n")
+                    in_admonition = False
+                if in_tab:
+                    new_lines.append("\n:::\n")
+                    in_tab = False
                 if in_card_item: new_lines.append("\n:::\n")
                 in_gridcard, in_card_item = False, False
                 new_lines.append("\n:::\n")
+                if gridcard_output_prefix:
+                    for idx in range(gridcard_block_start, len(new_lines)):
+                        new_lines[idx] = "\n".join(
+                            (gridcard_output_prefix + sub) if sub.strip() else sub
+                            for sub in new_lines[idx].split("\n")
+                        )
                 continue
             card_strip_count = gridcard_base_indent + 4
             relative_line = line[card_strip_count:] if line.startswith(' ' * card_strip_count) else line.lstrip()

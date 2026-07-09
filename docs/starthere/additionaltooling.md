@@ -168,7 +168,7 @@ VS Code doesn't require any extensions to work with GitLab or GitHub, but instal
 
     </div>
 
-4. Next, configure the *GitLab* or *GitHub* plugin to use a personal access token (PAT). The instructions below are for both *GitLab* and *GitHub* plugins.
+1. Next, configure the *GitLab* or *GitHub* plugin to use a personal access token (PAT). The instructions below are for both *GitLab* and *GitHub* plugins.
 
     <div class="grid cards one-column" markdown>
         

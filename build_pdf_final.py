@@ -908,18 +908,23 @@ def main():
         preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, is_index=is_index)
         processed_paths.append(temp_out_path)
 
-    # Fill in the cover page's {WORDCOUNT} marker (see index.md), if present,
-    # with the prose word count of the actual content pages (everything
-    # except the cover page itself). Left untouched if the marker was deleted.
+    # Fill in the cover page's {WORDCOUNT}/{REPOURL} markers (see index.md),
+    # if present. Each is left untouched if its marker line was deleted.
     if "index.md" in os.path.basename(valid_paths[0]).lower() and len(processed_paths) > 1:
         cover_path = processed_paths[0]
         with open(cover_path, 'r', encoding='utf-8') as f:
             cover_content = f.read()
         if '{WORDCOUNT}' in cover_content:
+            # Word count of the actual content pages (everything except the
+            # cover page itself).
             word_count = compute_pdf_word_count(processed_paths[1:])
             cover_content = cover_content.replace('{WORDCOUNT}', f'{word_count:,}')
-            with open(cover_path, 'w', encoding='utf-8') as f:
-                f.write(cover_content)
+        if '{REPOURL}' in cover_content:
+            # Computed once by macros.py (shared with the website's
+            # {{ repo_url }} variable) and picked up here via calculated_vars.
+            cover_content = cover_content.replace('{REPOURL}', calculated_vars.get('repo_url', ''))
+        with open(cover_path, 'w', encoding='utf-8') as f:
+            f.write(cover_content)
 
     toc_trigger_path = os.path.join(temp_build_dir, "toc_trigger_temp.md")
     with open(toc_trigger_path, "w", encoding="utf-8") as f:
@@ -1208,11 +1213,21 @@ blockquote {
     float: footnote !important;
     font-size: 9pt !important;
 }
-/* extra.css hides .pdf-only (the cover page's word-count marker) on the live
-   website; override that back to visible here, since it's meant to show only
-   in the PDF once build_pdf_final.py has filled in the real count. */
+/* extra.css hides .pdf-only (the cover page's word-count/repo-link markers)
+   on the live website; override that back to visible here, since they're
+   meant to show only in the PDF once build_pdf_final.py has filled in the
+   real values. */
 .pdf-only {
     display: block !important;
+    margin-bottom: 0 !important;
+}
+/* Collapses the gap between consecutive .pdf-only lines (e.g. word count
+   directly above the repo link) without affecting the normal paragraph
+   spacing above the first one. Both margin-bottom above and margin-top here
+   need zeroing - CSS margin collapsing takes the max of the two, so zeroing
+   only one side still leaves the other's margin as the visible gap. */
+.pdf-only + .pdf-only {
+    margin-top: 0 !important;
 }
 /* Renders TeX math ($...$/$$...$$, see https://zensical.org/docs/authoring/math/)
    as pre-rendered SVGs, since WeasyPrint has no JS engine to run MathJax

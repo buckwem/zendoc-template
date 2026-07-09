@@ -98,6 +98,30 @@ def _compute_site_word_count():
     return f"{total:,}"
 
 
+def _get_repo_url():
+    """Returns the fully-qualified https:// URL for the repo's origin
+    remote (converting from git@host:path.git SSH syntax if necessary), for
+    the optional {{ repo_url }} variable - see "Word count and repository
+    link" in customise.md for how to show or hide it. Returns "" if there's
+    no git remote configured (e.g. the template hasn't been cloned yet)."""
+    try:
+        remote_url = subprocess.check_output(
+            ["git", "config", "--get", "remote.origin.url"],
+            stderr=subprocess.DEVNULL
+        ).decode("utf-8").strip()
+    except Exception:
+        return ""
+    if not remote_url:
+        return ""
+    ssh_match = re.match(r'^git@([^:]+):(.+?)(?:\.git)?$', remote_url)
+    if ssh_match:
+        host, path = ssh_match.group(1), ssh_match.group(2)
+        return f"https://{host}/{path}"
+    if remote_url.startswith(('http://', 'https://')):
+        return re.sub(r'\.git$', '', remote_url)
+    return remote_url
+
+
 def _heading_numbering_enabled():
     """Reads project.extra.heading_numbering from zensical.toml (defaults to True)."""
     config_path = Path('zensical.toml')
@@ -167,8 +191,13 @@ def define_env(env):
     env.variables['is_surrey'] = final_result
 
     # Word count of the whole site (every nav page except the cover), for the
-    # optional {{ word_count }} variable - see "Word count" in customise.md.
+    # optional {{ word_count }} variable - see "Word count and repository
+    # link" in customise.md.
     env.variables['word_count'] = _compute_site_word_count()
+
+    # Fully-qualified repo URL, for the optional {{ repo_url }} variable -
+    # see "Word count and repository link" in customise.md.
+    env.variables['repo_url'] = _get_repo_url()
 
     # ==========================================
     # 2. GLOBAL LOGO SWAP ON STARTUP

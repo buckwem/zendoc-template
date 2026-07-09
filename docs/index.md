@@ -81,3 +81,8 @@ Date: Submission Date
      time by build_pdf_final.py. Delete this line if you don't want a word
      count shown on the cover page. -->
 <p class="pdf-only">Word count: {WORDCOUNT}</p>
+
+<!-- Automated repository URL, filled in at PDF build time by
+     build_pdf_final.py. Delete this line if you don't want the repository
+     link shown on the cover page. -->
+<p class="pdf-only">Repo: {REPOURL}</p>

@@ -27,7 +27,7 @@ The steps below will help you install VS Code and some essential plugins to edit
 
 ### Install Visual Studio Code
 
-1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, 
+1. Start with installing [Visual Studio Code](https://code.visualstudio.com){target="_blank"}. Instructions for macOS, Windows 11, and Linux (Ubuntu/Debian) are below.
 
     <div class="grid cards one-column" markdown>
     
@@ -42,7 +42,7 @@ The steps below will help you install VS Code and some essential plugins to edit
 
         === "Windows 11 using PowerShell"
 
-            1. Download the VS Code User setup for Windows.
+            1. Download the VS Code User setup for Windows from the [official website](https://code.visualstudio.com/download){target="_blank"}.
             2. Run the installer, `VSCodeUserSetup-{version}.exe`. By default the User setup installs Visual Studio Code to your user profile directory. You can change the install location if you want to install it for all users.
          
         === "Linux (Ubuntu/Debian) using bash"
@@ -54,8 +54,8 @@ The steps below will help you install VS Code and some essential plugins to edit
                 sudo apt install ./<file>.deb
                 ```
             Replace `<file>` with the name of the downloaded `.deb` file.
-            
-        Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
+
+            Further installation instructions are available on the [Visual Studio Code website](https://code.visualstudio.com/docs/setup/linux){target="_blank"}.
 
     </div>
 
@@ -63,7 +63,7 @@ The steps below will help you install VS Code and some essential plugins to edit
 
 VS Code has a rich ecosystem of plugins that can enhance your editing experience. The following plugins are recommended for working with Markdown and Zensical:
 
-1. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint){target="_blank"} plugin for Visual Studio Code from the marketplace. This mardownlint extension checks your markdown files using a library of rules to encourage consistent formatting.
+1. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint){target="_blank"} plugin for Visual Studio Code from the marketplace. This markdownlint extension checks your markdown files using a library of rules to encourage consistent formatting.
 1. Install [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml){target="_blank"} plugin for Visual Studio Code from the marketplace. This extension helps manage a [TOML](https://toml.io/en/){target="_blank"} file.
 1. Install [LTeX+–LanguageTool grammar/spell checking](https://marketplace.visualstudio.com/items?itemName=ltex-plus.vscode-ltex-plus){target="_blank"} plugin for Visual Studio Code from the marketplace to enable spelling and grammar checking for Markdown. Configure the plugin in the settings to use the *language* `en-GB`.
 
@@ -71,7 +71,7 @@ VS Code has a rich ecosystem of plugins that can enhance your editing experience
 
 [Git](https://git-scm.com/){target="_blank"} is a version control system that enables you to track changes to your code and collaborate with others. You will be using Git to manage your documentation website and push your changes to your **GitLab** or **GitHub** cloud repository.
 
-Next, install the `git` command and configure it for Visual Studio Code. The instructions below are for using with both *GitLab* and *GitHub*.
+Next, install the `git` command and configure it for Visual Studio Code. The instructions below are for use with both *GitLab* and *GitHub*.
 
 ### Install and configure Git
 
@@ -92,7 +92,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
         === "Windows 11 using PowerShell"
 
-            Open up a **PowerShell** window and install `git` using the command, or you can download and installthe official git installer from [git-scm.com](https://git-scm.com/download/win){target="_blank"}.
+            Open up a **PowerShell** window and install `git` using the command, or you can download and install the official git installer from [git-scm.com](https://git-scm.com/download/win){target="_blank"}.
                 
             ``` PowerShell
             winget install Git.Git
@@ -157,6 +157,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
             3. When prompted, type a strong passphrase.
             
         === "Linux (Ubuntu/Debian) using bash"
+
             1. Open the **Terminal** application.
             2. Run the following command to generate a new SSH key pair for GitHub and GitLab. Make sure to replace `your.gitxxx.email@example.com` with your actual email address:
             
@@ -178,6 +179,22 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
     
     paste the following configuration into the file:
 
+{% if is_surrey %}
+    ```text
+    # GitLab
+    Host gitlab.surrey.ac.uk
+        HostName gitlab.surrey.ac.uk
+        User git
+        IdentityFile ~/.ssh/id_ed25519_gitlab
+
+
+    # GitHub
+    Host github.com
+        HostName github.com
+        User git
+        IdentityFile ~/.ssh/id_ed25519_github
+    ```
+{% else %}
     ```text
     # GitLab
     Host gitlab.com
@@ -192,6 +209,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
         User git
         IdentityFile ~/.ssh/id_ed25519_github
     ```
+{% endif %}
 
     then save and close the file (`Ctrl+O` to save and `Ctrl+X` to exit in nano). On Windows, you can use `Notepad` or any text editor to create the `config` file in the `.ssh` directory.
 
@@ -209,10 +227,18 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
 1. Test the SSH connection to GitHub and GitLab to ensure that the keys are working correctly. Run the following commands in your terminal:
 
+{% if is_surrey %}
+    ```bash
+    ssh -T git@github.com
+    ssh -T git@gitlab.surrey.ac.uk
+    ```
+{% else %}
     ```bash
     ssh -T git@github.com
     ssh -T git@gitlab.com
     ```
+{% endif %}
+
     If successful, you will see greetings like:
 
     ```text
@@ -316,7 +342,7 @@ Table 7.3-1: Fork and Clone Comparison at a Glance
 The features of forking and cloning are complementary. You can fork a repository to create your own copy on the remote host, and then clone that fork to your local machine to work on it. The standard workflow is:
 
 1. **Fork:** You find a project on GitHub. You click the Fork button on the website. Now, you have a copy at `github.com/your-username/project`.
-2. **Clone:** You run `git clone https://github.com/your-username/project.git` in your terminal. Now, the code is on your laptop.
+2. **Clone:** You run `git clone git@github.com:your-username/project.git` in your terminal. Now, the code is on your laptop.
 3. **Work:** You write code, make local commits, and test your changes.
 4. **Push:** You run `git push origin main` to send your local changes back up to your cloud fork.
 5. **Pull Request:** You go back to the GitHub website and open a Pull Request, asking the original project owner to pull the changes from your fork into their original repository.
@@ -351,16 +377,21 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
                 Figure 7.3.1-1: GitLab fork project
                 ///
            
-            3. Enter your *Project name* using to the format the coursework specifies. For example, for coursework 1 for the module COMM058 in the year 2026 for your GitLab ID az1234, enter 'cw1-az1234' in the project name field. Edit the *Project slug* to match the project name. Use all lowercase and a dash between words with no spaces.
-            4. Then select the project namespace for the module as directed by your course tutor.
-            5. Change the *Visibility Level* to *Private*.
-            6. Press the button **Fork Project**{: .bg-blue} to create your own copy of the project in the group namespace.
+            2. Enter your *Project name* using the format the coursework specifies. For example, for coursework 1 for the module COMM058 in the year 2026 for your GitLab ID az1234, enter 'cw1-az1234' in the project name field. Edit the *Project slug* to match the project name. Use all lowercase and a dash between words with no spaces.
+            3. Then select the project namespace for the module as directed by your course tutor.
+            4. Change the *Visibility Level* to *Private*.
+            5. Press the button **Fork Project**{: .bg-blue} to create your own copy of the project in the group namespace.
         
         {% endif %}
 
         === "GitHub"
 
-            xxx
+            1. Go to the [doc-template repository](https://github.com/buckwem/doc-template){target="_blank"} on GitHub and click the **Fork**{: .bg-green} button near the top-right of the page.
+            2. On the "Create a new fork" page, keep your own account selected as the **Owner**.
+            3. Enter a *Repository name* using the format the coursework specifies, matching the naming convention your course tutor directs (e.g. `cw1-your-username`).
+            4. Leave **Copy the `main` branch only** checked.
+            5. Click **Create fork**{: .bg-green}.
+            6. Once forked, go to your new repository's **Settings** tab, scroll down to the **Danger Zone**, and change the visibility to **Private**.
 
     </div>
 
@@ -371,7 +402,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
 
 This section takes you through the steps to clone the documentation template into your own local device. You will then be able to edit the template locally in Visual Studio Code and eventually publish your own documentation website.
 
-1. Start with creating a directory for all your *GitLab* or *GitHub* projects on your local desktop. For example, create a directory called 'GitLab' in your OneDrive directory..
+1. Start with creating a directory for all your *GitLab* or *GitHub* projects on your local desktop. For example, create a directory called 'GitLab' in your OneDrive directory.
     
     !!! Tip
         Using OneDrive will give you an additional backup of your GitLab repository.
@@ -385,7 +416,7 @@ This section takes you through the steps to clone the documentation template int
     ```
 
     !!! Tip
-        You can find your `username` by logging into your GitLab or GitHub account and clicking on your profile picture at the top right corner of the page. On **GitLab** your username will is **below** your name in the dropdown menu. On **GitHub** your username will is **above** your name in the dropdown menu.
+        You can find your `username` by logging into your GitLab or GitHub account and clicking on your profile picture at the top right corner of the page. On **GitLab** your username is **below** your name in the dropdown menu. On **GitHub** your username is **above** your name in the dropdown menu.
 
 ## Install Python and Zensical
 

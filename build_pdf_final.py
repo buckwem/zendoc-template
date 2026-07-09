@@ -380,6 +380,52 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         except Exception:
             return None
 
+    # Resolves an admonition type (note, warning, tip, ...) to an inline icon
+    # token, using the same icon set configured for the website's admonitions
+    # in project.theme.icon.admonition (zensical.toml) - see
+    # https://zensical.org/docs/authoring/admonitions/#supported-types
+    admonition_icon_shortcodes = {}
+    project_cfg = config.get('project')
+    if isinstance(project_cfg, dict):
+        theme_cfg = project_cfg.get('theme')
+        if isinstance(theme_cfg, dict):
+            icon_cfg = theme_cfg.get('icon')
+            if isinstance(icon_cfg, dict):
+                adm_icon_cfg = icon_cfg.get('admonition')
+                if isinstance(adm_icon_cfg, dict):
+                    admonition_icon_shortcodes = adm_icon_cfg
+
+    # Mirrors the border-left-color set per admonition type in the .admonition.<type>
+    # CSS rules below, so the icon matches the coloured bar rather than rendering
+    # in its raw (black) fill.
+    admonition_accent_colors = {
+        "note": "#448aff", "abstract": "#00b0ff", "info": "#00b8d4", "tip": "#00bfa5",
+        "success": "#00c853", "question": "#64dd17", "warning": "#ff9100", "failure": "#ff5252",
+        "danger": "#ff1744", "bug": "#ec407a", "example": "#651fff", "quote": "#9e9e9e",
+    }
+
+    def resolve_admonition_icon_token(adm_type):
+        shortcode = admonition_icon_shortcodes.get(adm_type)
+        if not shortcode:
+            return None
+        key = shortcode.strip('/').lower().replace('/', '-')
+        abs_path = icon_registry.get(key)
+        if not abs_path:
+            return None
+        accent_color = admonition_accent_colors.get(adm_type)
+        if not accent_color:
+            return register_icon_token(abs_path)
+        try:
+            with open(abs_path, 'r', encoding='utf-8') as f:
+                svg_data = f.read()
+            # "currentColor" resolves against the CSS `color` property, not `fill` -
+            # setting fill="..." on the <svg> root has no effect on a descendant
+            # path's fill="currentColor", so replace it directly instead.
+            svg_data = re.sub(r'currentColor', accent_color, svg_data, flags=re.IGNORECASE)
+            return register_icon_token(None, raw_svg_data=svg_data)
+        except Exception:
+            return register_icon_token(abs_path)
+
     # AUTOMATED SIMPLE ICONS HTML EMBED INTERCEPTOR ENGINE
     def simple_icons_html_replacer(match):
         full_tag = match.group(0)
@@ -784,8 +830,10 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
             # to match this doc's own 4-space code-fence indent convention, makes
             # Pandoc treat the ::: fence as literal paragraph text instead.
             adm_output_prefix = '   ' if adm_indent_level > 0 else ''
+            adm_icon_token = resolve_admonition_icon_token(adm_type)
+            adm_title_text = f"{adm_icon_token} {adm_title}" if adm_icon_token else adm_title
             new_lines.append(f"\n{adm_output_prefix}::: {{.admonition .{adm_type}}}")
-            new_lines.append(f"{adm_output_prefix}::: {{.admonition-title}}\n{adm_output_prefix}{adm_title}\n{adm_output_prefix}:::\n")
+            new_lines.append(f"{adm_output_prefix}::: {{.admonition-title}}\n{adm_output_prefix}{adm_title_text}\n{adm_output_prefix}:::\n")
             in_admonition = True
             continue
 
@@ -805,8 +853,10 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
                 # list numbering or the fence recognition itself).
                 adm_indent_level = len(content_line) - len(content_stripped)
                 adm_output_prefix = '   ' if adm_indent_level > 0 else ''
+                adm_icon_token = resolve_admonition_icon_token(adm_type)
+                adm_title_text = f"{adm_icon_token} {adm_title}" if adm_icon_token else adm_title
                 new_lines.append(f"\n{adm_output_prefix}::: {{.admonition .{adm_type}}}")
-                new_lines.append(f"{adm_output_prefix}::: {{.admonition-title}}\n{adm_output_prefix}{adm_title}\n{adm_output_prefix}:::\n")
+                new_lines.append(f"{adm_output_prefix}::: {{.admonition-title}}\n{adm_output_prefix}{adm_title_text}\n{adm_output_prefix}:::\n")
                 in_admonition = True
                 continue
             if in_admonition:
@@ -1299,12 +1349,12 @@ blockquote {
     -webkit-box-decoration-break: clone !important; box-decoration-break: clone !important;
 }
 .tabbox-header {
-    background-color: rgba(0, 0, 0, 0.1) !important; color: #000000 !important;
+    background-color: #e5e5e5 !important; color: #000000 !important;
     font-weight: bold; padding: 8px 12px; font-size: 10pt;
     page-break-after: avoid !important; break-after: avoid !important;
 }
 .tabbox-body {
-    background-color: rgba(0, 0, 0, 0.05) !important; padding: 12px;
+    background-color: #f2f2f2 !important; padding: 12px;
     page-break-inside: auto !important; break-inside: auto !important;
     -webkit-box-decoration-break: clone !important; box-decoration-break: clone !important;
 }
@@ -1316,40 +1366,28 @@ blockquote {
 }
 .admonition-title {
     font-weight: bold !important; margin-bottom: 8px !important; font-size: 10.5pt !important;
-    color: #448aff !important; page-break-after: avoid !important; break-after: avoid !important;
+    color: #000000 !important; page-break-after: avoid !important; break-after: avoid !important;
 }
 
 .admonition.note     { border-left-color: #448aff !important; background-color: rgba(68, 138, 255, 0.05) !important; }
-.admonition.note     .admonition-title { color: #448aff !important; }
 .admonition.abstract { border-left-color: #00b0ff !important; background-color: rgba(0, 176, 255, 0.05) !important; }
-.admonition.abstract .admonition-title { color: #00b0ff !important; }
 .admonition.info     { border-left-color: #00b8d4 !important; background-color: rgba(0, 184, 212, 0.05) !important; }
-.admonition.info     .admonition-title { color: #00b8d4 !important; }
 .admonition.tip      { border-left-color: #00bfa5 !important; background-color: rgba(0, 191, 165, 0.05) !important; }
-.admonition.tip      .admonition-title { color: #00bfa5 !important; }
 .admonition.success  { border-left-color: #00c853 !important; background-color: rgba(0, 200, 83, 0.05) !important; }
-.admonition.success  .admonition-title { color: #00c853 !important; }
 .admonition.question { border-left-color: #64dd17 !important; background-color: rgba(100, 221, 23, 0.05) !important; }
-.admonition.question .admonition-title { color: #64dd17 !important; }
 .admonition.warning  { border-left-color: #ff9100 !important; background-color: rgba(255, 145, 0, 0.05) !important; }
-.admonition.warning  .admonition-title { color: #ff9100 !important; }
 .admonition.failure  { border-left-color: #ff5252 !important; background-color: rgba(255, 82, 82, 0.05) !important; }
-.admonition.failure  .admonition-title { color: #ff5252 !important; }
 .admonition.danger   { border-left-color: #ff1744 !important; background-color: rgba(255, 23, 68, 0.05) !important; }
-.admonition.danger   .admonition-title { color: #ff1744 !important; }
 .admonition.bug      { border-left-color: #ec407a !important; background-color: rgba(236, 64, 122, 0.05) !important; }
-.admonition.bug      .admonition-title { color: #ec407a !important; }
 .admonition.example  { border-left-color: #651fff !important; background-color: rgba(101, 31, 255, 0.05) !important; }
-.admonition.example  .admonition-title { color: #651fff !important; }
 .admonition.quote    { border-left-color: #9e9e9e !important; background-color: rgba(158, 158, 158, 0.05) !important; }
-.admonition.quote    .admonition-title { color: #9e9e9e !important; }
 
 /* ==========================================================================
    ZENSICAL GRID CARD CANVAS ARCHITECTURE
    ========================================================================== */
 .gridcard-matrix { display: block !important; margin: 1.5em 0 !important; }
 .gridcard-item {
-    background-color: rgba(0, 0, 0, 0.025) !important; border: none !important;                           
+    background-color: #f4f8ff !important; border: none !important;
     padding: 16px !important; margin-bottom: 1em !important; border-radius: 4px !important;
     page-break-inside: avoid; break-inside: avoid;
 }
@@ -1359,9 +1397,13 @@ blockquote {
 }
 .gridcard-title p { font-weight: bold !important; font-size: 13pt !important; color: #111111 !important; margin: 0 !important; display: inline !important; }
 
+/* #dddddd is another 5% darker than #e9e9e9 (itself 5% darker than
+   #f5f5f5, --md-code-bg-color - the website's shading for both inline
+   code and code blocks; see docs/stylesheets/extra.css / the Zensical
+   default theme), kept identical between inline code and code blocks here. */
 pre, code { font-family: "__MONO_FONT__", monospace !important; }
-pre { padding: 10px !important; border-radius: 4px !important; margin: 1em 0 !important; white-space: pre-wrap !important; background-color: rgba(0, 0, 0, 0.125) !important; }
-code { padding: 2px 4px !important; border-radius: 3px !important; background-color: transparent !important; }
+pre { padding: 10px !important; border-radius: 4px !important; margin: 1em 0 !important; white-space: pre-wrap !important; background-color: #dddddd !important; }
+code { padding: 2px 4px !important; border-radius: 3px !important; background-color: #dddddd !important; }
 /* Multi-line <code> inside <pre> is a single inline box split across hard line
    breaks; without this, the padding above lands only on the first line (default
    box-decoration-break: slice), making it look indented relative to the rest. */

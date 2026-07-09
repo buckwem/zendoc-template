@@ -48,9 +48,149 @@ As a starting point, the documentation template has the following directory stru
 
 
 
-## Changing the site logo
+## Customise the web site
+
+Most website-wide settings live in `zensical.toml`, in the `[project]` and `[project.theme]` sections. The most commonly customised ones are described below; see the [Zensical setup documentation](https://zensical.org/docs/setup/) for the full reference.
+
+### Site logo
 
 If the documentation website is part of the university's GitLab service or the location of the website is hosted under the University of Surrey domain, the site logo is automatically changed to the University of Surrey logo. Otherwise, the site logo will use the default logos in the `docs/assets/` directory. You can change the default logo by replacing the existing default logo files with your own logo files named `logo_default_black.png` and `logo_default_white.png`.
+
+These files are copied automatically at the start of every build or `zensical serve` (see the logo-swap logic near the top of `macros.py`): either the Surrey pair or your default pair gets copied over `docs/assets/logo_black.png`/`logo_white.png` - the two files `extra.css` actually references for the light/dark logo swap. Don't edit `logo_black.png`/`logo_white.png` directly, since they're overwritten on the next build.
+
+### Site metadata
+
+`site_name`, `site_description`, `site_author`, and `site_url` (all in `[project]` in `zensical.toml`) set the browser tab title, the HTML description used by search engines, the HTML author metadata, and the canonical site URL. `site_name` is also shown on the [cover page](#site-name).
+
+### Copyright
+
+`copyright` in `[project]` sets the text shown in the website's footer. It can contain an HTML fragment, for example an `&copy;` entity:
+
+```toml
+copyright = """
+Copyright &copy; 2026 Your Name
+"""
+```
+
+The PDF build reuses this same setting for its own running footer - see [Page footer](#page-footer).
+
+### Repository link
+
+`repo_url` and `repo_name` in `[project]` show a link to your repository, with an icon and short name, near the top of the sidebar:
+
+```toml
+repo_url = "https://gitlab.surrey.ac.uk/mb0105/doc-template"
+repo_name = "doc-template"
+```
+
+The icon shown next to it is set separately - see `theme.icon.repo` under [Icons](#icons).
+
+!!! note
+    This is unrelated to the `{% raw %}{{ repo_url }}{% endraw %}` macro variable used on the cover page (see [Word count and repository link](#word-count-and-repository-link)). That value is computed independently from your local Git remote rather than read from this `repo_url` setting, though in practice they'll usually point to the same place.
+
+### Favicon
+
+Set `favicon` in `[project.theme]` to a path (relative to `docs_dir`) for your own browser-tab icon:
+
+```toml
+[project.theme]
+favicon = "images/favicon.png"
+```
+
+Left unset, Zensical's default favicon is used.
+
+### Colour Scheme
+
+The two `[[project.theme.palette]]` blocks in `zensical.toml` configure the light and dark themes and the toggle button between them:
+
+```toml
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+```
+
+`scheme` selects Zensical's built-in `default` (light) or `slate` (dark) palette; `toggle.icon`/`toggle.name` set the icon and tooltip for the button used to switch between them.
+
+### Page Heading
+
+The website's header background image swaps between light and dark mode too, in `docs/stylesheets/extra.css`:
+
+```css
+[data-md-color-scheme="default"] .md-header {
+  background: ... url("../assets/header-background.jpg");
+}
+[data-md-color-scheme="slate"] .md-header {
+  background: ... url("../assets/header-background-dark.jpg");
+}
+```
+
+Replace `header-background.jpg`/`header-background-dark.jpg` in `docs/assets/` with your own images, or switch to a plain colour gradient instead - `extra.css` has a commented-out example of this directly below.
+
+### Fonts
+
+`[project.theme.font]` in `zensical.toml` sets the fonts loaded from Google Fonts, used across the website:
+
+```toml
+[project.theme.font]
+text = "Inter"
+code = "Jetbrains Mono"
+```
+
+`text` is used for body copy and headings; `code` for code blocks and inline code. Both default to Inter and JetBrains Mono if this section is left unset. The PDF build reuses this same setting - see [Customise PDF format](#customise-pdf-format).
+
+### Icons
+
+`[project.theme.icon]` sets the icons used for the edit/view/repository buttons in the header, and `[project.theme.icon.admonition]` sets the icon shown for each admonition type (`note`, `warning`, `tip`, and so on):
+
+```toml
+[project.theme.icon]
+edit = "lucide/pencil"
+view = "lucide/eye"
+repo = "fontawesome/brands/gitlab"
+
+[project.theme.icon.admonition]
+note = "fontawesome/solid/note-sticky"
+warning = "fontawesome/solid/triangle-exclamation"
+```
+
+Any [Lucide or FontAwesome icon name](https://zensical.org/docs/authoring/icons-emojis/#search) can be used.
+
+### Navigation and feature toggles
+
+The `features` list in `[project.theme]` turns individual website behaviours on or off - instant navigation, sticky tabs, search highlighting, the back-to-top button, and around twenty others. Each is listed in `zensical.toml` with a link to its own documentation in a comment directly above it; comment a line out to disable that feature, or uncomment one of the already-listed-but-disabled options to enable it.
+
+### Extra CSS and JavaScript
+
+`extra_css` and `extra_javascript` in `[project]` list additional stylesheets and scripts to load, with paths relative to `docs_dir`:
+
+```toml
+extra_css = ["stylesheets/extra.css"]
+extra_javascript = [
+  "javascripts/mathjax.js",
+  "https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js",
+  "javascripts/extra.js"
+]
+```
+
+`docs/stylesheets/extra.css` is where most of this template's own customisations live (the logo swap, header image, cover page title styles, and the `.pdf-only`/`.web-only` markers).
+
+### Social links
+
+Add icons linking to your social profiles or other sites in the footer, by uncommenting and repeating this block in `[project.extra]` in `zensical.toml`:
+
+```toml
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/user/repo"
+```
 
 ## Changing heading numbering
 
@@ -99,7 +239,7 @@ The cover page's logo, colours, and introductory text are wrapped in a Jinja con
 * Your local Git repository's `origin` remote contains `surrey.ac.uk`.
 * Zensical's own config (e.g. the site URL) contains `surrey.ac.uk`.
 
-If you're not from the University of Surrey, the `{% raw %}{% else %}{% endraw %}` branch is where you customise your own institution or company branding: replace `Crested Eagle Labs`, `University of the World`, and `Research programmes in Cyber Security` with your own text, and point the two `![]()` image lines at your own logo files (see [Changing the site logo](#changing-the-site-logo) above for the light/dark logo swap).
+If you're not from the University of Surrey, the `{% raw %}{% else %}{% endraw %}` branch is where you customise your own institution or company branding: replace `Crested Eagle Labs`, `University of the World`, and `Research programmes in Cyber Security` with your own text, and point the two `![]()` image lines at your own logo files (see [Site logo](#site-logo) above for the light/dark logo swap).
 
 !!! tip
     `is_surrey` isn't only used on the cover page - it's also what switches the Git setup instructions in [Install tooling](installtooling.md) between `gitlab.surrey.ac.uk` and `gitlab.com`.
@@ -174,13 +314,7 @@ Every page except the cover shows a running header: your project's `site_name` (
 
 ### Page footer
 
-Every page except the cover also shows a running footer: your `copyright` text (from `zensical.toml`, left-aligned) and a "Page X of Y" counter (right-aligned). `copyright` can contain an HTML fragment, for example an `&copy;` entity:
-
-```toml
-copyright = """
-Copyright &copy; 2026 Your Name
-"""
-```
+Every page except the cover also shows a running footer: your `copyright` text (left-aligned - see [Copyright](#copyright)) and a "Page X of Y" counter (right-aligned).
 
 ### Page size and margins
 
@@ -196,17 +330,7 @@ Unlike the header, footer, and fonts, page size and margins aren't exposed as `z
 
 `size` accepts any standard CSS page size (e.g. `letter`, `legal`, `A3`) or explicit dimensions (e.g. `21cm 29.7cm`), optionally followed by `landscape`. `margin` sets the page margin on every side; the header and footer live inside this margin, so shrinking it also narrows the space available to them.
 
-### Fonts
-
-The PDF reuses your website's theme fonts from `zensical.toml`:
-
-```toml
-[project.theme.font]
-text = "Inter"
-code = "Jetbrains Mono"
-```
-
-`text` is used for body copy, headings, and the header/footer; `code` is used for code blocks and inline code. Both default to Inter and JetBrains Mono if this section is left unset.
+The PDF also reuses your website's theme fonts (body copy, headings, and the header/footer) - see [Fonts](#fonts) above for the `zensical.toml` setting.
 
 !!! note
     The cover page (`docs/index.md`) never shows the running header or footer, and heading numbering (e.g. "11.4") is a separate setting - see [Changing heading numbering](#changing-heading-numbering).

@@ -98,6 +98,21 @@ def _compute_site_word_count():
     return f"{total:,}"
 
 
+def _get_site_name():
+    """Returns project.site_name from zensical.toml, for the {{ site_name }}
+    variable - see "Customising front page" in customise.md. Used on the
+    cover page instead of the PDF header (which is hidden on the cover page)
+    or a second, PDF-specific marker: build_pdf_final.py substitutes this
+    same literal "{{ site_name }}" text directly, so one line works for both
+    outputs."""
+    config_path = Path('zensical.toml')
+    if not config_path.exists():
+        return ""
+    config = toml.load(config_path)
+    project = config.get('project', {}) if isinstance(config.get('project'), dict) else {}
+    return project.get('site_name') or config.get('site_name') or ""
+
+
 def _get_repo_url():
     """Returns the fully-qualified https:// URL for the repo's origin
     remote (converting from git@host:path.git SSH syntax if necessary), for
@@ -191,13 +206,17 @@ def define_env(env):
     env.variables['is_surrey'] = final_result
 
     # Word count of the whole site (every nav page except the cover), for the
-    # optional {{ word_count }} variable - see "Word count and repository
-    # link" in customise.md.
+    # optional {{ word_count }} variable - see "Customising front page" in
+    # customise.md.
     env.variables['word_count'] = _compute_site_word_count()
 
     # Fully-qualified repo URL, for the optional {{ repo_url }} variable -
-    # see "Word count and repository link" in customise.md.
+    # see "Customising front page" in customise.md.
     env.variables['repo_url'] = _get_repo_url()
+
+    # Site name, for the {{ site_name }} variable used on the cover page -
+    # see "Customising front page" in customise.md.
+    env.variables['site_name'] = _get_site_name()
 
     # ==========================================
     # 2. GLOBAL LOGO SWAP ON STARTUP

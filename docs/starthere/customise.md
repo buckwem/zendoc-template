@@ -79,14 +79,53 @@ heading = "Chapter 1"
 
 ## Customising front page
 
-`.pdf-only` and `.web-only` are two general-purpose CSS marker classes. Add either to any element on any page, not just the cover page (`docs/index.md`), to show it in only one output:
+The cover page (`docs/index.md`) is built from a few independently-customisable pieces, described below.
+
+### Institution branding
+
+The cover page's logo, colours, and introductory text are wrapped in a Jinja conditional block:
+
+```markdown
+{% raw %}{% if is_surrey %}
+... Surrey-branded logo and text ...
+{% else %}
+... your own branding and text ...
+{% endif %}{% endraw %}
+```
+
+`is_surrey` is a boolean computed once per build in `macros.py`, set to `true` if *any* of the following match:
+
+* The build is running in GitLab CI/CD with `CI_SERVER_HOST` set to `surrey.ac.uk`.
+* Your local Git repository's `origin` remote contains `surrey.ac.uk`.
+* Zensical's own config (e.g. the site URL) contains `surrey.ac.uk`.
+
+If you're not from the University of Surrey, the `{% raw %}{% else %}{% endraw %}` branch is where you customise your own institution or company branding: replace `Crested Eagle Labs`, `University of the World`, and `Research programmes in Cyber Security` with your own text, and point the two `![]()` image lines at your own logo files (see [Changing the site logo](#changing-the-site-logo) above for the light/dark logo swap).
+
+!!! tip
+    `is_surrey` isn't only used on the cover page - it's also what switches the Git setup instructions in [Install tooling](installtooling.md) between `gitlab.surrey.ac.uk` and `gitlab.com`.
+
+### PDF-only and web-only content
+
+`.pdf-only` and `.web-only` are two general-purpose CSS marker classes. Add either to any element on any page, not just the cover page, to show it in only one output:
 
 * `.pdf-only` - shown in the generated PDF, hidden on the live website.
 * `.web-only` - shown on the live website, hidden in the generated PDF.
 
 For static content, just add the relevant class - it looks identical either way, so hiding it from the other output is all that's needed. Computed values are different: the PDF and the website fill them in using two separate mechanisms - a `{MARKER}` placeholder substituted only during the PDF build, and a `{% raw %}{{ macro_variable }}{% endraw %}` Jinja variable evaluated only by the live website - so each only works paired with its own class. The word count and repository link below are examples of this.
 
-Three elements on the cover page use these markers out of the box: the automated word count, the repository link, and the "Download PDF" button.
+### Site name
+
+The cover page also shows your project's `site_name` (from `zensical.toml`), using `{% raw %}{{ site_name }}{% endraw %}`. Unlike the marker-restricted values below, this one doesn't need a `.pdf-only`/`.web-only` pair: `build_pdf_final.py` substitutes that exact same text directly during the PDF build (rather than a separate `{MARKER}`), so a single line works correctly in both outputs. It appears twice in `docs/index.md`, once in each half of the `is_surrey` block, styled the same way as `module_id - module_name`:
+
+```markdown
+<p class="title-ctr-b4">{% raw %}{{ site_name }}{% endraw %}</p>
+```
+
+Delete both lines if you don't want the site name shown on the cover page.
+
+### Word count and repository link
+
+Three elements on the cover page use marker classes out of the box: the automated word count, the repository link, and the "Download PDF" button.
 
 **Word count**: `.pdf-only`, shows an automated word count of your document's content (excluding the cover page itself and the Table of Contents). To remove it from the PDF, open `docs/index.md` and delete the following line:
 
@@ -104,12 +143,6 @@ The `{WORDCOUNT}` marker is replaced with the actual count during the PDF build.
 
 The `{REPOURL}` marker is replaced with your repository's `origin` remote URL during the PDF build. If you delete the line, the PDF simply builds without a repository link - no other change is needed.
 
-**Download PDF button**: `.web-only`, links to the generated PDF so website visitors can download it. It isn't shown inside the PDF itself, since that would be circular. To remove it from the website, open `docs/index.md` and delete the following line:
-
-```markdown
-[:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;" .web-only}
-```
-
 **To add the word count or repository link to the website**, add a line like one of the following to any page, for example next to the lines you just deleted on the cover page:
 
 ```markdown
@@ -121,6 +154,14 @@ Repo: {{ repo_url }}{% endraw %}
 
 !!! note
     The word count is calculated slightly differently for the PDF and the website, and may not always match exactly. The PDF count reflects the final, built PDF content. The website count is a rough estimate calculated across the pages listed under `nav` in `zensical.toml` (excluding the cover page).
+
+### Download PDF button
+
+`.web-only`, links to the generated PDF so website visitors can download it. It isn't shown inside the PDF itself, since that would be circular. To remove it from the website, open `docs/index.md` and delete the following line:
+
+```markdown
+[:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;" .web-only}
+```
 
 
 ## Finalising your document

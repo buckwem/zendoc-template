@@ -42,6 +42,8 @@ School of Computer Science and Electronic Engineering
 
 <p class="title-ctr-b4">module_id - module_name</p>
 
+<p class="title-ctr-b4">{{ site_name }}</p>
+
 <!--
 /*================== TITLE PAGE GITHUB OR OTHER GITLAB ==================*/
 -->
@@ -59,6 +61,8 @@ University of the World</p>
 
 <p class="title-ctr-4">
 Research programmes in Cyber Security</p>
+
+<p class="title-ctr-b4">{{ site_name }}</p>
 {% endif %}
 
 <br>

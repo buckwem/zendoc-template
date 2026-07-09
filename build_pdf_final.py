@@ -265,16 +265,6 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     # and would otherwise leak through as literal text since Pandoc doesn't render Jinja.
     content = re.sub(r'^[ \t]*\{\{\s*heading_counter_reset\([^)]*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
 
-    # Strips {% raw %}/{% endraw %} markers (block or inline) used to show
-    # literal `{{ ... }}` syntax as an example on the live website (Jinja
-    # would otherwise evaluate it there). Pandoc doesn't understand Jinja
-    # either, so without this the markers themselves would leak through as
-    # literal text in the PDF - unlike the website, the PDF never evaluates
-    # `{{ }}` anyway, so simply dropping the markers and keeping the enclosed
-    # text as-is is correct here.
-    content = re.sub(r'\{%-?\s*raw\s*-?%\}', '', content)
-    content = re.sub(r'\{%-?\s*endraw\s*-?%\}', '', content)
-
     # AUTOMATED VIDEO EMBEDDING INTERCEPTOR ENGINE
     def video_iframe_replacer(match):
         indent = match.group(1) or ""
@@ -631,8 +621,28 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     lines = content.splitlines()
     filtered_lines = []
     state_stack = []
+    in_raw = False
 
     for line in lines:
+        # {% raw %}...{% endraw %} marks literal example syntax (e.g. showing
+        # `{% if is_surrey %}` or `{{ word_count }}` in documentation) that must
+        # NOT be treated as a real directive below - the same protection Jinja's
+        # own raw block gives on the live website. Must run before the if/else/
+        # endif matching, since that would otherwise happily "execute" an
+        # example directive shown inside a code fence.
+        has_raw_open = bool(re.search(r'\{%-?\s*raw\s*-?%\}', line))
+        has_raw_close = bool(re.search(r'\{%-?\s*endraw\s*-?%\}', line))
+        if in_raw or has_raw_open:
+            clean_line = re.sub(r'\{%-?\s*raw\s*-?%\}', '', line)
+            clean_line = re.sub(r'\{%-?\s*endraw\s*-?%\}', '', clean_line)
+            if all(is_active for _, is_active in state_stack):
+                filtered_lines.append(clean_line)
+            # A block opened on this line stays protected on subsequent lines
+            # until a (possibly later) line closes it; already being in_raw
+            # only ends once this line's close is seen.
+            in_raw = not has_raw_close
+            continue
+
         if re.search(r'[{(]%\s*if\s+(\w+)\s*%', line):
             match = re.search(r'if\s+(\w+)', line)
             var_name = match.group(1)
@@ -923,6 +933,12 @@ def main():
             # Computed once by macros.py (shared with the website's
             # {{ repo_url }} variable) and picked up here via calculated_vars.
             cover_content = cover_content.replace('{REPOURL}', calculated_vars.get('repo_url', ''))
+        if '{{ site_name }}' in cover_content:
+            # Pandoc/build_pdf_final.py never evaluates Jinja, so the exact
+            # same literal "{{ site_name }}" text used for the website's
+            # macro variable can just be substituted directly here too - one
+            # line in index.md works for both outputs, no separate marker.
+            cover_content = cover_content.replace('{{ site_name }}', site_name_text)
         with open(cover_path, 'w', encoding='utf-8') as f:
             f.write(cover_content)
 

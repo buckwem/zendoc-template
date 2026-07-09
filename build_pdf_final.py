@@ -157,6 +157,32 @@ def build_icon_registry(icon_dirs):
                         registry[flat_key] = full_path
     return registry
 
+def compute_pdf_word_count(markdown_paths):
+    """Rough prose word count across the given already-preprocessed markdown
+    files: strips fenced code, inline code, HTML tags/comments, and markdown
+    link/image/emphasis syntax before splitting on whitespace. Used to fill in
+    the cover page's {WORDCOUNT} marker (see index.md); excludes the cover
+    page itself and the auto-generated Table of Contents, since neither is
+    "content".
+    """
+    total_words = 0
+    for path in markdown_paths:
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                text = f.read()
+        except OSError:
+            continue
+        text = re.sub(r'<!--.*?-->', ' ', text, flags=re.DOTALL)
+        text = re.sub(r'```.*?```', ' ', text, flags=re.DOTALL)
+        text = re.sub(r'~~~.*?~~~', ' ', text, flags=re.DOTALL)
+        text = re.sub(r'`[^`]*`', ' ', text)
+        text = re.sub(r'<[^>]+>', ' ', text)
+        text = re.sub(r'!\[[^\]]*\]\([^)]*\)', ' ', text)
+        text = re.sub(r'\[([^\]]*)\]\([^)]*\)', r'\1', text)
+        text = re.sub(r'[#*_~>|]', ' ', text)
+        total_words += len(text.split())
+    return total_words
+
 def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
     """Pre-renders ```mermaid fenced code blocks (see
     https://zensical.org/docs/authoring/diagrams/) to static SVGs via a local
@@ -238,6 +264,16 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     # separately via the Lua filter's Header() function, so this has no PDF equivalent
     # and would otherwise leak through as literal text since Pandoc doesn't render Jinja.
     content = re.sub(r'^[ \t]*\{\{\s*heading_counter_reset\([^)]*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
+
+    # Strips {% raw %}/{% endraw %} markers (block or inline) used to show
+    # literal `{{ ... }}` syntax as an example on the live website (Jinja
+    # would otherwise evaluate it there). Pandoc doesn't understand Jinja
+    # either, so without this the markers themselves would leak through as
+    # literal text in the PDF - unlike the website, the PDF never evaluates
+    # `{{ }}` anyway, so simply dropping the markers and keeping the enclosed
+    # text as-is is correct here.
+    content = re.sub(r'\{%-?\s*raw\s*-?%\}', '', content)
+    content = re.sub(r'\{%-?\s*endraw\s*-?%\}', '', content)
 
     # AUTOMATED VIDEO EMBEDDING INTERCEPTOR ENGINE
     def video_iframe_replacer(match):
@@ -872,6 +908,19 @@ def main():
         preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, is_index=is_index)
         processed_paths.append(temp_out_path)
 
+    # Fill in the cover page's {WORDCOUNT} marker (see index.md), if present,
+    # with the prose word count of the actual content pages (everything
+    # except the cover page itself). Left untouched if the marker was deleted.
+    if "index.md" in os.path.basename(valid_paths[0]).lower() and len(processed_paths) > 1:
+        cover_path = processed_paths[0]
+        with open(cover_path, 'r', encoding='utf-8') as f:
+            cover_content = f.read()
+        if '{WORDCOUNT}' in cover_content:
+            word_count = compute_pdf_word_count(processed_paths[1:])
+            cover_content = cover_content.replace('{WORDCOUNT}', f'{word_count:,}')
+            with open(cover_path, 'w', encoding='utf-8') as f:
+                f.write(cover_content)
+
     toc_trigger_path = os.path.join(temp_build_dir, "toc_trigger_temp.md")
     with open(toc_trigger_path, "w", encoding="utf-8") as f:
         f.write("\n# Table of Contents {.unnumbered .unlisted}\n\n<div class=\"page-break\"></div>\n")
@@ -1158,6 +1207,12 @@ blockquote {
 .pdf-footnote {
     float: footnote !important;
     font-size: 9pt !important;
+}
+/* extra.css hides .pdf-only (the cover page's word-count marker) on the live
+   website; override that back to visible here, since it's meant to show only
+   in the PDF once build_pdf_final.py has filled in the real count. */
+.pdf-only {
+    display: block !important;
 }
 /* Renders TeX math ($...$/$$...$$, see https://zensical.org/docs/authoring/math/)
    as pre-rendered SVGs, since WeasyPrint has no JS engine to run MathJax

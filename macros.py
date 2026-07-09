@@ -56,6 +56,48 @@ def _count_top_level_headings(path):
     return count
 
 
+def _count_words_in_markdown(path):
+    """Rough prose word count for a single markdown file: strips fenced code,
+    inline code, HTML tags/comments, and markdown link/image/emphasis syntax
+    before splitting on whitespace. Mirrors compute_pdf_word_count() in
+    build_pdf_final.py, which does the same thing for the PDF build."""
+    try:
+        text = Path(path).read_text(encoding='utf-8')
+    except OSError:
+        return 0
+    text = re.sub(r'<!--.*?-->', ' ', text, flags=re.DOTALL)
+    text = re.sub(r'```.*?```', ' ', text, flags=re.DOTALL)
+    text = re.sub(r'~~~.*?~~~', ' ', text, flags=re.DOTALL)
+    text = re.sub(r'`[^`]*`', ' ', text)
+    text = re.sub(r'<[^>]+>', ' ', text)
+    text = re.sub(r'!\[[^\]]*\]\([^)]*\)', ' ', text)
+    text = re.sub(r'\[([^\]]*)\]\([^)]*\)', r'\1', text)
+    text = re.sub(r'[#*_~>|]', ' ', text)
+    return len(text.split())
+
+
+def _compute_site_word_count():
+    """Sums the prose word count across every nav page except the cover
+    (index.md), for the optional {{ word_count }} variable - see the
+    "Word count" section in customise.md for how to show or hide it.
+    Returns a comma-formatted string (e.g. "9,971") ready to drop straight
+    into a page with {{ word_count }}."""
+    config_path = Path('zensical.toml')
+    if not config_path.exists():
+        return "0"
+    config = toml.load(config_path)
+    project = config.get('project', {}) if isinstance(config.get('project'), dict) else {}
+    nav = project.get('nav') or config.get('nav') or []
+    docs_dir = Path(config.get('docs_dir', 'docs'))
+
+    total = 0
+    for rel_path in _extract_nav_md_files(nav):
+        if os.path.basename(rel_path).lower() == 'index.md':
+            continue
+        total += _count_words_in_markdown(docs_dir / rel_path)
+    return f"{total:,}"
+
+
 def _heading_numbering_enabled():
     """Reads project.extra.heading_numbering from zensical.toml (defaults to True)."""
     config_path = Path('zensical.toml')
@@ -123,6 +165,10 @@ def define_env(env):
 
     # Bind the variable to your markdown files
     env.variables['is_surrey'] = final_result
+
+    # Word count of the whole site (every nav page except the cover), for the
+    # optional {{ word_count }} variable - see "Word count" in customise.md.
+    env.variables['word_count'] = _compute_site_word_count()
 
     # ==========================================
     # 2. GLOBAL LOGO SWAP ON STARTUP

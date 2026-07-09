@@ -77,6 +77,30 @@ heading = "Chapter 1"
     Only one heading 1 per markdown file is permitted. If you need to add a heading 1, please create a new markdown file and add the heading 1 there. This is to ensure that the document structure is maintained correctly and that the table of contents is generated accurately.
 
 
+## Word count
+
+By default, the cover page of the generated PDF shows an automated word count of your document's content, excluding the cover page itself and the Table of Contents. The word count isn't shown anywhere on the live website by default.
+
+**To remove the word count from the PDF**, open `docs/index.md` and delete the following line:
+
+```markdown
+<p class="pdf-only">Word count: {WORDCOUNT}</p>
+```
+
+The `{WORDCOUNT}` marker is replaced with the actual count during the PDF build. If you delete the line, the PDF simply builds without a word count - no other change is needed.
+
+**To add the word count to the website**, add a line like the following to any page, for example next to the line you just deleted on the cover page:
+
+```markdown
+{% raw %}Word count: {{ word_count }}{% endraw %}
+```
+
+`{% raw %}{{ word_count }}{% endraw %}` is a macro variable made available on every page, so you can drop it into any markdown file, not just the cover page.
+
+!!! note
+    The two counts are calculated slightly differently and may not always match exactly. The PDF count reflects the final, built PDF content. The website count is a rough estimate calculated across the pages listed under `nav` in `zensical.toml` (excluding the cover page).
+
+
 ## Finalising your document
 
 Before you release your document, please ensure that you have completed the following steps:

@@ -164,6 +164,54 @@ Repo: {{ repo_url }}{% endraw %}
 ```
 
 
+## Customise PDF format
+
+Most of the generated PDF's page layout - the running header, the footer, the page size, and the fonts - is controlled by `build_pdf_final.py`, either from `zensical.toml` settings you already use for the website, or (for page size and margins) directly in the script itself.
+
+### Page header
+
+Every page except the cover shows a running header: your project's `site_name` (from `zensical.toml` - see [Site name](#site-name)), left-aligned, with a divider line underneath. There's no separate PDF setting for it - editing `site_name` in `zensical.toml` updates the header everywhere, including the website.
+
+### Page footer
+
+Every page except the cover also shows a running footer: your `copyright` text (from `zensical.toml`, left-aligned) and a "Page X of Y" counter (right-aligned). `copyright` can contain an HTML fragment, for example an `&copy;` entity:
+
+```toml
+copyright = """
+Copyright &copy; 2026 Your Name
+"""
+```
+
+### Page size and margins
+
+Unlike the header, footer, and fonts, page size and margins aren't exposed as `zensical.toml` settings - they're set directly in the `@page` CSS block inside `build_pdf_final.py`. To change them, open `build_pdf_final.py`, find the `@page { ... }` rule (search for `size: A4`), and edit:
+
+```css
+@page {
+    size: A4;
+    margin: 2cm !important;
+    ...
+}
+```
+
+`size` accepts any standard CSS page size (e.g. `letter`, `legal`, `A3`) or explicit dimensions (e.g. `21cm 29.7cm`), optionally followed by `landscape`. `margin` sets the page margin on every side; the header and footer live inside this margin, so shrinking it also narrows the space available to them.
+
+### Fonts
+
+The PDF reuses your website's theme fonts from `zensical.toml`:
+
+```toml
+[project.theme.font]
+text = "Inter"
+code = "Jetbrains Mono"
+```
+
+`text` is used for body copy, headings, and the header/footer; `code` is used for code blocks and inline code. Both default to Inter and JetBrains Mono if this section is left unset.
+
+!!! note
+    The cover page (`docs/index.md`) never shows the running header or footer, and heading numbering (e.g. "11.4") is a separate setting - see [Changing heading numbering](#changing-heading-numbering).
+
+
 ## Finalising your document
 
 Before you release your document, please ensure that you have completed the following steps:

@@ -140,9 +140,8 @@ The `features` list in `[project.theme]` turns individual website behaviours on 
 ```toml
 extra_css = ["stylesheets/extra.css"]
 extra_javascript = [
-  "javascripts/mathjax.js",
   "https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js",
-  "javascripts/extra.js"
+  "javascript/extra.js"
 ]
 ```
 

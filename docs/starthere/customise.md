@@ -10,43 +10,9 @@ icon: lucide/book-open
 
 {{ heading_counter_reset(page) }}
 
-# Customising
+# Customisation
 
-
-## Directory structure
-
-As a starting point, the documentation template has the following directory structure:
-
-* :material-folder: **docs/** — Holds the documentation source tree.
-    * :material-file-document-outline: `index.md` — The cover page of your documentation.
-    * :material-file-document-outline: `originality.md` — Your declaration of originality and AI use for you to complete.
-    * :material-file-document-outline: `section1.md` — The first section of your documentation for you to edit.
-    * :material-file-document-outline: `section2.md` — The second section of your documentation for you to edit.
-    * :material-file-document-outline: `section3.md` — The third section of your documentation for you to edit.
-    * :material-file-document-outline: `section4.md` — The fourth section of your documentation for you to edit.
-    * :material-folder: **starthere/** — Contains the "Start Here" section that can be deleted once you are familiar with the template.
-        * :material-folder: **images/** — Contains images used in the "Start Here" section.
-        * :material-file-document-outline: `starthere.md` — Introduction to the "Start Here" section.
-        * :material-file-document-outline: `installation.md` — Instructions for installing the required tools.
-        * :material-file-document-outline: `customising.md` — Guide for customising the documentation template.
-        * :material-file-document-outline: `markdown.md` — Principles of Markdown for writing documentation.
-        * :material-file-document-outline: `zensicalbasics.md` — Basics of using Zensical for documentation.
-        * :material-file-document-outline: `shcommands.md` — Reference for shell commands used in the documentation.
-* :material-folder: **src/** — Contains the core application logic.
-* :material-file-cog-outline: `zensical.toml` — The project's configuration file.
-* :material-file-document-outline: `.vale.ini` — Configuration file for Vale, a syntax and style checker.
-* :material-file-document-outline: `requirements.txt` — Lists the Python dependencies required for the project.
-* :material-file-document-outline: `README.md` — The README file for the project, providing an overview and instructions.
-* :material-file-document-outline: `LICENSE.md` — The license file for the project in Markdown format, specifying the terms under which the project can be used and distributed. We've used the MIT license for the project used by Zensical. It's a permissive free software license that allows for reuse within proprietary software provided all copies of the licensed software include a copy of the MIT License terms and the copyright notice.
-* :material-file-document-outline: `.gitignore` — Specifies files and directories to be ignored by Git version control.
-* :material-file-document-outline: `.gitlab-ci.yml` — Configuration file for GitLab CI/CD, defining the pipeline for continuous integration and deployment.
-* :material-folder: `.gitlab/` — Directory containing GitLab-specific configuration files.
-    * :material-file-document-outline: `README.md` — README file for the GitLab configuration, providing details about the CI/CD setup.
-
-
-
-
-
+Almost every visible part of this template - the website, the cover page, and the generated PDF - is controlled by a small number of files: `zensical.toml` for configuration, `macros.py` for build-time logic, and `docs/stylesheets/extra.css`/`print.css` for appearance. This section walks through each of these in turn: customising the website's branding and behaviour, restructuring the document itself, customising the cover page, and adjusting the PDF's page layout. It ends with a full map of the template's directory structure, so you know where everything lives.
 
 ## Customise the web site
 
@@ -245,7 +211,7 @@ Keep the numbers in each title sequential as you add, remove, or reorder chapter
     Each markdown file can contain only one heading 1 (`#`). Headings are numbered sequentially across the whole document in `nav` order, starting a new top-level number at each heading 1 - a second heading 1 in the same file breaks that numbering and confuses the table of contents. If you need another top-level heading, create a new markdown file for it and add it to `nav` instead.
 
 
-## Customising front page
+## Customise front page
 
 The cover page (`docs/index.md`) is built from a few independently-customisable pieces, described below.
 
@@ -366,6 +332,84 @@ The PDF also reuses your website's theme fonts (body copy, headings, and the hea
 
 ## Finalising your document
 
-Before you release your document, please ensure that you have completed the following steps:
-1. Comment out the 5 lines of the START HERE section in the zensical.toml file. This is to ensure that the START HERE section isn't included in the final output of your document.
-1. Remove the Warning box on the Originality page as this isn't part of your document. You can do this by deleting the first Warning admonition box in the `originality.md` file.
+Before you release your document, work through the following steps.
+
+### Remove "START HERE" from the navigation
+
+The "Start Here" pages you're reading now are author-facing instructions, not part of your final document, so they need to come out of `nav` before you release it. In `zensical.toml`, comment out the whole `"START HERE"` group:
+
+```toml
+{"Assignment" = [
+  {"2. Section" = "section1.md"},
+  {"3. Section" = "section2.md"},
+  {"4. Section" = "section3.md"},
+  {"5. Section" = "section4.md"}
+]},
+# {"START HERE" = [
+#   {"6. Start Here" = "starthere/starthere.md"},
+#   {"7. Install tooling" = "starthere/installtooling.md"},
+#   {"8. Start editing" = "starthere/startediting.md"},
+#   {"9. Markdown basics" = "starthere/markdown.md"},
+#   {"10. Zensical basics" = "starthere/zensicalbasics.md"},
+#   {"11. Customisation" = "starthere/customise.md"},
+#   {"12. Additional tooling" = "starthere/additionaltooling.md"},
+#   {"13. Shell commands" = "starthere/shcommands.md"}
+# ]}
+```
+
+Since `nav` drives both outputs (see [Navigation structure](#navigation-structure)), commenting it out removes the whole "START HERE" tab from the website's sidebar and drops all eight pages from the generated PDF in one change - without touching any files on disk. This is the only step that's strictly required: it's what actually keeps this guidance out of the document you hand in.
+
+### Delete the `starthere/` files
+
+Removing the pages from `nav` is enough to keep them out of your document, but the source files themselves are still sitting in `docs/starthere/` (see [Directory structure](#directory-structure)). Deleting the folder entirely is optional but recommended once you're confident you won't need to refer back to it - it keeps the repository free of files that are no longer used.
+
+```bash
+rm -rf docs/starthere/
+```
+
+!!! warning
+    Delete the files only *after* you've commented out (or removed) the `"START HERE"` group in `nav`. If a `nav` entry still points at a file that no longer exists, the build fails with a missing-file error.
+
+### Remove the Originality warning
+
+Delete the first Warning admonition box in `originality.md` - it's a note for you as the author, explaining what to do on that page, and isn't part of your declaration itself.
+
+## Directory structure
+
+Now that you've customised the website, the document structure, the cover page, and the PDF layout, it's worth knowing where everything you've just changed actually lives. The listing below is a complete map of the template as delivered: every markdown page under `docs/`, the configuration and build scripts at the project root, the CSS that drives both outputs, and the CI/CD workflows that publish them. Use it as a reference when you're looking for a file mentioned earlier in this section, deciding where to add a new page, or checking what's safe to delete (such as the whole `starthere/` folder once you no longer need it).
+
+* :material-folder: **docs/** — Holds the documentation source tree.
+    * :material-file-document-outline: `index.md` — The cover page of your documentation.
+    * :material-file-document-outline: `originality.md` — Your declaration of originality and AI use for you to complete.
+    * :material-file-document-outline: `section1.md` — The first section of your documentation for you to edit.
+    * :material-file-document-outline: `section2.md` — The second section of your documentation for you to edit.
+    * :material-file-document-outline: `section3.md` — The third section of your documentation for you to edit.
+    * :material-file-document-outline: `section4.md` — The fourth section of your documentation for you to edit.
+    * :material-folder: **assets/** — Images, logos, and header backgrounds used across the site and the cover page.
+    * :material-folder: **stylesheets/** — CSS for the website and the PDF.
+        * :material-file-document-outline: `extra.css` — Most of the template's own website customisations (logo swap, header image, cover page styles, `.pdf-only`/`.web-only` markers).
+        * :material-file-document-outline: `print.css` — PDF-only styles, read only by `build_pdf_final.py`.
+    * :material-folder: **starthere/** — Contains the "Start Here" section that can be deleted once you are familiar with the template.
+        * :material-folder: **images/** — Contains images used in the "Start Here" section.
+        * :material-file-document-outline: `starthere.md` — Introduction to the "Start Here" section.
+        * :material-file-document-outline: `installtooling.md` — Instructions for installing the required tools.
+        * :material-file-document-outline: `startediting.md` — Guide for viewing and editing the documentation locally.
+        * :material-file-document-outline: `markdown.md` — Principles of Markdown for writing documentation.
+        * :material-file-document-outline: `zensicalbasics.md` — Basics of using Zensical for documentation.
+        * :material-file-document-outline: `customise.md` — This page: guide for customising the documentation template.
+        * :material-file-document-outline: `additionaltooling.md` — Optional extra tooling (commit signing, word counts, GitLab/GitHub extensions, Vale).
+        * :material-file-document-outline: `shcommands.md` — Reference for shell commands used in the documentation.
+* :material-file-code-outline: `build_pdf_final.py` — Builds the single-file PDF version of your document.
+* :material-file-code-outline: `macros.py` — Zensical macro hooks (Surrey detection, word count, repository link, heading numbering).
+* :material-folder: **tools/** — Node.js tooling used only by `build_pdf_final.py`, not the website.
+    * :material-folder: **mermaid/** — `mermaid-cli`, for rendering ` ```mermaid ` diagrams to images in the PDF.
+    * :material-folder: **mathjax/** — `mathjax-full`, for rendering `$...$`/`$$...$$` maths to images in the PDF.
+* :material-file-cog-outline: `zensical.toml` — The project's configuration file.
+* :material-file-document-outline: `.vale.ini` — Configuration file for Vale, a syntax and style checker.
+* :material-file-document-outline: `requirements.txt` — Lists the Python dependencies required for the project.
+* :material-file-document-outline: `README.md` — The README file for the project, providing an overview and instructions.
+* :material-file-document-outline: `LICENSE` — The licence file for the project, specifying the terms under which the project can be used and distributed. We've used the MIT license for the project used by Zensical. It's a permissive free software license that allows for reuse within proprietary software provided all copies of the licensed software include a copy of the MIT License terms and the copyright notice.
+* :material-file-document-outline: `.gitignore` — Specifies files and directories to be ignored by Git version control.
+* :material-file-document-outline: `.gitlab-ci.yml` — Configuration file for GitLab CI/CD, building and publishing the site (and the PDF) to GitLab Pages.
+* :material-folder: **.github/workflows/** — Configuration for GitHub Actions.
+    * :material-file-document-outline: `docs.yml` — Builds and publishes the site (and the PDF) to GitHub Pages.

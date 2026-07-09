@@ -75,7 +75,7 @@ nav = [
       {"8. Start editing" = "starthere/startediting.md"},
       {"9. Markdown basics" = "starthere/markdown.md"},
       {"10. Zensical basics" = "starthere/zensicalbasics.md"},
-      {"11. Customise" = "starthere/customise.md"},
+      {"11. Customisation" = "starthere/customise.md"},
       {"12. Additional tooling" = "starthere/additionaltooling.md"},
       {"13. Shell commands" = "starthere/shcommands.md"}
   # Comment until here before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.

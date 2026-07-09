@@ -305,6 +305,8 @@ Most of the generated PDF's page layout - the running header, the footer, the pa
 
 Every page except the cover shows a running header: your project's `site_name` (from `zensical.toml` - see [Site name](#site-name)), left-aligned, with a divider line underneath. There's no separate PDF setting for it - editing `site_name` in `zensical.toml` updates the header everywhere, including the website.
 
+The current chapter title is also shown right-aligned in the header - starting from the first numbered heading 1, so it's blank on the cover page and the Table of Contents. It's computed automatically from each page's heading 1 (including its chapter number), so there's nothing to configure here either.
+
 ### Page footer
 
 Every page except the cover also shows a running footer: your `copyright` text (left-aligned - see [Copyright](#copyright)) and a "Page X of Y" counter (right-aligned).

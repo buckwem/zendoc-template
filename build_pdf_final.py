@@ -1206,8 +1206,28 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
            flush against a page break (e.g. a table/tabbox continuation
            fragment) never touches the header divider line. */
         margin-bottom: 3mm !important;
-        width: 100% !important;
+        width: 50% !important;
         text-align: left !important;
+    }
+    /* Current chapter title, set via string-set on h1 below - stays empty
+       until the first numbered h1 (i.e. through the cover and Table of
+       Contents pages), then holds that chapter's title for every page until
+       the next h1. Shares the header width evenly with @top-left (rather
+       than being squeezed into whatever's left of an unconstrained box),
+       so longer chapter titles don't wrap onto a second line; its own
+       matching border-bottom lines up with @top-left's to form one
+       continuous divider. */
+    @top-right {
+        content: string(chapter-title) !important;
+        font-family: "__MAIN_FONT__", sans-serif !important;
+        font-size: 10pt !important;
+        color: #555555 !important;
+        vertical-align: bottom !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding-bottom: 8px !important;
+        margin-bottom: 3mm !important;
+        width: 50% !important;
+        text-align: right !important;
     }
     @bottom-center { content: none !important; }
     @bottom-left {
@@ -1237,6 +1257,7 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
 }
 @page :first {
     @top-left { content: none !important; border-bottom: none !important; }
+    @top-right { content: none !important; }
     @bottom-left { content: none !important; border-top: none !important; }
     @bottom-right { content: none !important; border-top: none !important; }
 }
@@ -1247,6 +1268,11 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
 }
 h1 { break-before: page !important; }
 .cover-page h1 { break-before: auto !important; }
+/* Feeds @top-right above: skips the Table of Contents' own "Table of
+   Contents" h1 (and the hidden cover-page h1) via .unnumbered, the same
+   class the numbering Lua filter already uses to identify non-chapter
+   headings, so the running title only starts once real content begins. */
+h1:not(.unnumbered) { string-set: chapter-title content() !important; }
 
 /* ==========================================================================
    TABLE LAYOUT STYLING MATRIX

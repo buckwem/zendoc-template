@@ -192,7 +192,34 @@ icon = "fontawesome/brands/github"
 link = "https://github.com/user/repo"
 ```
 
-## Changing heading numbering
+## Customise doc structure
+
+How your document is broken into pages, the order they appear in, and how they're numbered, is controlled by the `nav` list in `zensical.toml` and the heading numbering setting below. Both apply identically to the website's sidebar and the generated PDF.
+
+### Navigation structure
+
+`nav` (under `[project]` in `zensical.toml`) lists, in order, every page in your document and how they're grouped:
+
+```toml
+nav = [
+  {"Cover" = [
+    "index.md",
+  ]},
+  {"Originality" = [
+    {"1. Originality & AI Use" = "originality.md"}
+  ]},
+  {"Assignment" = [
+    {"2. Section" = "section1.md"},
+    {"3. Section" = "section2.md"}
+  ]}
+]
+```
+
+Each entry is either a plain path to a markdown file, or a `{"Group name" = [...]}` block nesting further entries - top-level groups become tabs, and nested groups become collapsible sections in the sidebar. This same `nav` list, walked in this same order, is also what `build_pdf_final.py` uses to decide which files go into the PDF and in what order - so reordering, adding, or removing an entry here changes both outputs at once.
+
+To add a new page: create the markdown file under `docs/`, then add its path to `nav` wherever you want it to appear (remembering the one-heading-1-per-file rule below).
+
+### Changing heading numbering
 
 By default, heading numbering is enabled in the documentation template. If you want to disable heading numbering, you can do so by adding the following line to the `[project.extra]` section of the `zensical.toml` file:
 
@@ -206,15 +233,16 @@ This will also disable heading numbering in the generated PDF output. If you wan
 heading_numbering = true
 ```
 
-The top level heading numbering on the left menu is set through the explicit heading under nav in the zensical.toml file. If you want to change the top level heading numbering, you can do so by changing the heading under nav in the zensical.toml file. For example, if you want to change the top level heading numbering to "Chapter 1", you can do so by changing the heading under nav in the zensical.toml file to:
+The top level heading numbering shown in the sidebar isn't generated automatically - it's typed directly into each entry's title in `nav`, matching the pattern of the ones already there. For example, to add a new top-level chapter numbered "4", following on from the `nav` example above:
 
 ```toml
-[[project.nav]]
-heading = "Chapter 1"
+{"4. Section" = "section3.md"}
 ```
 
+Keep the numbers in each title sequential as you add, remove, or reorder chapters, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
+
 !!! warning
-    Only one heading 1 per markdown file is permitted. If you need to add a heading 1, please create a new markdown file and add the heading 1 there. This is to ensure that the document structure is maintained correctly and that the table of contents is generated accurately.
+    Each markdown file can contain only one heading 1 (`#`). Headings are numbered sequentially across the whole document in `nav` order, starting a new top-level number at each heading 1 - a second heading 1 in the same file breaks that numbering and confuses the table of contents. If you need another top-level heading, create a new markdown file for it and add it to `nav` instead.
 
 
 ## Customising front page

@@ -389,4 +389,4 @@ Before you submit your report, remove the "Start Here" section so it isn't part 
 ## Where to go next
 
 * [Customisation](customise.md) - branding, the cover page, PDF layout, and the document's directory structure.
-* [Additional tooling](additionaltooling.md) - signing Git commits, a Markdown word-count command, GitLab/GitHub VS Code extensions, and Vale for spelling/grammar/style checking.
+* [Additional tooling](additionaltooling.md) - signing Git commits, GitLab/GitHub VS Code extensions, and Vale for spelling/grammar/style checking.

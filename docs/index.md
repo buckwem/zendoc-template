@@ -8,7 +8,6 @@ hide:
 <!-- 
 # Copyright (c) 2025-2026 Mark Buckwell and contributors
 # SPDX-License-Identifier: MIT
-# All contributions are certified under the DCO
 -->
 
 [:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;" .web-only}

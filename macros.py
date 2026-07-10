@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 Mark Buckwell and contributors
+# SPDX-License-Identifier: MIT
+
 import os
 import re
 from bs4 import BeautifulSoup

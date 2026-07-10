@@ -1,3 +1,6 @@
+// Copyright (c) 2025-2026 Mark Buckwell and contributors
+// SPDX-License-Identifier: MIT
+
 // Renders a single TeX formula (read from stdin) to a standalone SVG on
 // stdout, using MathJax's pure Node component API (mathjax-full/js) - no
 // browser/DOM required, unlike the Puppeteer-based mermaid rendering.

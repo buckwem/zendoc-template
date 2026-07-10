@@ -24,7 +24,7 @@ Below is a summary of the most common formatting elements you'll use in a `.md` 
     Zensical uses a flavour of Markdown called [Python Markdown](https://python-markdown.github.io/){target=_blank} with some extensions. This ensures that your Markdown files are compatible with a wide range of tools and platforms, while also providing additional features for enhanced formatting and functionality. There are some differences between Zensical Markdown and other flavours of Markdown, so it's important to refer to the [Zensical documentation](https://zensical.org/docs/authoring/markdown/){target=_blank} for details.
 
 !!! Tip "Markdown Live Preview"
-    You can use the [Markdown Live Preview](https://markdownlivepreview.com/){target=_blank} website to see how your Markdown will look when rendered. This is a great way to quickly check your formatting and make adjustments as needed.
+    You can use the [Markdown Live Preview](https://markdownlivepreview.com/){target=_blank} website to see how your Markdown will look when rendered. This is a great way to check your formatting and make adjustments as needed.
 
 ## Headings
 
@@ -56,7 +56,7 @@ You can make text bold, italic, or both to add emphasis without needing complex 
 `inline code`
 ```
 
-Bold and italic emphasis are handled by the [`pymdownx.betterem`](https://facelessuser.github.io/pymdown-extensions/extensions/betterem/){target="_blank"} extension, which is more consistent about nested and mixed emphasis (for example `**bold _and italic_**`) than plain [Python Markdown](https://python-markdown.github.io/){target="_blank"}. Strikethrough isn't part of core Markdown at all - it's provided here by the [`pymdownx.tilde`](https://facelessuser.github.io/pymdown-extensions/extensions/tilde/){target="_blank"} extension. That same extension also enables subscript (`H~2~O`), and the paired [`pymdownx.caret`](https://facelessuser.github.io/pymdown-extensions/extensions/caret/){target="_blank"} extension enables superscript (`A^T^A`) and underline (`^^text^^`). See [Formatting](zensicalbasics.md#formatting) in Zensical basics for these and other extended styles, such as highlighting text and keyboard keys.
+The [`pymdownx.betterem`](https://facelessuser.github.io/pymdown-extensions/extensions/betterem/){target="_blank"} extension handles bold and italic emphasis, and is more consistent about nested and mixed emphasis (for example `**bold _and italic_**`) than plain [Python Markdown](https://python-markdown.github.io/){target="_blank"}. Strikethrough isn't part of core Markdown at all - the [`pymdownx.tilde`](https://facelessuser.github.io/pymdown-extensions/extensions/tilde/){target="_blank"} extension provides it here. That same extension also enables subscript (`H~2~O`), and the paired [`pymdownx.caret`](https://facelessuser.github.io/pymdown-extensions/extensions/caret/){target="_blank"} extension enables superscript (`A^T^A`) and underline (`^^text^^`). See [Formatting](zensicalbasics.md#formatting) in Zensical basics for these and other extended styles, such as highlighting text and keyboard keys.
 
 ## Links and images
 
@@ -192,3 +192,7 @@ For structured callouts with an icon and title (notes, warnings, tips), use an a
 * **Escaping characters:** If you want to show a literal character (like a `*`) without it formatting the text, use a backslash: `\*`.
 
 * **Attributes on any element:** The [`attr_list`](https://python-markdown.github.io/extensions/attr_list/){target="_blank"} extension used for links, images, and headings above works on most other Markdown elements too - for example adding a CSS class to a paragraph or list item with `{: .my-class }` directly after it.
+
+## Where to go next
+
+The syntax on this page works in any Markdown file, including plain README files on GitLab or GitHub. Continue to [Zensical basics](zensicalbasics.md) for the extensions that only work in this template's own Zensical-built pages - admonitions, content tabs, diagrams, and more.

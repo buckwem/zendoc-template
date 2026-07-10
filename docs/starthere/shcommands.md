@@ -16,7 +16,7 @@ You will be using shell commands if you are operating on Linux or macOS to write
 
 !!! tip
 
-    A more detailed reference to the shell commnand line can be found on [linuxcommand.org](https://linuxcommand.org){target="_blank"}.
+    You can find a more detailed reference to the shell command line on [linuxcommand.org](https://linuxcommand.org){target="_blank"}.
 
 ## Navigation and basic info
 

@@ -12,7 +12,7 @@ icon: lucide/book-open
 
 # Start here
 
-Documentation is easy to publish on a static website when using a docs-as-code workflow. [Markdown](https://www.markdownguide.org/){target=_blank} is a markup language used for writing documentation in text files that are then stored in a Git repository. Hosted Git services such as GitLab or GitHub, together with tooling such as Visual Studio Code make it easy to maintain and host documentation.
+A docs-as-code workflow makes it easy to publish documentation on a static website. [Markdown](https://www.markdownguide.org/){target=_blank} is a markup language you use to write documentation in text files, which you then store in a Git repository. Hosted Git services such as GitLab or GitHub, together with tooling such as Visual Studio Code, make it easy to maintain and host documentation.
 
 Adopting a docs-as-code workflow transforms documentation from a chore into an engineering process. By treating your written content with the same rigour as code, you enable a collaborative approach to documentation.
 
@@ -22,7 +22,7 @@ Docs-as-code means using the same tools and workflows for documentation as you d
 
 `Markdown as the Source of Truth`
 
-: [Markdown](https://www.markdownguide.org/){target=_blank} is a lightweight markup language that's simple to read in its raw form and consistently renders on the web. It's used for writing documentation for conversion into HTML for web publishing.
+: [Markdown](https://www.markdownguide.org/){target=_blank} is a lightweight markup language that's simple to read in its raw form and consistently renders on the web. You write your documentation in it, then convert that documentation into HTML for web publishing.
 
 `Version control via Git`
 
@@ -42,11 +42,11 @@ To move from using a word processor or simple website to a scalable and effectiv
 
 `Docs-as-code builder`
 
-: Markdown files can serve as a foundation for a static website. However, they often require enhanced formatting options through additional themes and styling. A docs-as-code builder then transforms the Markdown and supplementary instructions into HTML, applying a theme to generate a professional-looking website. Zensical is a fast and reliable docs-as-code builder designed to process Markdown files and create a static documentation website. It enables the website to be viewed locally before publishing, ensuring that the final output meets quality standards.
+: Markdown files can serve as a foundation for a static website. However, they often need enhanced formatting options through additional themes and styling. A docs-as-code builder then transforms the Markdown and supplementary instructions into HTML, applying a theme to generate a professional-looking website. Zensical is a fast and reliable docs-as-code builder that processes Markdown files and creates a static documentation website. It lets you view the website locally before publishing, so you can confirm the final output meets your quality standards.
 
 `Code Repository and Management`
 
-: By connecting directly to a Git repository, this integrated environment establishes a secure, centralised vault that tracks the history of project files. Each modification is recorded as a distinct commit, enabling users to audit changes or revert to earlier versions if errors arise. Prior to finalising any work, a pull request prompts a peer-review process that allows collaborators to comment on, test, and approve the updates. This workflow ensures that only vetted, high-quality content is prepared for final publication.
+: By connecting directly to a Git repository, this integrated environment establishes a secure, centralised vault that tracks the history of project files. It records each modification as a distinct commit, letting users audit changes or revert to earlier versions if errors arise. Before finalising any work, a pull request triggers a peer-review process, where collaborators comment on, test, and approve the updates. This workflow ensures that only vetted, high-quality content reaches final publication.
 
 !!! note "Why not LaTeX?"
 
@@ -54,7 +54,7 @@ To move from using a word processor or simple website to a scalable and effectiv
 
 ## Docs-as-code in production
 
-As a student, you will be following a simplified workflow, as you aren't working with documentation that spans thousands of pages and is maintained by a large development team. Nevertheless, understanding the approach used at scale can help you appreciate the value of the skills you will develop. GitLab provides a video that outlines the entire process for their documentation and highlights the importance of the skills acquired through a docs-as-code methodology.
+As a student, you'll follow a simplified workflow, since you won't be handling documentation that spans thousands of pages and needs a large development team to maintain it. Nevertheless, understanding the approach used at scale can help you appreciate the value of the skills you'll develop. GitLab provides a video that outlines the entire process for their documentation and highlights the importance of the skills you gain through a docs-as-code methodology.
 
 <div style="display: flex; justify-content: center;">
   <iframe width="560" height="315" src="https://www.youtube.com/embed/ZlabtdA-gZE?si=_3GQjj5C6EDpMP8Z" title="Introduction to using GitLab as a technical writing team Youtube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -62,19 +62,19 @@ As a student, you will be following a simplified workflow, as you aren't working
 
 ## Zensical for docs-as-code
 
-Zensical provides the themes and tools necessary to draft professionaldocumentation in Markdown with instant local previews. Once finalised, you can publish your site by uploading the files to a Git repository. From there, automated pipelines build and deploy the content into a live website.
+Zensical provides the themes and tools necessary to draft professional documentation in Markdown with instant local previews. Once finalised, you can publish your site by uploading the files to a Git repository. From there, automated pipelines build and deploy the content into a live website.
 
 [Zensical](https://zensical.org/){target="_blank"}, written for speed and reliability using the [Rust programming language](https://rust-lang.org/){target="_blank"}, publishes documentation in a website.
 
-This documentation template is available for you to fork (clone) into a project that you can use to write your own document or report.
+This documentation template is available for you to fork and clone into a project that you can use to write your own document or report - [Install tooling](./installtooling.md) covers exactly what those two steps mean and how to do them.
 
 !!! tip
 
-    These instructions are composed in markdown format, which is processed by Zensical. To view the structure of Markdown files, go to the Git repository for the documentation located at the top right of this page. There, you will find markdown files that serve as examples for writing your documentation.
+    Zensical processes these Markdown-formatted instructions into this site. To view the structure of Markdown files, go to the Git repository for the documentation located at the top right of this page. There, you will find markdown files that serve as examples for writing your documentation.
 
 ## Documentation structure
 
-The documentation for this document template has been split into a number of sections.
+This document template's documentation covers the following sections, in the order you'll work through them.
 
 `Install tooling`
 
@@ -84,21 +84,21 @@ The documentation for this document template has been split into a number of sec
 
 : The [*Start editing*](./startediting.md) section describes how to edit the documentation and view the changes locally before publishing to a Git repository. It also describes how to synchronise your changes with the Git repository.
 
-`Customise`
-
-: The [*Customise*](./customise.md) section discusses how to configure this template to give it different style and layout to meet your specific needs.
-
 `Markdown basics`
 
-The [*Markdown basics*](./markdown.md) section describes the principles of Markdown and how to use it to write your documentation.
+: The [*Markdown basics*](./markdown.md) section describes the principles of Markdown and how to use it to write your documentation.
 
 `Zensical basics`
 
 : The [*Zensical basics*](./zensicalbasics.md) section describes the principles of Zensical and how to use it to create and manage your documentation.
 
+`Customise`
+
+: The [*Customise*](./customise.md) section discusses how to configure this template to give it different style and layout to meet your specific needs.
+
 `Additional tooling`
 
-: The [*Additional tooling*](./additionaltooling.md) section describes additional tools that can be installed to help you create quality docs-as-code documents. They will take additional effort to install and configure.
+: The [*Additional tooling*](./additionaltooling.md) section describes additional tools you can install to help you create quality docs-as-code documents. They will take additional effort to install and configure.
 
 `Shell commands`
 

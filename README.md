@@ -4,8 +4,55 @@
 # All contributions are certified under the DCO
 -->
 
-# Coursework Report Template
+# Assignment Template
 
-This site is a template for coursework using Zenzical static website generator for clear documentation using markdown.
+A documentation-as-code template for writing coursework reports and assignments in Markdown. Write once, publish twice: the same content builds into both a browsable website and a single-file PDF you can hand in.
 
-When you fork this website, update this README.md file to describe the document you are working on.
+Built on [Zensical](https://zensical.org/), a static site generator, with a companion build script that renders the same site to PDF via [Pandoc](https://pandoc.org/) and [WeasyPrint](https://weasyprint.org/).
+
+## Features
+
+* **One source, two outputs** - every page under `docs/` renders to both the live website and `docs/site_documentation.pdf`, in the order set by `nav` in `zensical.toml`.
+* **Automatic heading numbering** - chapters and sections (e.g. "7.2.1") are numbered consistently across the sidebar, the page content, and the PDF, and stay in sync as you add, remove, or reorder pages.
+* **University of Surrey branding, or your own** - the site logo and cover page automatically switch between Surrey branding and a generic default, detected from your Git remote or CI environment.
+* **Rich authoring** - admonitions, content tabs, grid cards, Mermaid diagrams, MathJax equations, and footnotes all work in both outputs.
+* **Cover page extras** - an optional automated word count and repository link, and a "Download PDF" button on the website.
+* **CI/CD ready** - GitLab CI and GitHub Actions workflows are included, publishing the website (and the PDF alongside it) to GitLab Pages or GitHub Pages on every push to `main`.
+
+## Getting started
+
+1. Fork this repository into your own GitLab or GitHub account.
+2. Clone your fork locally.
+3. Install the prerequisites and preview the site locally with `zensical serve`.
+4. Write your report in `docs/` (`originality.md`, `section1.md`–`section4.md`).
+5. Build the PDF with `python build_pdf_final.py`.
+
+Full, step-by-step instructions for all of this - installing tools, editing and previewing locally, Markdown and Zensical syntax, customising the template, and building the PDF - are in the **[Start Here](docs/starthere/starthere.md)** section of the documentation itself. Read it on the live site, or start from [`docs/starthere/starthere.md`](docs/starthere/starthere.md).
+
+## Building the PDF
+
+```bash
+pip install -r requirements.txt
+python build_pdf_final.py
+```
+
+This produces `docs/site_documentation.pdf`. Building Mermaid diagrams and maths to images also requires the Node tooling under `tools/mermaid/` and `tools/mathjax/` (`npm ci` in each) - see [`docs/starthere/installtooling.md`](docs/starthere/installtooling.md) for the full setup, and `.gitlab-ci.yml` / `.github/workflows/docs.yml` for how the CI pipelines do it.
+
+## Directory structure
+
+* `docs/` - your report's Markdown source (`index.md` cover page, `originality.md`, `section1.md`-`section4.md`) and the `starthere/` guidance section.
+* `docs/stylesheets/` - `extra.css` (website) and `print.css` (PDF) appearance.
+* `zensical.toml` - site configuration and navigation.
+* `macros.py` - build-time logic (Surrey detection, word count, repository link, heading numbering).
+* `build_pdf_final.py` - builds the single-file PDF.
+* `tools/` - Node.js tooling used only by the PDF build (Mermaid, MathJax rendering).
+
+See [Directory structure](docs/starthere/customise.md#directory-structure) in the Customisation page for the complete, up-to-date map.
+
+## Finishing your report
+
+Before you submit, follow [Finalising your document](docs/starthere/customise.md#finalising-your-document) to remove the "Start Here" section from `nav` in `zensical.toml` (and optionally delete `docs/starthere/`), and update this README to describe your own report.
+
+## License
+
+MIT - see [`LICENSE`](LICENSE).

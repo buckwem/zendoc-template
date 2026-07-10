@@ -405,6 +405,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
             4. Leave **Copy the `main` branch only** checked.
             5. Click **Create fork**{: .bg-green}.
             6. Once forked, go to your new repository's **Settings** tab, scroll down to the **Danger Zone**, and change the visibility to **Private**.
+            7. While you're in **Settings**, select **Pages** in the left-hand sidebar, and under **Build and deployment > Source**, change it from **Deploy from a branch** to **GitHub Actions**. GitHub Pages doesn't exist for a repository until you set this, so without it the `docs.yml` workflow fails on its first run with an error like `Get Pages site failed... Not Found`.
         {% endif %}
 
     </div>

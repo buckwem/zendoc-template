@@ -32,6 +32,27 @@ SPDX-License-Identifier: MIT
 }
 
 /* ============================================================= */
+/* ======= Fix for the bundled theme's #only-light/dark bug ===== */
+/* ============================================================= */
+
+/* Zensical's own theme CSS hides #only-dark images in light (default)
+   mode and #only-light images in dark (slate) mode, but neither rule
+   uses !important, so attr_list-style inline `style="display: block"`
+   (used elsewhere in this template to centre images with margin: 0
+   auto, e.g. on the cover page) silently wins over both of them -
+   both the light and dark logo end up visible at once, in both modes.
+   Reassert both directions here, with !important, to actually win. */
+[data-md-color-scheme="default"] img[src$="#gh-dark-mode-only"],
+[data-md-color-scheme="default"] img[src$="#only-dark"] {
+  display: none !important;
+}
+
+[data-md-color-scheme="slate"] img[src$="#gh-light-mode-only"],
+[data-md-color-scheme="slate"] img[src$="#only-light"] {
+  display: none !important;
+}
+
+/* ============================================================= */
 /* ================ Styles for the header image ================ */
 /* ============================================================= */
 

@@ -25,7 +25,7 @@ Built on [Zensical](https://zensical.org/), a static site generator, with a comp
 2. Clone your fork locally.
 3. Install the prerequisites and preview the site locally with `zensical serve`.
 4. Write your report in `docs/` (`originality.md`, `section1.md`–`section4.md`).
-5. Build the PDF with `python build_pdf_final.py`.
+5. Build the PDF with `python build_pdf.py`.
 
 Full, step-by-step instructions for all of this - installing tools, editing and previewing locally, Markdown and Zensical syntax, customising the template, and building the PDF - are in the **[Start Here](docs/starthere/starthere.md)** section of the documentation itself. Read it on the live site, or start from [`docs/starthere/starthere.md`](docs/starthere/starthere.md).
 
@@ -33,7 +33,7 @@ Full, step-by-step instructions for all of this - installing tools, editing and 
 
 ```bash
 pip install -r requirements.txt
-python build_pdf_final.py
+python build_pdf.py
 ```
 
 This produces `docs/site_documentation.pdf`. Building Mermaid diagrams and maths to images also requires the Node tooling under `tools/mermaid/` and `tools/mathjax/` (`npm ci` in each) - see [`docs/starthere/installtooling.md`](docs/starthere/installtooling.md) for the full setup, and `.gitlab-ci.yml` / `.github/workflows/docs.yml` for how the CI pipelines do it.
@@ -44,7 +44,7 @@ This produces `docs/site_documentation.pdf`. Building Mermaid diagrams and maths
 * `docs/stylesheets/` - `extra.css` (website) and `print.css` (PDF) appearance.
 * `zensical.toml` - site configuration and navigation.
 * `macros.py` - build-time logic (Surrey detection, word count, repository link, heading numbering).
-* `build_pdf_final.py` - builds the single-file PDF.
+* `build_pdf.py` - builds the single-file PDF.
 * `tools/` - Node.js tooling used only by the PDF build (Mermaid, MathJax rendering).
 
 See [Directory structure](docs/starthere/customise.md#directory-structure) in the Customisation page for the complete, up-to-date map.

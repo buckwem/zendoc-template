@@ -78,7 +78,7 @@ The [`attr_list`](https://python-markdown.github.io/extensions/attr_list/){targe
 [Link text](https://example.com){: .external-link }
 ```
 
-This template uses that same syntax with a `target="_blank"` attribute throughout, to make external links (like the ones on this page) open in a new browser tab on the website. `build_pdf_final.py` strips those attributes back out for the PDF, since "open in a new tab" has no meaning in a printed document.
+This template uses that same syntax with a `target="_blank"` attribute throughout, to make external links (like the ones on this page) open in a new browser tab on the website. `build_pdf.py` strips those attributes back out for the PDF, since "open in a new tab" has no meaning in a printed document.
 
 The [`pymdownx.magiclink`](https://facelessuser.github.io/pymdown-extensions/extensions/magiclink/){target="_blank"} extension also auto-links bare URLs (`https://example.com` becomes a clickable link with no `[]()` needed) and recognises shorthand references to GitHub/GitLab issues, pull requests, and commits.
 

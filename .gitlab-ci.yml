@@ -10,7 +10,7 @@ pages:
   script:
     - apt-get update
     - apt-get install -y pandoc texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra
-    # Node + Chrome are only needed so build_pdf_final.py can pre-render
+    # Node + Chrome are only needed so build_pdf.py can pre-render
     # ```mermaid fenced code blocks to static images via mermaid-cli/Puppeteer,
     # and TeX math ($...$/$$...$$) to static images via mathjax-full (pure
     # Node, no browser needed for that one) - WeasyPrint has no JS engine to
@@ -27,7 +27,7 @@ pages:
     - npm ci --prefix tools/mermaid
     - npm ci --prefix tools/mathjax
     - pip install -r requirements.txt
-    - python build_pdf_final.py
+    - python build_pdf.py
     - zensical build --clean
   pages:
     publish: public

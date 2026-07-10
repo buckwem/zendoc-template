@@ -180,7 +180,7 @@ nav = [
 ]
 ```
 
-Each entry is either a plain path to a markdown file, or a `{"Group name" = [...]}` block nesting further entries - top-level groups become tabs, and nested groups become collapsible sections in the sidebar. This same `nav` list, walked in this same order, is also what `build_pdf_final.py` uses to decide which files go into the PDF and in what order - so reordering, adding, or removing an entry here changes both outputs at once.
+Each entry is either a plain path to a markdown file, or a `{"Group name" = [...]}` block nesting further entries - top-level groups become tabs, and nested groups become collapsible sections in the sidebar. This same `nav` list, walked in this same order, is also what `build_pdf.py` uses to decide which files go into the PDF and in what order - so reordering, adding, or removing an entry here changes both outputs at once.
 
 To add a new page: create the markdown file under `docs/`, then add its path to `nav` wherever you want it to appear (remembering the one-heading-1-per-file rule below).
 
@@ -248,7 +248,7 @@ For static content, just add the relevant class - it looks identical either way,
 
 ### Site name
 
-The cover page also shows your project's `site_name` (from `zensical.toml`), using `{% raw %}{{ site_name }}{% endraw %}`. Unlike the marker-restricted values below, this one doesn't need a `.pdf-only`/`.web-only` pair: `build_pdf_final.py` substitutes that exact same text directly during the PDF build (rather than a separate `{MARKER}`), so a single line works correctly in both outputs. It appears twice in `docs/index.md`, once in each half of the `is_surrey` block, styled the same way as `module_id - module_name`:
+The cover page also shows your project's `site_name` (from `zensical.toml`), using `{% raw %}{{ site_name }}{% endraw %}`. Unlike the marker-restricted values below, this one doesn't need a `.pdf-only`/`.web-only` pair: `build_pdf.py` substitutes that exact same text directly during the PDF build (rather than a separate `{MARKER}`), so a single line works correctly in both outputs. It appears twice in `docs/index.md`, once in each half of the `is_surrey` block, styled the same way as `module_id - module_name`:
 
 ```markdown
 <p class="title-ctr-b4">{% raw %}{{ site_name }}{% endraw %}</p>
@@ -299,7 +299,7 @@ Repo: {{ repo_url }}{% endraw %}
 
 ## Customise PDF format
 
-Most of the generated PDF's page layout - the running header, the footer, the page size, and the fonts - is controlled by `build_pdf_final.py`, either from `zensical.toml` settings you already use for the website, or (for page size and margins) directly in the script itself.
+Most of the generated PDF's page layout - the running header, the footer, the page size, and the fonts - is controlled by `build_pdf.py`, either from `zensical.toml` settings you already use for the website, or (for page size and margins) directly in the script itself.
 
 ### Page header
 
@@ -313,7 +313,7 @@ Every page except the cover also shows a running footer: your `copyright` text (
 
 ### Page size and margins
 
-Unlike the header, footer, and fonts, page size and margins aren't exposed as `zensical.toml` settings - they're set directly in the `@page` CSS block inside `build_pdf_final.py`. To change them, open `build_pdf_final.py`, find the `@page { ... }` rule (search for `size: A4`), and edit:
+Unlike the header, footer, and fonts, page size and margins aren't exposed as `zensical.toml` settings - they're set directly in the `@page` CSS block inside `build_pdf.py`. To change them, open `build_pdf.py`, find the `@page { ... }` rule (search for `size: A4`), and edit:
 
 ```css
 @page {
@@ -389,7 +389,7 @@ Now that you've customised the website, the document structure, the cover page, 
     * :material-folder: **assets/** — Images, logos, and header backgrounds used across the site and the cover page.
     * :material-folder: **stylesheets/** — CSS for the website and the PDF.
         * :material-file-document-outline: `extra.css` — Most of the template's own website customisations (logo swap, header image, cover page styles, `.pdf-only`/`.web-only` markers).
-        * :material-file-document-outline: `print.css` — PDF-only styles, read only by `build_pdf_final.py`.
+        * :material-file-document-outline: `print.css` — PDF-only styles, read only by `build_pdf.py`.
     * :material-folder: **starthere/** — Contains the "Start Here" section that can be deleted once you are familiar with the template.
         * :material-folder: **images/** — Contains images used in the "Start Here" section.
         * :material-file-document-outline: `starthere.md` — Introduction to the "Start Here" section.
@@ -400,9 +400,9 @@ Now that you've customised the website, the document structure, the cover page, 
         * :material-file-document-outline: `customise.md` — This page: guide for customising the documentation template.
         * :material-file-document-outline: `additionaltooling.md` — Optional extra tooling (commit signing, word counts, GitLab/GitHub extensions, Vale).
         * :material-file-document-outline: `shcommands.md` — Reference for shell commands used in the documentation.
-* :material-file-code-outline: `build_pdf_final.py` — Builds the single-file PDF version of your document.
+* :material-file-code-outline: `build_pdf.py` — Builds the single-file PDF version of your document.
 * :material-file-code-outline: `macros.py` — Zensical macro hooks (Surrey detection, word count, repository link, heading numbering).
-* :material-folder: **tools/** — Node.js tooling used only by `build_pdf_final.py`, not the website.
+* :material-folder: **tools/** — Node.js tooling used only by `build_pdf.py`, not the website.
     * :material-folder: **mermaid/** — `mermaid-cli`, for rendering ` ```mermaid ` diagrams to images in the PDF.
     * :material-folder: **mathjax/** — `mathjax-full`, for rendering `$...$`/`$$...$$` maths to images in the PDF.
 * :material-file-cog-outline: `zensical.toml` — The project's configuration file.

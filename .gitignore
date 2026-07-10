@@ -10,12 +10,12 @@
 .venv
 
 # -----------------------------------------------------------------------------
-# Node (mermaid-cli, used by build_pdf_final.py to pre-render mermaid diagrams)
+# Node (mermaid-cli, used by build_pdf.py to pre-render mermaid diagrams)
 # -----------------------------------------------------------------------------
 tools/mermaid/node_modules
 
 # -----------------------------------------------------------------------------
-# Node (mathjax-full, used by build_pdf_final.py to pre-render TeX math)
+# Node (mathjax-full, used by build_pdf.py to pre-render TeX math)
 # -----------------------------------------------------------------------------
 tools/mathjax/node_modules
 

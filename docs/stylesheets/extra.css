@@ -95,7 +95,7 @@ All contributions are certified under the DCO
 .title-left-6 { font-size: 1.0rem; font-weight: normal; text-align: left; display: block; }
 
 /* Marker for the cover page's automated PDF word count (see index.md and
-   build_pdf_final.py). Only meaningful in the PDF, where it's replaced with
+   build_pdf.py). Only meaningful in the PDF, where it's replaced with
    the real count, so it stays hidden on the live website. */
 .pdf-only { display: none !important; }
 

@@ -60,7 +60,7 @@ def _count_words_in_markdown(path):
     """Rough prose word count for a single markdown file: strips fenced code,
     inline code, HTML tags/comments, and markdown link/image/emphasis syntax
     before splitting on whitespace. Mirrors compute_pdf_word_count() in
-    build_pdf_final.py, which does the same thing for the PDF build."""
+    build_pdf.py, which does the same thing for the PDF build."""
     try:
         text = Path(path).read_text(encoding='utf-8')
     except OSError:
@@ -102,7 +102,7 @@ def _get_site_name():
     """Returns project.site_name from zensical.toml, for the {{ site_name }}
     variable - see "Customising front page" in customise.md. Used on the
     cover page instead of the PDF header (which is hidden on the cover page)
-    or a second, PDF-specific marker: build_pdf_final.py substitutes this
+    or a second, PDF-specific marker: build_pdf.py substitutes this
     same literal "{{ site_name }}" text directly, so one line works for both
     outputs."""
     config_path = Path('zensical.toml')

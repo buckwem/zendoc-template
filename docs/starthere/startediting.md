@@ -12,7 +12,7 @@ icon: lucide/book-open
 
 # Start editing
 
-This page covers the day-to-day cycle of working on your document: previewing your changes locally, syncing them to GitLab or GitHub, viewing the published website, building the PDF, working with branches and issues, troubleshooting common problems, and finally releasing your report. It assumes no prior experience with the command line, Git, or software development - every step is spelled out, with the exact commands to type. For one-time setup (installing Python, Git, and Zensical itself), see [Install tooling](installtooling.md) first if you haven't already.
+This page covers the day-to-day cycle of working on your document: previewing your changes locally, syncing them to GitLab or GitHub, viewing the published website, building the PDF, working with branches and issues, troubleshooting common problems, and finally releasing your report. It assumes no prior experience with the command line, Git, or software development - each step includes the exact commands to type. For one-time setup (installing Python, Git, and Zensical itself), see [Install tooling](installtooling.md) first if you haven't already.
 
 ## Viewing documentation locally
 
@@ -103,7 +103,7 @@ Whenever you've made a change you want to keep, there are three things to do: **
 
     === "Visual Studio Code"
 
-        1. Make sure your changed files are saved (a filled circle next to a file name in the Explorer tab means it has unsaved changes - select the file and press `Ctrl+S` / `Cmd+S`).
+        1. Make sure you've saved your changed files (a filled circle next to a file name in the Explorer tab means it has unsaved changes - select the file and press `Ctrl+S` / `Cmd+S`).
         2. Click the :gitlab-branch: **Source Control** icon in the left-hand sidebar. You'll see a list of every changed and new file.
 
             ![Initial commit](images/initial-commit.png){ width="40%" }
@@ -112,7 +112,7 @@ Whenever you've made a change you want to keep, there are three things to do: **
             ///
 
         3. Type a short, descriptive message in the message box (for example, "Add section 2 draft") - this is the label future-you (or a marker) will see when looking back through the history.
-        4. Press the **Commit**{: .bg-blue} button and select **Save All and Commit Changes**{: .bg-blue}. This records the snapshot on your computer only - nothing has been sent anywhere yet.
+        4. Press the **Commit**{: .bg-blue} button and select **Save All and Commit Changes**{: .bg-blue}. This records the snapshot on your computer only - you haven't sent anything anywhere yet.
 
             ![Commit changes](images/commit-changes.png){ width="40%" }
             /// caption
@@ -134,7 +134,7 @@ Whenever you've made a change you want to keep, there are three things to do: **
             git status
             ```
 
-        2. Stage the files you want to commit - "staging" means marking them to be included in the next commit (use `git add .` to stage everything shown by `git status` in one go):
+        2. Stage the files you want to commit - "staging" means marking them so Git includes them in the next commit (use `git add .` to stage everything shown by `git status` in one go):
 
             ```bash
             git add docs/section1.md
@@ -146,7 +146,7 @@ Whenever you've made a change you want to keep, there are three things to do: **
             git commit -m "Add section 2 draft"
             ```
 
-            This records the snapshot on your computer only - nothing has been sent anywhere yet.
+            This records the snapshot on your computer only - you haven't sent anything anywhere yet.
 
         4. Push your commit to your GitLab or GitHub remote, uploading it so it's backed up and visible online:
 
@@ -172,13 +172,13 @@ Once your commit reaches the default branch, the [CI/CD pipeline](#automated-bui
     Authorise GitLab Pages
     ///
 
-3. Your browser redirects to a URL with an extra, unique key added, such as [https://doc-template-4f75ad.pages.surrey.ac.uk/](https://doc-template-4f75ad.pages.surrey.ac.uk/){target="_blank"}. This confirms you (specifically, someone with access to the underlying GitLab project) are allowed to view the page - University of Surrey GitLab Pages sites aren't public by default.
+3. Your browser redirects to a URL with an extra, unique key added, such as [https://doc-template-4f75ad.pages.surrey.ac.uk/](https://doc-template-4f75ad.pages.surrey.ac.uk/){target="_blank"}. This confirms that you (specifically, someone with access to the underlying GitLab project) can view the page - University of Surrey GitLab Pages sites aren't public by default.
 
 {% else %}
 
 1. Go to your GitHub Pages address, in the form `https://`*username*`.github.io/`*repository-name*. This template's own site is at [https://buckwem.github.io/doc-template](https://buckwem.github.io/doc-template){target="_blank"}.
 2. Unlike GitLab Pages, GitHub Pages sites are publicly accessible by default, even when the source repository is private - so no separate authorisation step is normally needed to view a GitHub Pages site once it's built.
-3. If your organisation has restricted Pages visibility (available on GitHub Enterprise), you'll be asked to sign in to GitHub with an account that has access to the repository before the site loads.
+3. If your organisation has restricted Pages visibility (available on GitHub Enterprise), GitHub will ask you to sign in with an account that has access to the repository before the site loads.
 
 {% endif %}
 
@@ -191,7 +191,7 @@ Once your commit reaches the default branch, the [CI/CD pipeline](#automated-bui
 
 ### Building it manually
 
-1. Make sure the PDF build's dependencies are installed - see [Install Python and Zensical](installtooling.md#install-python-and-zensical) for `requirements.txt`, and [Additional tooling](additionaltooling.md) if your document uses Mermaid diagrams or maths and you need the optional `tools/mermaid`/`tools/mathjax` Node packages too.
+1. Make sure you've installed the PDF build's dependencies - see [Install Python and Zensical](installtooling.md#install-python-and-zensical) for `requirements.txt`, and [Additional tooling](additionaltooling.md) if your document uses Mermaid diagrams or maths and you need the optional `tools/mermaid`/`tools/mathjax` Node packages too.
 2. [Open a terminal](#open-a-terminal) with your virtual environment active, in your project's root directory.
 3. Run the build script:
 
@@ -214,7 +214,7 @@ python build_pdf.py
 zensical build --clean
 ```
 
-`build_pdf.py` runs first so `docs/site_documentation.pdf` exists before the site is built - that's what makes the "Download PDF" button on the cover page work, since the PDF gets published as part of the website itself. `zensical build --clean` then builds the site into the `public/` directory (set by `site_dir` in `zensical.toml`), which GitLab Pages or GitHub Pages then publishes. See [Clean build](#clean-build) in Troubleshooting if you need to force a fresh website build locally.
+`build_pdf.py` runs first so `docs/site_documentation.pdf` exists before Zensical builds the site - that's what makes the "Download PDF" button on the cover page work, since the published website includes the PDF as part of itself. `zensical build --clean` then builds the site into the `public/` directory (set by `site_dir` in `zensical.toml`), which GitLab Pages or GitHub Pages then publishes. See [Clean build](#clean-build) in Troubleshooting if you need to force a fresh website build locally.
 
 ## Managing branches and issues
 
@@ -302,7 +302,7 @@ Once you're happy with the branch, bring it into your default branch so it's pub
 Either way, once the merge reaches `main`, the [CI/CD pipeline](#automated-builds) rebuilds and republishes the website and PDF automatically, the same as any other push to `main`.
 
 !!! tip
-    Delete the branch once it's merged - neither GitLab nor GitHub need it anymore, and it keeps your branch list tidy. Both offer a **Delete branch** button right after a merge request or pull request is merged.
+    Delete the branch once you've merged it - neither GitLab nor GitHub need it anymore, and it keeps your branch list tidy. Both offer a **Delete branch** button right after you merge a merge request or pull request.
 
 ### Recording issues and linking them to a branch
 
@@ -365,13 +365,13 @@ If a numbered list in your Markdown restarts at "1." partway through instead of 
 If `python build_pdf.py` errors out or produces a PDF missing content:
 
 1. Check the error message in the terminal - it usually names the file and the problem directly.
-2. Make sure the dependencies from `requirements.txt` are installed in your active virtual environment (see [Install Python and Zensical](installtooling.md#install-python-and-zensical)).
-3. If your document uses Mermaid diagrams or maths, make sure the optional Node tooling is installed too (see [Additional tooling](additionaltooling.md)) - without it, those elements are silently skipped rather than causing an error.
+2. Make sure you've installed the dependencies from `requirements.txt` in your active virtual environment (see [Install Python and Zensical](installtooling.md#install-python-and-zensical)).
+3. If your document uses Mermaid diagrams or maths, make sure you've installed the optional Node tooling too (see [Additional tooling](additionaltooling.md)) - without it, the build silently skips those elements rather than raising an error.
 
 ### Published site shows old content or a 404
 
 1. Check the pipeline (GitLab **CI/CD > Pipelines**) or workflow (GitHub **Actions** tab) actually ran, and succeeded, for your latest commit - if it's still running, or failed, the old version stays published.
-2. Confirm your change actually reached the default branch (`main`) - a commit sitting on a feature branch, or a merge/pull request that hasn't been merged yet, never triggers a rebuild. See [Managing branches and issues](#managing-branches-and-issues).
+2. Confirm your change actually reached the default branch (`main`) - a commit sitting on a feature branch, or a merge/pull request you haven't merged yet, never triggers a rebuild. See [Managing branches and issues](#managing-branches-and-issues).
 3. Hard refresh the published page (`Ctrl+Shift+R`/`Cmd+Shift+R`) - your browser can cache the old version just as easily as it caches the local preview.
 
 ## Release your report
@@ -387,6 +387,8 @@ Before you submit your report, remove the "Start Here" section so it isn't part 
 {% endif %}
 
 ## Where to go next
+
+Continue to [Markdown basics](markdown.md) and [Zensical basics](zensicalbasics.md) to learn the syntax you'll actually use to write your document. Once you're comfortable writing content, come back to these later chapters when you need them:
 
 * [Customisation](customise.md) - branding, the cover page, PDF layout, and the document's directory structure.
 * [Additional tooling](additionaltooling.md) - signing Git commits, GitLab/GitHub VS Code extensions, and Vale for spelling/grammar/style checking.

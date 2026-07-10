@@ -12,17 +12,17 @@ icon: lucide/book-open
 
 # Customisation
 
-Almost every visible part of this template - the website, the cover page, and the generated PDF - is controlled by a small number of files: `zensical.toml` for configuration, `macros.py` for build-time logic, and `docs/stylesheets/extra.css`/`print.css` for appearance. This section walks through each of these in turn: customising the website's branding and behaviour, restructuring the document itself, customising the cover page, and adjusting the PDF's page layout. It ends with a full map of the template's directory structure, so you know where everything lives.
+A small number of files control almost every visible part of this template - the website, the cover page, and the generated PDF: `zensical.toml` for configuration, `macros.py` for build-time logic, and `docs/stylesheets/extra.css`/`print.css` for appearance. This section walks through each of these in turn: customising the website's branding and behaviour, restructuring the document itself, customising the cover page, and adjusting the PDF's page layout. It ends with a full map of the template's directory structure, so you know where everything lives.
 
 ## Customise the web site
 
-Most website-wide settings live in `zensical.toml`, in the `[project]` and `[project.theme]` sections. The most commonly customised ones are described below; see the [Zensical setup documentation](https://zensical.org/docs/setup/) for the full reference.
+Most website-wide settings live in `zensical.toml`, in the `[project]` and `[project.theme]` sections. The sections below describe the most commonly customised ones; see the [Zensical setup documentation](https://zensical.org/docs/setup/) for the full reference.
 
 ### Site logo
 
-If the documentation website is part of the university's GitLab service or the location of the website is hosted under the University of Surrey domain, the site logo is automatically changed to the University of Surrey logo. Otherwise, the site logo will use the default logos in the `docs/assets/` directory. You can change the default logo by replacing the existing default logo files with your own logo files named `logo_default_black.png` and `logo_default_white.png`.
+If the documentation website is part of the university's GitLab service, or the website's location falls under the University of Surrey domain, the build automatically changes the site logo to the University of Surrey logo. Otherwise, the site logo uses the default logos in the `docs/assets/` directory. You can change the default logo by replacing the existing default logo files with your own logo files named `logo_default_black.png` and `logo_default_white.png`.
 
-These files are copied automatically at the start of every build or `zensical serve` (see the logo-swap logic near the top of `macros.py`): either the Surrey pair or your default pair gets copied over `docs/assets/logo_black.png`/`logo_white.png` - the two files `extra.css` actually references for the light/dark logo swap. Don't edit `logo_black.png`/`logo_white.png` directly, since they're overwritten on the next build.
+The logo-swap logic near the top of `macros.py` copies these files automatically at the start of every build or `zensical serve`: it copies either the Surrey pair or your default pair over `docs/assets/logo_black.png`/`logo_white.png` - the two files `extra.css` actually references for the light/dark logo swap. Don't edit `logo_black.png`/`logo_white.png` directly, since the next build overwrites them.
 
 ### Site metadata
 
@@ -49,10 +49,10 @@ repo_url = "https://gitlab.surrey.ac.uk/mb0105/doc-template"
 repo_name = "doc-template"
 ```
 
-The icon shown next to it is set separately - see `theme.icon.repo` under [Icons](#icons).
+You set the icon shown next to it separately - see `theme.icon.repo` under [Icons](#icons).
 
 !!! note
-    This is unrelated to the `{% raw %}{{ repo_url }}{% endraw %}` macro variable used on the cover page (see [Word count and repository link](#word-count-and-repository-link)). That value is computed independently from your local Git remote rather than read from this `repo_url` setting, though in practice they'll usually point to the same place.
+    This is unrelated to the `{% raw %}{{ repo_url }}{% endraw %}` macro variable used on the cover page (see [Word count and repository link](#word-count-and-repository-link)). The build computes that value independently from your local Git remote, rather than reading it from this `repo_url` setting, though in practice they'll usually point to the same place.
 
 ### Favicon
 
@@ -63,7 +63,7 @@ Set `favicon` in `[project.theme]` to a path (relative to `docs_dir`) for your o
 favicon = "images/favicon.png"
 ```
 
-Left unset, Zensical's default favicon is used.
+Left unset, Zensical uses its default favicon.
 
 ### Colour Scheme
 
@@ -110,7 +110,7 @@ text = "Inter"
 code = "Jetbrains Mono"
 ```
 
-`text` is used for body copy and headings; `code` for code blocks and inline code. Both default to Inter and JetBrains Mono if this section is left unset. The PDF build reuses this same setting - see [Customise PDF format](#customise-pdf-format).
+Use `text` for body copy and headings, and `code` for code blocks and inline code. Both default to Inter and JetBrains Mono if you leave this section unset. The PDF build reuses this same setting - see [Customise PDF format](#customise-pdf-format).
 
 ### Icons
 
@@ -127,11 +127,11 @@ note = "fontawesome/solid/note-sticky"
 warning = "fontawesome/solid/triangle-exclamation"
 ```
 
-Any [Lucide or FontAwesome icon name](https://zensical.org/docs/authoring/icons-emojis/#search) can be used.
+You can use any [Lucide or FontAwesome icon name](https://zensical.org/docs/authoring/icons-emojis/#search).
 
 ### Navigation and feature toggles
 
-The `features` list in `[project.theme]` turns individual website behaviours on or off - instant navigation, sticky tabs, search highlighting, the back-to-top button, and around twenty others. Each is listed in `zensical.toml` with a link to its own documentation in a comment directly above it; comment a line out to disable that feature, or uncomment one of the already-listed-but-disabled options to enable it.
+The `features` list in `[project.theme]` turns individual website behaviours on or off - instant navigation, sticky tabs, search highlighting, the back-to-top button, and around twenty others. `zensical.toml` lists each one with a link to its own documentation in a comment directly above it; comment a line out to disable that feature, or uncomment one of the already-listed-but-disabled options to enable it.
 
 ### Extra CSS and JavaScript
 
@@ -159,7 +159,7 @@ link = "https://github.com/user/repo"
 
 ## Customise doc structure
 
-How your document is broken into pages, the order they appear in, and how they're numbered, is controlled by the `nav` list in `zensical.toml` and the heading numbering setting below. Both apply identically to the website's sidebar and the generated PDF.
+The `nav` list in `zensical.toml` and the heading numbering setting below control how your document is broken into pages, the order they appear in, and how they're numbered. Both apply identically to the website's sidebar and the generated PDF.
 
 ### Navigation structure
 
@@ -186,7 +186,7 @@ To add a new page: create the markdown file under `docs/`, then add its path to 
 
 ### Changing heading numbering
 
-By default, heading numbering is enabled in the documentation template. If you want to disable heading numbering, you can do so by adding the following line to the `[project.extra]` section of the `zensical.toml` file:
+By default, this documentation template enables heading numbering. If you want to disable heading numbering, you can do so by adding the following line to the `[project.extra]` section of the `zensical.toml` file:
 
 ```toml
 heading_numbering = false
@@ -207,23 +207,25 @@ The top level heading numbering shown in the sidebar isn't generated automatical
 Keep the numbers in each title sequential as you add, remove, or reorder chapters, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
 
 !!! warning
-    Each markdown file can contain only one heading 1 (`#`). Headings are numbered sequentially across the whole document in `nav` order, starting a new top-level number at each heading 1 - a second heading 1 in the same file breaks that numbering and confuses the table of contents. If you need another top-level heading, create a new markdown file for it and add it to `nav` instead.
+    Each markdown file can contain only one heading 1 (`#`). Zensical numbers headings sequentially across the whole document in `nav` order, starting a new top-level number at each heading 1 - a second heading 1 in the same file breaks that numbering and confuses the table of contents. If you need another top-level heading, create a new markdown file for it and add it to `nav` instead.
 
 
 ## Customise front page
 
-The cover page (`docs/index.md`) is built from a few independently-customisable pieces, described below.
+The cover page (`docs/index.md`) consists of a few independently customisable pieces, described below.
 
 ### Institution branding
 
-The cover page's logo, colours, and introductory text are wrapped in a Jinja conditional block:
+A Jinja conditional block wraps the cover page's logo, colours, and introductory text:
 
 ```markdown
-{% raw %}{% if is_surrey %}
+{% raw %}
+{% if is_surrey %}
 ... Surrey-branded logo and text ...
 {% else %}
 ... your own branding and text ...
-{% endif %}{% endraw %}
+{% endif %}
+{% endraw %}
 ```
 
 `is_surrey` is a boolean computed once per build in `macros.py`, set to `true` if *any* of the following match:
@@ -266,15 +268,15 @@ Three elements on the cover page use marker classes out of the box: the automate
 <p class="pdf-only">Word count: {WORDCOUNT}</p>
 ```
 
-The `{WORDCOUNT}` marker is replaced with the actual count during the PDF build. If you delete the line, the PDF simply builds without a word count - no other change is needed.
+The PDF build replaces the `{WORDCOUNT}` marker with the actual count. If you delete the line, the PDF simply builds without a word count - you don't need to change anything else.
 
-**Repository link**: `.pdf-only`, shows the fully-qualified URL of your project's Git repository. To remove it from the PDF, open `docs/index.md` and delete the following line:
+**Repository link**: `.pdf-only`, shows the fully qualified URL of your project's Git repository. To remove it from the PDF, open `docs/index.md` and delete the following line:
 
 ```markdown
 <p class="pdf-only">Repo: {REPOURL}</p>
 ```
 
-The `{REPOURL}` marker is replaced with your repository's `origin` remote URL during the PDF build. If you delete the line, the PDF simply builds without a repository link - no other change is needed.
+The PDF build replaces the `{REPOURL}` marker with your repository's `origin` remote URL. If you delete the line, the PDF simply builds without a repository link - you don't need to change anything else.
 
 **To add the word count or repository link to the website**, add a line like one of the following to any page, for example next to the lines you just deleted on the cover page:
 
@@ -283,10 +285,10 @@ The `{REPOURL}` marker is replaced with your repository's `origin` remote URL du
 Repo: {{ repo_url }}{% endraw %}
 ```
 
-`{% raw %}{{ word_count }}{% endraw %}` and `{% raw %}{{ repo_url }}{% endraw %}` are macro variables made available on every page, so you can drop either into any markdown file, not just the cover page.
+`{% raw %}{{ word_count }}{% endraw %}` and `{% raw %}{{ repo_url }}{% endraw %}` are macro variables that Zensical makes available on every page, so you can drop either into any markdown file, not just the cover page.
 
 !!! note
-    The word count is calculated slightly differently for the PDF and the website, and may not always match exactly. The PDF count reflects the final, built PDF content. The website count is a rough estimate calculated across the pages listed under `nav` in `zensical.toml` (excluding the cover page).
+    The PDF and the website calculate the word count slightly differently, so it may not always match exactly. The PDF count reflects the final, built PDF content. The website count is a rough estimate across the pages that `nav` lists in `zensical.toml` (excluding the cover page).
 
 ### Download PDF button
 
@@ -299,13 +301,13 @@ Repo: {{ repo_url }}{% endraw %}
 
 ## Customise PDF format
 
-Most of the generated PDF's page layout - the running header, the footer, the page size, and the fonts - is controlled by `build_pdf.py`, either from `zensical.toml` settings you already use for the website, or (for page size and margins) directly in the script itself.
+`build_pdf.py` controls most of the generated PDF's page layout - the running header, the footer, the page size, and the fonts - either from `zensical.toml` settings you already use for the website, or (for page size and margins) directly in the script itself.
 
 ### Page header
 
 Every page except the cover shows a running header: your project's `site_name` (from `zensical.toml` - see [Site name](#site-name)), left-aligned, with a divider line underneath. There's no separate PDF setting for it - editing `site_name` in `zensical.toml` updates the header everywhere, including the website.
 
-The current chapter title is also shown right-aligned in the header - starting from the first numbered heading 1, so it's blank on the cover page and the Table of Contents. It's computed automatically from each page's heading 1 (including its chapter number), so there's nothing to configure here either.
+The header also shows the current chapter title, right-aligned - starting from the first numbered heading 1, so it's blank on the cover page and the Table of Contents. `build_pdf.py` computes it automatically from each page's heading 1 (including its chapter number), so there's nothing to configure here either.
 
 ### Page footer
 
@@ -313,7 +315,7 @@ Every page except the cover also shows a running footer: your `copyright` text (
 
 ### Page size and margins
 
-Unlike the header, footer, and fonts, page size and margins aren't exposed as `zensical.toml` settings - they're set directly in the `@page` CSS block inside `build_pdf.py`. To change them, open `build_pdf.py`, find the `@page { ... }` rule (search for `size: A4`), and edit:
+Unlike the header, footer, and fonts, page size and margins aren't exposed as `zensical.toml` settings - you set them directly in the `@page` CSS block inside `build_pdf.py`. To change them, open `build_pdf.py`, find the `@page { ... }` rule (search for `size: A4`), and edit:
 
 ```css
 @page {
@@ -390,7 +392,7 @@ Now that you've customised the website, the document structure, the cover page, 
     * :material-folder: **stylesheets/** — CSS for the website and the PDF.
         * :material-file-document-outline: `extra.css` — Most of the template's own website customisations (logo swap, header image, cover page styles, `.pdf-only`/`.web-only` markers).
         * :material-file-document-outline: `print.css` — PDF-only styles, read only by `build_pdf.py`.
-    * :material-folder: **starthere/** — Contains the "Start Here" section that can be deleted once you are familiar with the template.
+    * :material-folder: **starthere/** — Contains the "Start Here" section, which you can delete once you're familiar with the template.
         * :material-folder: **images/** — Contains images used in the "Start Here" section.
         * :material-file-document-outline: `starthere.md` — Introduction to the "Start Here" section.
         * :material-file-document-outline: `installtooling.md` — Instructions for installing the required tools.
@@ -398,7 +400,7 @@ Now that you've customised the website, the document structure, the cover page, 
         * :material-file-document-outline: `markdown.md` — Principles of Markdown for writing documentation.
         * :material-file-document-outline: `zensicalbasics.md` — Basics of using Zensical for documentation.
         * :material-file-document-outline: `customise.md` — This page: guide for customising the documentation template.
-        * :material-file-document-outline: `additionaltooling.md` — Optional extra tooling (commit signing, word counts, GitLab/GitHub extensions, Vale).
+        * :material-file-document-outline: `additionaltooling.md` — Optional extra tooling (GitLab/GitHub, GitLens, and spell-checking VS Code extensions, commit signing, a GUI Git client, image optimisation, and Vale).
         * :material-file-document-outline: `shcommands.md` — Reference for shell commands used in the documentation.
 * :material-file-code-outline: `build_pdf.py` — Builds the single-file PDF version of your document.
 * :material-file-code-outline: `macros.py` — Zensical macro hooks (Surrey detection, word count, repository link, heading numbering).
@@ -409,8 +411,12 @@ Now that you've customised the website, the document structure, the cover page, 
 * :material-file-document-outline: `.vale.ini` — Configuration file for Vale, a syntax and style checker.
 * :material-file-document-outline: `requirements.txt` — Lists the Python dependencies required for the project.
 * :material-file-document-outline: `README.md` — The README file for the project, providing an overview and instructions.
-* :material-file-document-outline: `LICENSE` — The licence file for the project, specifying the terms under which the project can be used and distributed. We've used the MIT license for the project used by Zensical. It's a permissive free software license that allows for reuse within proprietary software provided all copies of the licensed software include a copy of the MIT License terms and the copyright notice.
-* :material-file-document-outline: `.gitignore` — Specifies files and directories to be ignored by Git version control.
+* :material-file-document-outline: `LICENSE` — The licence file for the project, specifying the terms under which you can use and distribute the project. This project uses the MIT license, the same choice Zensical itself uses. It's a permissive free software license that allows reuse within proprietary software, provided all copies of the licensed software include a copy of the MIT License terms and the copyright notice.
+* :material-file-document-outline: `.gitignore` — Specifies files and directories for Git to ignore.
 * :material-file-document-outline: `.gitlab-ci.yml` — Configuration file for GitLab CI/CD, building and publishing the site (and the PDF) to GitLab Pages.
 * :material-folder: **.github/workflows/** — Configuration for GitHub Actions.
     * :material-file-document-outline: `docs.yml` — Builds and publishes the site (and the PDF) to GitHub Pages.
+
+## Where to go next
+
+Continue to [Additional tooling](additionaltooling.md) for optional extras - VS Code extensions, commit signing, and Vale - or jump straight to [Finalising your document](#finalising-your-document) above once your document itself is ready to submit.

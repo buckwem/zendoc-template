@@ -12,7 +12,7 @@ icon: lucide/book-open
 
 # Zensical basics
 
-Zensical is the static site generator this template is built on: it turns the Markdown files under `docs/` into the website you're reading now, and (via `build_pdf.py`) into the single-file PDF version of your document. It reads its configuration from `zensical.toml`, extends Markdown with the authoring features shown below (admonitions, tabs, diagrams, maths, and more), and lets you preview your changes locally with `zensical serve` before publishing.
+Zensical is the static site generator that powers this template: it turns the Markdown files under `docs/` into the website you're reading now, and (via `build_pdf.py`) into the single-file PDF version of your document. It reads its configuration from `zensical.toml`, extends Markdown with the authoring features shown below (admonitions, tabs, diagrams, maths, and more), and lets you preview your changes locally with `zensical serve` before publishing.
 
 This page is a quick reference for the Markdown extensions you're most likely to use while writing your document, each with a live example. For the underlying, general-purpose Markdown syntax these extensions build on (headings, links, bold/italic text, and so on), see [Markdown basics](markdown.md). For full documentation on Zensical itself, visit [zensical.org](https://zensical.org/docs/).
 
@@ -109,7 +109,7 @@ Zensical supports [Mermaid](https://mermaid.js.org/){target="_blank"} diagrams. 
 
 {% if is_surrey %}
 !!! note
-    The COMM058 Architectural Thinking for Security module doesn't use any of these documentation types. It's better that you use draw.io to create your diagrams and export them as images to include in your documentation. Use the downloadable version of draw.io, not the web version, as it's much easier to edit. Also, if you are using draw.io in your working life, your company may have a policy that cloud services can't be used unless it's a paid and approved for hosting confidential company data.
+    The COMM058 Architectural Thinking for Security module doesn't use any of these documentation types. It's better that you use draw.io to create your diagrams and export them as images to include in your documentation. Use the downloadable version of draw.io, not the web version, as it's much easier to edit. Also, if you use draw.io in your working life, your company may have a policy against using cloud services unless they're a paid, approved service for hosting confidential company data.
 {% endif %}
 
 ``` mermaid
@@ -162,11 +162,11 @@ $$
 $$
 
 !!! warning "Needs configuration"
-    Note that MathJax is included via a `script` tag on this page and isn't
-    configured in the generated default configuration to avoid including it
-    in a pages that don't need it. See the documentation for details on how
-    to configure it on all your pages if they're more maths-heavy than these
-    simple starter pages.
+    This page includes MathJax via a `script` tag, but the generated default
+    configuration doesn't enable it everywhere, to avoid loading it on pages
+    that don't need it. See the documentation for details on how to configure
+    it on all your pages if they're more maths-heavy than these simple
+    starter pages.
 
 <script id="MathJax-script" async src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script>
@@ -200,3 +200,7 @@ Zensical supports tooltips, which allow you to add additional information that a
 [Hover over this text][example]
 
   [example]: https://example.com "I'm a tooltip!"
+
+## Where to go next
+
+Continue to [Customisation](customise.md) to change this template's branding, restructure your document's pages, and customise the cover page and PDF layout.

@@ -12,7 +12,7 @@ icon: lucide/book-open
 
 # Additional tooling
 
-This page covers optional tooling you can add on top of the core Zensical workflow covered in [Install tooling](installtooling.md) and [Start editing](startediting.md): Visual Studio Code extensions that connect the editor directly to GitLab or GitHub, view Git history, and check your writing; signing your Git commits; a visual alternative to VS Code's built-in Git tools; and keeping your document's images small. None of this is required to write or publish your document - add whichever pieces are useful to you, and skip the rest. Each section below assumes no prior Linux or command-line experience, and spells out every step.
+This page covers optional tooling you can add on top of the core Zensical workflow covered in [Install tooling](installtooling.md) and [Start editing](startediting.md): Visual Studio Code extensions that connect the editor directly to GitLab or GitHub, view Git history, and check your writing; signing your Git commits; a visual alternative to VS Code's built-in Git tools; and keeping your document's images small. You don't need any of this to write or publish your document - add whichever pieces are useful to you, and skip the rest. Each section below assumes no prior Linux or command-line experience, and spells out every step.
 
 ## Installing Visual Studio Code extensions
 
@@ -51,7 +51,7 @@ VS Code doesn't require any extensions to work with GitLab or GitHub, but instal
 
 ### Configuring GitLab or GitHub extensions
 
-Once the extension is installed, it needs permission to access your GitLab or GitHub account. The most reliable way to do this is with a personal access token (PAT) - a long, randomly generated code that works like a password but is limited to just this purpose, can be given an expiry date, and can be revoked at any time without changing your main account password.
+Once you've installed the extension, it needs permission to access your GitLab or GitHub account. The most reliable way to do this is with a personal access token (PAT) - a long, randomly generated code that works like a password, but you can limit it to just this purpose, give it an expiry date, and revoke it at any time without changing your main account password.
 
 1. Create a personal access token (PAT) for your account:
 
@@ -82,7 +82,7 @@ Once the extension is installed, it needs permission to access your GitLab or Gi
             3. On the left-hand sidebar, select **Developer settings > Personal access tokens > Fine-grained tokens**.
 
                 !!! Note
-                    You may be prompted to reauthenticate with GitHub before proceeding to the next step.
+                    GitHub may ask you to reauthenticate before you can proceed to the next step.
 
             4. Click **Generate new token**{: .bg-green} and fill out the following details:
                 * **Token name:** Give it a clear name (for example, `VS Code Extension`).
@@ -174,7 +174,7 @@ If [Vale](#install-vale-to-check-for-grammar-spelling-and-style-issues) below fe
                 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
                 ```
 
-            2. Once Homebrew is installed, install Vale:
+            2. Once you've installed Homebrew, install Vale:
 
                 ``` bash
                 brew install vale
@@ -198,7 +198,7 @@ If [Vale](#install-vale-to-check-for-grammar-spelling-and-style-issues) below fe
                 sudo apt install snapd
                 ```
 
-            2. Once `snapd` is installed, install Vale:
+            2. Once you've installed `snapd`, install Vale:
 
                 ``` bash
                 sudo snap install vale
@@ -263,11 +263,11 @@ If [Vale](#install-vale-to-check-for-grammar-spelling-and-style-issues) below fe
 
 ## Setup for signing git commits
 
-Files submitted to a Git repository can be signed using DCO (Developer Certificate of Origin) signing. The benefit of signing your commits is that it provides a way to verify the authenticity of the code and ensure that it has not been tampered with. It also helps to establish trust between contributors and maintainers, as it provides a way to verify the identity of the person who made the changes.
+You can sign files you submit to a Git repository using DCO (Developer Certificate of Origin) signing. The benefit of signing your commits is that it gives you a way to verify the authenticity of the code and ensure no one has tampered with it. It also helps establish trust between contributors and maintainers, since it gives you a way to verify the identity of the person who made the changes.
 
 Setting up DCO signing in Git is straightforward. Unlike GPG key signing (which uses cryptographic keys to verify your identity), DCO signing is a legal statement asserting that you have the right to submit the code.
 
-DCO signing simply appends a text line at the very bottom of your commit message that looks like this:
+DCO signing simply appends a text line at the bottom of your commit message that looks like this:
 
 ```
 Signed-off-by: Your Name <your.email@example.com>
@@ -407,7 +407,7 @@ VS Code's built-in Source Control view and the command line, covered in [Synchro
 
 ## Optimising images before committing
 
-Screenshots and diagrams you add to your documentation get committed to the Git repository and embedded in the PDF, so a handful of large, uncompressed images can noticeably slow down cloning the repository and increase the size of the published PDF. Optimising (compressing) an image before you commit it usually shrinks it considerably with no visible loss of quality.
+When you commit screenshots and diagrams to the Git repository, the PDF build also embeds them in the generated PDF, so a handful of large, uncompressed images can noticeably slow down cloning the repository and increase the size of the published PDF. Optimising (compressing) an image before you commit it usually shrinks it considerably with no visible loss of quality.
 
 The simplest option, needing no installation, is [Squoosh](https://squoosh.app/){target="_blank"} - a free, browser-based image compressor from Google. Drag your screenshot into the page, choose a format and quality, and download the smaller result to use in place of the original.
 
@@ -444,3 +444,7 @@ If you'd rather compress images from your desktop without opening a browser each
         ```
 
 </div>
+
+## Where to go next
+
+This is the last of the step-by-step "Start Here" chapters. [Shell commands](shcommands.md) is a standalone reference you can return to any time you need a reminder of a terminal command - it isn't something you need to read in order.

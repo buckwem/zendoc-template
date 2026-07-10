@@ -61,7 +61,7 @@ Start with installing [Visual Studio Code](https://code.visualstudio.com){target
 
 ### Install Visual Studio Code plugins
 
-VS Code has a rich ecosystem of plugins that can enhance your editing experience. The following plugins are recommended for working with Markdown and Zensical:
+VS Code has a rich ecosystem of plugins that can enhance your editing experience. The following plugins work well for Markdown and Zensical:
 
 1. Install [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint){target="_blank"} plugin for Visual Studio Code from the marketplace. This markdownlint extension checks your markdown files using a library of rules to encourage consistent formatting.
 1. Install [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml){target="_blank"} plugin for Visual Studio Code from the marketplace. This extension helps manage a [TOML](https://toml.io/en/){target="_blank"} file.
@@ -75,7 +75,7 @@ Next, install the `git` command and configure it for Visual Studio Code. The ins
 
 ### Install and configure Git
 
-Let's start with installing Git and configuring it for Visual Studio Code. The instructions below are for macOS, Windows 11, and Linux (Ubuntu/Debian).
+Start by installing Git and configuring it for Visual Studio Code. The instructions below are for macOS, Windows 11, and Linux (Ubuntu/Debian).
 
 1. As a start, you need to install the `git` command. Follow the instructions below to install or update `git` to the latest stable version.
 
@@ -128,6 +128,8 @@ Let's start with installing Git and configuring it for Visual Studio Code. The i
 {% if is_surrey %}
     !!! Info "University of Surrey GitLab"
         For the University of Surrey, you will be using the GitLab instance provided by the university at [https://gitlab.surrey.ac.uk](https://gitlab.surrey.ac.uk){target="_blank"}. When you get to the login page, select the button **Surrey Login**{: .bg-grey} and use your university credentials.
+
+        If you'd also like an account on the public GitLab at [https://gitlab.com](https://gitlab.com){target="_blank"} - for example, to keep using GitLab for personal projects after you graduate - you can register for one separately; the steps below work the same for both.
 {% endif %}
 
 ### Generate and configure ssh keys for Git
@@ -138,7 +140,7 @@ Now generate the ssh keys to use for authentication with your GitLab or GitHub a
 
     <div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Generate ssh keys__
+    -   :material-clock-fast:{ .lg .middle } __Generate SSH keys__
 
         === "macOS using Homebrew"
 
@@ -175,7 +177,7 @@ Now generate the ssh keys to use for authentication with your GitLab or GitHub a
     
     </div>
 
-1. Then configure the SSH Config file to use the correct SSH key for each service. Open the SSH config file in your preferred [text editor](http://localhost:8000/doc-template/starthere/shcommands/#editing-files){target="_blank"} (create it if it doesn't exist) and add the following lines:
+1. Then configure the SSH Config file to use the correct SSH key for each service. Open the SSH config file in your preferred [text editor](shcommands.md#editing-files) (create it if it doesn't exist) and add the following lines:
 
     For example using `nano` on macOS or Linux:
 
@@ -185,29 +187,20 @@ Now generate the ssh keys to use for authentication with your GitLab or GitHub a
     
     paste the following configuration into the file:
 
-{% if is_surrey %}
-    ```text
-    # GitLab
-    Host gitlab.surrey.ac.uk
-        HostName gitlab.surrey.ac.uk
-        User git
-        IdentityFile ~/.ssh/id_ed25519_gitlab
-
-
-    # GitHub
-    Host github.com
-        HostName github.com
-        User git
-        IdentityFile ~/.ssh/id_ed25519_github
-    ```
-{% else %}
     ```text
     # GitLab
     Host gitlab.com
         HostName gitlab.com
         User git
         IdentityFile ~/.ssh/id_ed25519_gitlab
+{% if is_surrey %}
 
+    # GitLab (University of Surrey)
+    Host gitlab.surrey.ac.uk
+        HostName gitlab.surrey.ac.uk
+        User git
+        IdentityFile ~/.ssh/id_ed25519_gitlab
+{% endif %}
 
     # GitHub
     Host github.com
@@ -215,6 +208,9 @@ Now generate the ssh keys to use for authentication with your GitLab or GitHub a
         User git
         IdentityFile ~/.ssh/id_ed25519_github
     ```
+{% if is_surrey %}
+
+    The same key works for both GitLab entries - you just need to add its public key (`~/.ssh/id_ed25519_gitlab.pub`) to each account separately in [Integrate Visual Studio Code with Git](#integrate-visual-studio-code-with-git) below. Leave the `gitlab.com` entry out if you don't use a personal GitLab account alongside your University one.
 {% endif %}
 
     then save and close the file (`Ctrl+O` to save and `Ctrl+X` to exit in nano). On Windows, you can use `Notepad` or any text editor to create the `config` file in the `.ssh` directory.
@@ -233,15 +229,16 @@ Now generate the ssh keys to use for authentication with your GitLab or GitHub a
 
 1. Test the SSH connection to GitHub and GitLab to ensure that the keys are working correctly. Run the following commands in your terminal:
 
-{% if is_surrey %}
-    ```bash
-    ssh -T git@github.com
-    ssh -T git@gitlab.surrey.ac.uk
-    ```
-{% else %}
     ```bash
     ssh -T git@github.com
     ssh -T git@gitlab.com
+    ```
+{% if is_surrey %}
+
+    Test your University of Surrey GitLab connection too:
+
+    ```bash
+    ssh -T git@gitlab.surrey.ac.uk
     ```
 {% endif %}
 
@@ -252,42 +249,55 @@ Now generate the ssh keys to use for authentication with your GitLab or GitHub a
     Welcome to GitLab, @username!
     ```
 
-1. You have set a password for the ssh keys and you will be prompted for the password each time you use the key. To avoid this, you can use an SSH agent to cache your passphrase. Follow the instructions below to start the SSH agent and add your keys.
+1. You've set a passphrase for the SSH keys, so you'll need to enter it every time you use a key. To avoid this, you can use an SSH agent to cache your passphrase. Follow the instructions below to start the SSH agent and add your keys.
 
     <div class="grid cards one-column" markdown>
     
-    -   :material-clock-fast:{ .lg .middle } __Adding ssh keys__
+    -   :material-clock-fast:{ .lg .middle } __Adding SSH keys__
 
         === "macOS using Homebrew"
 
-            1. Add your SSH private keys to the already running ssh agent:
-        
+            1. macOS normally starts an SSH agent for you automatically. Add your SSH private keys to it:
+
                 ``` bash
                 ssh-add ~/.ssh/id_ed25519_github
                 ssh-add ~/.ssh/id_ed25519_gitlab
+                ```
+
+                If this fails with an error about not being able to connect to the agent, start one first, then repeat the command above:
+
+                ``` bash
+                eval "$(ssh-agent -s)"
                 ```
 
         === "Windows 11 using PowerShell"
 
-            1. Start the SSH agent in the background and set it to start automatically with Windows:
-        
+            1. Start the SSH agent in the background and set it to start automatically with Windows. Run this in a PowerShell window opened **as Administrator** (right-click the Start menu, or search for PowerShell, then select **Run as administrator**):
+
                 ``` powershell
                 Start-Service ssh-agent
                 Set-Service -Name ssh-agent -StartupType Automatic
                 ```
-            2. Add your SSH private keys to the agent:
-        
+            2. Back in your normal (non-administrator) PowerShell window, add your SSH private keys to the agent:
+
                 ``` powershell
                 ssh-add $env:USERPROFILE\.ssh\id_ed25519_github
+                ssh-add $env:USERPROFILE\.ssh\id_ed25519_gitlab
                 ```
 
         === "Linux (Ubuntu/Debian) using bash"
 
-            1. Add your SSH private keys tto the already running ssh agent:
-        
+            1. Add your SSH private keys to the running SSH agent:
+
                 ``` bash
                 ssh-add ~/.ssh/id_ed25519_github
                 ssh-add ~/.ssh/id_ed25519_gitlab
+                ```
+
+                Unlike macOS, Linux doesn't always start an SSH agent automatically. If the command above fails with an error about not being able to connect to the agent, start one first, then repeat the command above:
+
+                ``` bash
+                eval "$(ssh-agent -s)"
                 ```
     </div>
 
@@ -299,7 +309,7 @@ Now generate the ssh keys to use for authentication with your GitLab or GitHub a
 
 ### Integrate Visual Studio Code with Git
 
-Once the keys are generated and the configuration is complete, now add the SSH keys to the GitHub and GitLab accounts. Follow the instructions below to add your SSH keys to your GitHub and GitLab accounts.
+Now that you've generated your keys and finished the configuration, add them to your GitHub and GitLab accounts using the instructions below.
 
 <div class="grid cards one-column" markdown>
     
@@ -387,8 +397,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
             4. Change the *Visibility Level* to *Private*.
             5. Press the button **Fork Project**{: .bg-blue} to create your own copy of the project in the group namespace.
         
-        {% endif %}
-
+        {% else %}
         === "GitHub"
 
             1. Go to the [doc-template repository](https://github.com/buckwem/doc-template){target="_blank"} on GitHub and click the **Fork**{: .bg-green} button near the top-right of the page.
@@ -397,6 +406,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
             4. Leave **Copy the `main` branch only** checked.
             5. Click **Create fork**{: .bg-green}.
             6. Once forked, go to your new repository's **Settings** tab, scroll down to the **Danger Zone**, and change the visibility to **Private**.
+        {% endif %}
 
     </div>
 
@@ -516,16 +526,16 @@ Install [Zensical Studio Code Extension](https://marketplace.visualstudio.com/it
 
 Follow the instructions on the Zensical Studio plugin page to configure the extension. Add to the `.vscode/settings.json` file in your project directory the following lines:
 
-    ```json
-    {
-      "files.associations": {
-        "*.md": "python-markdown"
-      }
-    }
-    ```
+```json
+{
+  "files.associations": {
+    "*.md": "python-markdown"
+  }
+}
+```
 
 There are many other extensions available for Visual Studio Code that can help you with your documentation. You can explore the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode){target="_blank"} to find more extensions that suit your needs.
 
-<!--
-Some useful extensions for documentation are documented in the section [Install extensions][install-extensions] in the Zensical documentation.
--->
+## Where to go next
+
+You now have Visual Studio Code, Git, and Zensical installed, and your own copy of the documentation template cloned locally. Continue to [Start editing](startediting.md) to preview your changes locally and publish them to GitLab or GitHub.

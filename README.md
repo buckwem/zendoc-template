@@ -1,7 +1,9 @@
+<!--
 # Copyright (c) 2025-2026 Mark Buckwell and contributors
 # SPDX-License-Identifier: MIT
+-->
 
-# Assignment Template
+# zendoc-template - A zensical template for academic coursework reports and assignments
 
 A documentation-as-code template for writing coursework reports and assignments in Markdown. Write once, publish twice: the same content builds into both a browsable website and a single-file PDF you can hand in.
 

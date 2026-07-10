@@ -43,21 +43,21 @@ The PDF build reuses this same setting for its own running footer - see [Page fo
 
 `repo_url` and `repo_name` in `[project]` show a link to your repository, with an icon and short name, near the top of the sidebar:
 
-{ if is_surrey }
+{% if is_surrey %}
 
 ```toml
-repo_url = "https://gitlab.surrey.ac.uk/mb0105/doc-template"
-repo_name = "doc-template"
+repo_url = "https://gitlab.surrey.ac.uk/mb0105/zendoc-template"
+repo_name = "zendoc-template"
 ```
 
-{ else }
+{% else %}
 
 ```toml
-repo_url = "https://github.com/buckwem/doc-template"
-repo_name = "doc-template"
+repo_url = "https://github.com/buckwem/zendoc-template"
+repo_name = "zendoc-template"
 ```
 
-{ endif }
+{% endif %}
 
 You set the icon shown next to it separately - see `theme.icon.repo` under [Icons](#icons).
 

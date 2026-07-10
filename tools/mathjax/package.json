@@ -1,5 +1,5 @@
 {
-  "name": "doc-template-mathjax-tools",
+  "name": "zendoc-template-mathjax-tools",
   "private": true,
   "description": "Local mathjax-full install used by build_pdf.py to pre-render TeX math for the PDF build.",
   "dependencies": {

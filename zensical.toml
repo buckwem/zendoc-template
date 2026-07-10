@@ -30,11 +30,11 @@ site_author = "Mark Buckwell"
 # The site_url is the canonical URL for your site. When building online
 # documentation you should set this.
 # Read more: https://zensical.org/docs/setup/basics/#site_url
-site_url = "https://github.com/buckwem/doc-template/"
+site_url = "https://github.com/buckwem/zendoc-template/"
 site_dir = "public"
 
-repo_url = "https://github.com/buckwem/doc-template"
-repo_name = "doc-template"
+repo_url = "https://github.com/buckwem/zendoc-template"
+repo_name = "zendoc-template"
 
 # The copyright notice appears in the page footer and can contain an HTML
 # fragment.

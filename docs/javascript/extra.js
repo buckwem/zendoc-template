@@ -1,3 +1,6 @@
+// Copyright (c) 2025-2026 Mark Buckwell and contributors
+// SPDX-License-Identifier: MIT
+
 document.addEventListener("DOMContentLoaded", function() {
   var links = document.querySelectorAll('a[href^="http"]');
   links.forEach(function(link) {

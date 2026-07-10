@@ -48,8 +48,11 @@ School of Computer Science and Electronic Engineering
 -->
 {% else %}
 
-![](assets/logo_default_black.png#only-light){ width="10%" style="display: block; margin: 0 auto;" }
-![](assets/logo_default_white.png#only-dark){ width="60%" style="display: block; margin: 0 auto;" }
+<br>
+<br>
+<br>
+![](assets/logo_default_black.png#only-light){ width="15%" style="display: block; margin: 0 auto;" }
+![](assets/logo_default_white.png#only-dark){ width="15%" style="display: block; margin: 0 auto;" }
 
 <!-- the different title line use styles defined in the extras.css file -->
 <p class="title-ctr-b4">

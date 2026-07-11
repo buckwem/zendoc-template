@@ -5,6 +5,25 @@
 
 # zendoc-template - A zensical template for academic coursework reports and assignments
 
+<p align="center">
+  <a href="https://github.com/buckwem/zendoc-template/actions"><img
+    src="https://github.com/buckwem/zendoc-template/actions/workflows/docs.yml/badge.svg"
+    alt="Build"
+  /></a>
+  <a href="https://github.com/buckwem/zendoc-template/releases"><img
+    src="https://img.shields.io/github/downloads/buckwem/zendoc-template/total?label=Downloads"
+    alt="Downloads"
+  /></a>
+  <a href="https://github.com/buckwem/zendoc-template/stargazers"><img
+    src="https://img.shields.io/github/stars/buckwem/zendoc-template?style=flat&logo=github&label=Stars"
+    alt="GitHub Stars"
+  /></a>
+  <a href="https://github.com/buckwem/zendoc-template/forks"><img
+    src="https://img.shields.io/github/forks/buckwem/zendoc-template?style=flat&logo=github&label=Forks"
+    alt="GitHub Forks"
+  /></a>
+</p>
+
 A documentation-as-code template for writing coursework reports and assignments in Markdown. Write once, publish twice: the same content builds into both a browsable website and a single-file PDF you can hand in.
 
 Built on [Zensical](https://zensical.org/), a static site generator, with a companion build script that renders the same site to PDF via [Pandoc](https://pandoc.org/) and [WeasyPrint](https://weasyprint.org/).

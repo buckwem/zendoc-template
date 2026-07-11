@@ -150,6 +150,21 @@ def _heading_numbering_enabled():
     return bool(extra.get('heading_numbering', True))
 
 
+def _reference_style():
+    """Reads project.extra.reference_style from zensical.toml (defaults to "european").
+    Returns "global" only when explicitly set to that value; anything else falls
+    back to "european", so typos default to the current/default look rather than
+    silently doing nothing."""
+    config_path = Path('zensical.toml')
+    if not config_path.exists():
+        return 'european'
+    config = toml.load(config_path)
+    project = config.get('project', {}) if isinstance(config.get('project'), dict) else {}
+    extra = project.get('extra', {}) if isinstance(project.get('extra'), dict) else {}
+    style = str(extra.get('reference_style', 'european')).strip().lower()
+    return 'global' if style == 'global' else 'european'
+
+
 def _heading_start_counts():
     """Maps each nav markdown file (relative to docs_dir) to the cumulative count of
     top-level headings on every page before it in nav order, so that heading numbering
@@ -279,6 +294,32 @@ def define_env(env):
             '<style>\n'
             f'  .md-typeset {{ counter-reset: h1-count {n} !important; }}\n'
             f'  .md-nav--primary {{ counter-reset: toc1 {n + 1} !important; }}\n'
+            '</style>'
+        )
+
+    @env.macro
+    def reference_style():
+        """Controls the layout of .reference paragraphs on the References page
+        (see docs/references.md). The default look (extra.css's
+        `.md-typeset p.reference + p.reference` rule) is the "european" style:
+        single line spacing throughout, no indent, entries close together. Set
+        project.extra.reference_style = "global" in zensical.toml to switch to
+        the common APA/MLA/Chicago style instead - single line spacing within
+        each entry, but double spacing *between* entries, with a 0.5in/1.27cm
+        hanging indent on wrapped lines - this overrides extra.css's rule for
+        the whole page. Usage: place `{{ reference_style() }}` once near the
+        top of the references page."""
+        if _reference_style() != 'global':
+            return ''
+        return (
+            '<style>\n'
+            '  .md-typeset p.reference {\n'
+            '    padding-left: 1.27cm !important;\n'
+            '    text-indent: -1.27cm !important;\n'
+            '  }\n'
+            '  .md-typeset p.reference + p.reference {\n'
+            '    margin-top: 2em !important;\n'
+            '  }\n'
             '</style>'
         )
 

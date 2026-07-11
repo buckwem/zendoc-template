@@ -1448,9 +1448,14 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
         border-top: 1px solid #e2e8f0 !important;
         padding-top: 8px !important;
         margin-top: 3mm !important;
-        width: 85% !important;
+        width: 80% !important;
         text-align: left !important;
     }
+    /* 20% (not the previous 15%) so "Page X of Y" has room to stay on one
+       line once the page count reaches 3 digits - at 15% wide, e.g. "Page
+       98 of 999" already wrapped onto two lines (digit glyph widths vary,
+       so this isn't a clean "3 digits" cutoff - some 2-digit page numbers
+       hit it too). Verified up to a 999-page document at this width. */
     @bottom-right {
         content: "Page " counter(page) " of " counter(pages) !important;
         font-family: "__MAIN_FONT__", sans-serif !important;
@@ -1460,7 +1465,7 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
         border-top: 1px solid #e2e8f0 !important;
         padding-top: 8px !important;
         margin-top: 3mm !important;
-        width: 15% !important;
+        width: 20% !important;
         text-align: right !important;
     }
 }

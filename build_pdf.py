@@ -269,7 +269,132 @@ def convert_reference_attr_list_paragraphs(content):
 
     return pattern.sub(replacer, content)
 
-def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, is_index=False):
+def build_page_anchor_map(md_files):
+    """Maps each nav markdown file (relative to docs_dir, e.g.
+    "starthere/installtooling.md") to a deterministic anchor id (e.g.
+    "page-starthere-installtooling"), used by tag_first_heading() and
+    rewrite_internal_md_links() below to fix issue #16: build_pdf.py
+    concatenates every page into one PDF document, so a link like
+    installtooling.md that resolves fine on the website (a separate page)
+    has nothing to point at in the PDF - Pandoc treats it as a link to an
+    external file at whatever absolute path the PDF happened to be built
+    from. Rewriting such links to in-document anchors instead fixes that."""
+    page_anchor_map = {}
+    for f in md_files:
+        key = os.path.normpath(f).replace('\\', '/')
+        slug = re.sub(r'[^a-z0-9]+', '-', key.lower().rsplit('.', 1)[0]).strip('-')
+        page_anchor_map[key] = f'page-{slug}'
+    return page_anchor_map
+
+def _walk_outside_fences(content, line_handler):
+    """Shared fence-aware line-by-line walk: calls line_handler(line) for every
+    line outside a fenced code block *and* outside an HTML comment (leaving
+    both untouched), and stops calling it once line_handler returns a truthy
+    "stop" signal. The HTML-comment skip matters because every page's
+    copyright header is a `<!-- ... -->` block, and about half of them write
+    the copyright/SPDX lines inside it with a leading "# " (mimicking a
+    Markdown heading) - without skipping comments, tag_first_heading() below
+    would mistake that line for the page's real title. Used by
+    tag_first_heading() and mirrors the fence-tracking already used elsewhere
+    in this file (e.g. _dashes_to_asterisks_outside_fences)."""
+    lines = content.split('\n')
+    in_fence, fence_char, fence_len = False, None, 0
+    in_comment = False
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if in_fence:
+            close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
+            if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
+                in_fence = False
+            continue
+        if in_comment:
+            if '-->' in line:
+                in_comment = False
+            continue
+        fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
+        if fence_match:
+            in_fence = True
+            fence_char = fence_match.group(1)[0]
+            fence_len = len(fence_match.group(1))
+            continue
+        comment_start = line.find('<!--')
+        if comment_start != -1:
+            if '-->' not in line[comment_start:]:
+                in_comment = True
+            continue
+        result = line_handler(i, line)
+        if result is not None:
+            lines[i] = result
+            break
+    return '\n'.join(lines)
+
+def tag_first_heading(content, anchor):
+    """Gives a page's first top-level heading an explicit #anchor id (unless
+    it already has one), so other pages can link to it by that id once
+    everything is concatenated into a single PDF document. See
+    build_page_anchor_map() / issue #16. If the heading already has a
+    trailing {...} attribute block (e.g. the cover page's {.hidden
+    .unnumbered .unlisted}), the id is inserted into that same block rather
+    than appended as a second, separate {...} block - Pandoc only recognises
+    one attribute block per heading, and a second one is left sitting in the
+    output as literal, visible text instead of being parsed as an id."""
+    def handler(_i, line):
+        if not re.match(r'^#\s+\S', line):
+            return None
+        brace_match = re.search(r'\{([^}]*)\}\s*$', line)
+        if brace_match:
+            if '#' in brace_match.group(1):
+                return line  # already has an explicit id - leave it alone
+            end = brace_match.end(1)
+            return f'{line[:end]} #{anchor}{line[end:]}'
+        return f'{line.rstrip()} {{#{anchor}}}'
+    return _walk_outside_fences(content, handler)
+
+def rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map):
+    """Rewrites relative .md links - e.g. [Install tooling](installtooling.md)
+    or [Skoulikari, 2023](references.md#skou2023) - into in-document anchor
+    links (#page-anchor or the existing #fragment) that resolve correctly once
+    every page has been concatenated into one PDF (see build_page_anchor_map()
+    / issue #16). A fragment on the original link (an id that already exists
+    somewhere in the document, whether Pandoc's own auto-generated heading id
+    or one we assign explicitly, e.g. via convert_reference_attr_list_paragraphs)
+    is kept as-is; only the now-meaningless "target.md" file prefix is
+    dropped. Skips fenced code blocks, so example link syntax shown as
+    literal text in the docs (e.g. in zensicalbasics.md) survives unchanged."""
+    current_dir = os.path.dirname(current_docs_rel_path)
+    link_pattern = re.compile(r'\[([^\]]*)\]\(([^)\s]+?\.md)(#[\w-]+)?\)')
+
+    def replace_link(match):
+        text, target, frag = match.group(1), match.group(2), match.group(3)
+        if target.startswith(('http://', 'https://', 'mailto:')):
+            return match.group(0)
+        if frag:
+            return f'[{text}]({frag})'
+        resolved = os.path.normpath(os.path.join(current_dir, target)).replace('\\', '/')
+        anchor = page_anchor_map.get(resolved)
+        if anchor is None:
+            return match.group(0)
+        return f'[{text}](#{anchor})'
+
+    lines = content.split('\n')
+    in_fence, fence_char, fence_len = False, None, 0
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if not in_fence:
+            fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
+            if fence_match:
+                in_fence = True
+                fence_char = fence_match.group(1)[0]
+                fence_len = len(fence_match.group(1))
+            else:
+                lines[i] = link_pattern.sub(replace_link, line)
+        else:
+            close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
+            if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
+                in_fence = False
+    return '\n'.join(lines)
+
+def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, is_index=False):
     """Parses template conditionals, applies global asset filtering, and converts raw shortcodes
     to alphanumeric tokens while ignoring those nested inside code block environments.
     """
@@ -282,6 +407,17 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         parts = content.split('---', 2)
         if len(parts) >= 3:
             content = parts[2]
+
+    # Fixes issue #16: give this page a linkable anchor, and rewrite any
+    # links to *other* pages so they point at that anchor instead of a
+    # "target.md" file path that means nothing once every page is
+    # concatenated into one PDF document. See build_page_anchor_map().
+    docs_dir = config.get('docs_dir', 'docs')
+    current_docs_rel_path = os.path.normpath(os.path.relpath(file_path, docs_dir)).replace('\\', '/')
+    own_anchor = page_anchor_map.get(current_docs_rel_path)
+    if own_anchor:
+        content = tag_first_heading(content, own_anchor)
+    content = rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map)
 
     content = render_mermaid_diagrams(content, temp_build_dir, mermaid_state)
 
@@ -1005,6 +1141,7 @@ def main():
     if not valid_paths:
         print("❌ Error: No valid markdown files found.")
         sys.exit(1)
+    page_anchor_map = build_page_anchor_map(md_files)
 
     calculated_vars = {}
     if os.path.exists('macros.py'):
@@ -1061,7 +1198,7 @@ def main():
         safe_name = path.replace('/', '_').replace('\\', '_')
         temp_out_path = os.path.join(temp_build_dir, safe_name)
         is_index = "index.md" in os.path.basename(path).lower()
-        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, is_index=is_index)
+        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, is_index=is_index)
         processed_paths.append(temp_out_path)
 
     # Fill in the cover page's {WORDCOUNT}/{REPOURL} markers (see index.md),

@@ -3,10 +3,16 @@
 # SPDX-License-Identifier: MIT
 
 """
-Sync the [project] repo_url / repo_name and the [project.theme.icon] repo
-icon in zensical.toml with the actual git remote this checkout is using, so
-that forking/mirroring this template to GitHub, GitLab or Bitbucket doesn't
-leave a stale repo link or the wrong brand icon behind.
+Sync repo-hosting-specific metadata with the actual git remote this checkout
+is using, so that forking/mirroring this template to GitHub, GitLab or
+Bitbucket doesn't leave stale links, the wrong brand icon, or the wrong
+README badges behind:
+
+- [project] repo_url / repo_name and [project.theme.icon] repo in
+  zensical.toml.
+- The README badge row (Build / Stars / Forks) between the
+  "repo-badges:start" / "repo-badges:end" markers - GitHub and GitLab each
+  get badges pointing at their own APIs; other hosts are left as-is.
 
 Run manually after changing the "origin" remote, or wire it into CI to run
 before "zensical build".
@@ -21,12 +27,14 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 TOML_PATH = Path(__file__).parent / "zensical.toml"
+README_PATH = Path(__file__).parent / "README.md"
+DEFAULT_BRANCH = "main"
 
-# Host substring -> (FontAwesome brand icon, display label)
+# Host substring -> (kind, FontAwesome brand icon, display label)
 HOST_ICON_MAP = [
-    ("github.com", "fontawesome/brands/github", "GitHub"),
-    ("gitlab", "fontawesome/brands/gitlab", "GitLab"),
-    ("bitbucket.org", "fontawesome/brands/bitbucket", "Bitbucket"),
+    ("github.com", "github", "fontawesome/brands/github", "GitHub"),
+    ("gitlab", "gitlab", "fontawesome/brands/gitlab", "GitLab"),
+    ("bitbucket.org", "bitbucket", "fontawesome/brands/bitbucket", "Bitbucket"),
 ]
 DEFAULT_ICON = "fontawesome/brands/git-alt"
 
@@ -60,12 +68,13 @@ def parse_remote(url: str) -> tuple[str, str, str]:
     return host, owner, repo_name
 
 
-def icon_for_host(host: str) -> tuple[str, str]:
+def icon_for_host(host: str) -> tuple[str, str, str]:
+    """Return (kind, icon, label) for a git remote host."""
     host_lower = host.lower()
-    for needle, icon, label in HOST_ICON_MAP:
+    for needle, kind, icon, label in HOST_ICON_MAP:
         if needle in host_lower:
-            return icon, label
-    return DEFAULT_ICON, host
+            return kind, icon, label
+    return "other", DEFAULT_ICON, host
 
 
 def update_toml(text: str, repo_url: str, repo_name: str, icon: str) -> tuple[str, list[str]]:
@@ -100,6 +109,59 @@ def update_toml(text: str, repo_url: str, repo_name: str, icon: str) -> tuple[st
     return text, changes
 
 
+def badges_for_host(kind: str, owner: str, repo_name: str) -> str | None:
+    """Return the README badge-row markup for a given host kind, or None if
+    the host has no known badge set (left untouched in that case)."""
+    if kind == "github":
+        return (
+            f'<p align="center">\n'
+            f'  <a href="https://github.com/{owner}/{repo_name}/actions"><img\n'
+            f'    src="https://github.com/{owner}/{repo_name}/actions/workflows/docs.yml/badge.svg"\n'
+            f'    alt="Build"\n'
+            f'  /></a>\n'
+            f'  <a href="https://github.com/{owner}/{repo_name}/stargazers"><img\n'
+            f'    src="https://img.shields.io/github/stars/{owner}/{repo_name}?style=flat&logo=github&label=Stars"\n'
+            f'    alt="GitHub Stars"\n'
+            f'  /></a>\n'
+            f'  <a href="https://github.com/{owner}/{repo_name}/forks"><img\n'
+            f'    src="https://img.shields.io/github/forks/{owner}/{repo_name}?style=flat&logo=github&label=Forks"\n'
+            f'    alt="GitHub Forks"\n'
+            f'  /></a>\n'
+            f"</p>"
+        )
+    if kind == "gitlab":
+        path = f"{owner}/{repo_name}"
+        encoded = f"{owner}%2F{repo_name}"
+        return (
+            f'<p align="center">\n'
+            f'  <a href="https://gitlab.com/{path}/-/pipelines"><img\n'
+            f'    src="https://img.shields.io/gitlab/pipeline-status/{encoded}?branch={DEFAULT_BRANCH}&label=Build"\n'
+            f'    alt="Build"\n'
+            f'  /></a>\n'
+            f'  <a href="https://gitlab.com/{path}"><img\n'
+            f'    src="https://img.shields.io/gitlab/stars/{encoded}?style=flat&logo=gitlab&label=Stars"\n'
+            f'    alt="GitLab Stars"\n'
+            f'  /></a>\n'
+            f'  <a href="https://gitlab.com/{path}/-/forks"><img\n'
+            f'    src="https://img.shields.io/gitlab/forks/{encoded}?style=flat&logo=gitlab&label=Forks"\n'
+            f'    alt="GitLab Forks"\n'
+            f'  /></a>\n'
+            f"</p>"
+        )
+    return None
+
+
+def update_readme(text: str, badges: str) -> tuple[str, bool]:
+    pattern = re.compile(
+        r"(<!-- repo-badges:start.*?-->\n).*?(\n<!-- repo-badges:end -->)",
+        re.DOTALL,
+    )
+    if not pattern.search(text):
+        raise ValueError("Could not find repo-badges markers in README.md")
+    new_text, count = pattern.subn(rf"\1{badges}\2", text)
+    return new_text, new_text != text
+
+
 def main() -> int:
     try:
         remote_url = get_remote_url()
@@ -113,17 +175,29 @@ def main() -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    icon, label = icon_for_host(host)
+    kind, icon, label = icon_for_host(host)
     repo_url = f"https://{host}/{owner}/{repo_name}"
 
-    original = TOML_PATH.read_text()
-    updated, changes = update_toml(original, repo_url, repo_name, icon)
+    original_toml = TOML_PATH.read_text()
+    updated_toml, changes = update_toml(original_toml, repo_url, repo_name, icon)
+    if changes:
+        TOML_PATH.write_text(updated_toml)
+
+    badges = badges_for_host(kind, owner, repo_name)
+    readme_changed = False
+    if badges is not None:
+        original_readme = README_PATH.read_text()
+        updated_readme, readme_changed = update_readme(original_readme, badges)
+        if readme_changed:
+            README_PATH.write_text(updated_readme)
+            changes.append("README badges")
+    else:
+        print(f"note: no known README badge set for {label}; README left unchanged")
 
     if not changes:
-        print(f"zensical.toml already in sync with {label} remote ({repo_url})")
+        print(f"zensical.toml and README.md already in sync with {label} remote ({repo_url})")
         return 0
 
-    TOML_PATH.write_text(updated)
     print(f"Detected {label} remote ({repo_url}); updated: {', '.join(changes)}")
     return 0
 

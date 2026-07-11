@@ -47,6 +47,7 @@ jobs:
       - run: npm ci --prefix tools/mermaid
       - run: npm ci --prefix tools/mathjax
       - run: pip install -r requirements.txt
+      - run: python sync_repo_icon.py
       - run: python build_pdf.py
       - run: zensical build --clean
       - uses: actions/upload-pages-artifact@v4

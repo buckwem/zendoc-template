@@ -26,6 +26,7 @@ pages:
     - npm ci --prefix tools/mermaid
     - npm ci --prefix tools/mathjax
     - pip install -r requirements.txt
+    - python sync_repo_icon.py
     - python build_pdf.py
     - zensical build --clean
   pages:

@@ -342,7 +342,7 @@ toggle.name = "Switch to light mode"
 [project.theme.icon]
 edit = "lucide/pencil"
 view = "lucide/eye"
-repo = "fontawesome/brands/gitlab"
+repo = "fontawesome/brands/github"
 
 [project.theme.icon.admonition]
 note = "fontawesome/solid/note-sticky"

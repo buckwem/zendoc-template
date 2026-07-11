@@ -71,6 +71,10 @@ See [Directory structure](docs/starthere/customise.md#directory-structure) in th
 
 Before you submit, follow [Finalising your document](docs/starthere/customise.md#finalising-your-document) to remove the "Start Here" section from `nav` in `zensical.toml` (and optionally delete `docs/starthere/`), and update this README to describe your own report.
 
+## Contributing
+
+Contributions to the template itself are welcome - see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ## License
 
 MIT - see [`LICENSE`](LICENSE).

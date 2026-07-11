@@ -3,7 +3,6 @@
 
 import os
 import re
-from bs4 import BeautifulSoup
 import subprocess
 import shutil
 from pathlib import Path
@@ -250,29 +249,6 @@ def define_env(env):
     except FileNotFoundError as e:
         print(f"[Zensical Startup Warning] Could not copy logos: {e}")
         print("Please ensure logo_surrey_*.png and logo_default_*.png exist in docs/assets/")
-
-    # ==========================================
-    # 3. CUSTOM MACROS
-    # ==========================================
-    @env.macro
-    def copy_file(source: str, destination: str):
-        """Copies a resource to the specified destination path during build time.
-        Useful for including images, PDFs, or other assets in your documentation.
-        or to override default assets in the template (like logos or favicons)."""
-        src_path = Path(source)
-        dest_path = Path(destination)
-        
-        if not src_path.exists():
-            return f"**Macro Error:** Source file `{source}` not found."
-            
-        # Automatically make parent directories if they don't exist yet
-        dest_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Copy the file (shutil.copy2 preserves metadata)
-        shutil.copy2(src_path, dest_path)
-        
-        # Return a silent HTML comment so it doesn't print text on your page
-        return f""
 
     @env.macro
     def heading_counter_reset(page):

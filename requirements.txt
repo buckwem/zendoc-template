@@ -6,6 +6,7 @@ zensical
 mkdocstrings-python
 pandoc
 toml
+types-toml
 weasyprint
 beautifulsoup4
 emoji

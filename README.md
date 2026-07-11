@@ -6,6 +6,14 @@
 # zendoc-template - A zensical template for academic coursework reports and assignments
 
 <p align="center">
+  <a href="https://github.com/buckwem/zendoc-template/actions"><img
+    src="https://github.com/buckwem/zendoc-template/actions/workflows/docs.yml/badge.svg"
+    alt="Build"
+  /></a>
+  <a href="https://github.com/buckwem/zendoc-template/releases"><img
+    src="https://img.shields.io/github/downloads/buckwem/zendoc-template/total?label=Downloads"
+    alt="Downloads"
+  /></a>
   <a href="https://github.com/buckwem/zendoc-template/stargazers"><img
     src="https://img.shields.io/github/stars/buckwem/zendoc-template?style=flat&logo=github&label=Stars"
     alt="GitHub Stars"

@@ -245,8 +245,9 @@ def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
     )
 
 def convert_reference_attr_list_paragraphs(content):
-    """Converts docs/references.md's and docs/acronyms.md's `paragraph\n{: #id .class }`
-    entries - Python-Markdown's attr_list syntax, understood natively by the website -
+    """Converts docs/references.md's, docs/acronyms.md's, and docs/glossary.md's
+    `paragraph\n{: #id .class }` entries - Python-Markdown's attr_list syntax,
+    understood natively by the website -
     into `<p id="id" class="class" markdown="1">paragraph</p>` blocks instead,
     since Pandoc (used for the PDF) has no idea what a standalone `{: ... }`
     line means and would otherwise leave it sitting in the output as literal,
@@ -492,10 +493,10 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     # otherwise leak through as-is into the PDF).
     content = re.sub(r'\{\{\s*nav_snippet\(\s*\)\s*\}\}', lambda _: nav_snippet_text, content)
 
-    # References and acronyms pages only: rewrite attr_list `{: #id .class }`
-    # entries into Pandoc-compatible raw HTML (see
+    # References, acronyms, and glossary pages only: rewrite attr_list
+    # `{: #id .class }` entries into Pandoc-compatible raw HTML (see
     # convert_reference_attr_list_paragraphs).
-    if os.path.basename(file_path) in ('references.md', 'acronyms.md'):
+    if os.path.basename(file_path) in ('references.md', 'acronyms.md', 'glossary.md'):
         content = convert_reference_attr_list_paragraphs(content)
 
     # AUTOMATED VIDEO EMBEDDING INTERCEPTOR ENGINE
@@ -1839,8 +1840,16 @@ p.acronym + p.acronym {
 }
 """
 
+    # PDF equivalent of extra.css's ".md-typeset p.glossary + p.glossary" rule
+    # (see docs/glossary.md) - same reasoning as reference_style_css above.
+    glossary_style_css = """
+p.glossary + p.glossary {
+    margin-top: -0.8em !important;
+}
+"""
+
     with open(temp_compiled_css, "w", encoding="utf-8") as f:
-        f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css + "\n\n" + acronym_style_css)
+        f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css + "\n\n" + acronym_style_css + "\n\n" + glossary_style_css)
 
     cmd = [
         "pandoc",

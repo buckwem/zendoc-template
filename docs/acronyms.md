@@ -13,10 +13,10 @@ icon: lucide/book-open
 
 The following acronyms and abbreviations are used throughout this document.
 
-**CI/CD** - Continuous Integration/Continuous Deployment
+**CI/CD** - Continuous Integration/Continuous Deployment. See the [glossary](glossary.md#cicd-def) for what this means in practice.
 {: #ci-cd .acronym }
 
-**CSS** - Cascading Style Sheets
+**CSS** - Cascading Style Sheets. See the [glossary](glossary.md#css-def) for what this means in practice.
 {: #css .acronym }
 
 **DCO** - Developer Certificate of Origin
@@ -28,13 +28,13 @@ The following acronyms and abbreviations are used throughout this document.
 **HTML** - HyperText Markup Language
 {: #html .acronym }
 
-**PAT** - Personal Access Token
+**PAT** - Personal Access Token. See the [glossary](glossary.md#pat-def) for what this means in practice.
 {: #pat .acronym }
 
-**PDF** - Portable Document Format
+**PDF** - Portable Document Format. See the [glossary](glossary.md#pdf-def) for what this means in practice.
 {: #pdf .acronym }
 
-**SSH** - Secure Shell
+**SSH** - Secure Shell. See the [glossary](glossary.md#ssh-def) for what this means in practice.
 {: #ssh .acronym }
 
 **TOML** - Tom's Obvious, Minimal Language

@@ -31,5 +31,9 @@ Above is an example of using acronyms in a document. The acronym is linked to th
 
 ## SubSection
 
+This document is written in [Markdown](glossary.md#markdown-def), then converted into the website and PDF you're reading.
+
+Above is an example of using a glossary in a document. The term is linked to the glossary section of the document, which is automatically generated from the glossary.md file.
+
 ### SubSubSection
 

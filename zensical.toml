@@ -66,21 +66,23 @@ nav = [
     {"2. Section" = "section1.md"},
     {"3. Section" = "section2.md"},
     {"4. Section" = "section3.md"},
-    {"5. Section" = "section4.md"},
-    {"6. Acronyms" = "acronyms.md"},
-    {"7. Glossary" = "glossary.md"},
-    {"8. References" = "references.md"}
+    {"5. Section" = "section4.md"}
+  ]},
+  {"Appendixes" = [
+    {"Appendix A. Acronyms" = "acronyms.md"},
+    {"Appendix B. Glossary" = "glossary.md"},
+    {"Appendix C. References" = "references.md"}
   # Comment out the START HERE section (5 lines) before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.
   ]},
     {"START HERE" = [
-      {"9. Start Here" = "starthere/starthere.md"},
-      {"10. Install tooling" = "starthere/installtooling.md"},
-      {"11. Start editing" = "starthere/startediting.md"},
-      {"12. Markdown basics" = "starthere/markdown.md"},
-      {"13. Zensical basics" = "starthere/zensicalbasics.md"},
-      {"14. Customisation" = "starthere/customise.md"},
-      {"15. Additional tooling" = "starthere/additionaltooling.md"},
-      {"16. Shell commands" = "starthere/shcommands.md"},
+      {"6. Start Here" = "starthere/starthere.md"},
+      {"7. Install tooling" = "starthere/installtooling.md"},
+      {"8. Start editing" = "starthere/startediting.md"},
+      {"9. Markdown basics" = "starthere/markdown.md"},
+      {"10. Zensical basics" = "starthere/zensicalbasics.md"},
+      {"11. Customisation" = "starthere/customise.md"},
+      {"12. Additional tooling" = "starthere/additionaltooling.md"},
+      {"13. Shell commands" = "starthere/shcommands.md"},
   # Comment out until here before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.
   ]}
 ]

@@ -78,12 +78,9 @@ def _count_words_in_markdown(path):
     return len(text.split())
 
 
-def _page_excluded_from_word_count(path):
-    """True if path's YAML front matter sets exclude_from_word_count: true -
-    see "Word count" in customise.md. Used to skip pages like References,
-    Acronyms, Glossary, and Originality & AI Use, which conventionally don't
-    count toward a submission's word limit. Mirrors the same check in
-    build_pdf.py, used there for the PDF's {WORDCOUNT} marker."""
+def _front_matter_flag(path, key):
+    """True if path's YAML front matter sets key: true. Shared by
+    _page_excluded_from_word_count() and _page_is_appendix()."""
     try:
         text = Path(path).read_text(encoding='utf-8')
     except OSError:
@@ -93,7 +90,25 @@ def _page_excluded_from_word_count(path):
     parts = text.split('---', 2)
     if len(parts) < 3:
         return False
-    return bool(re.search(r'^exclude_from_word_count:\s*true\s*$', parts[1], re.MULTILINE | re.IGNORECASE))
+    return bool(re.search(rf'^{re.escape(key)}:\s*true\s*$', parts[1], re.MULTILINE | re.IGNORECASE))
+
+
+def _page_excluded_from_word_count(path):
+    """True if path's YAML front matter sets exclude_from_word_count: true -
+    see "Word count" in customise.md. Used to skip pages like References,
+    Acronyms, Glossary, and Originality & AI Use, which conventionally don't
+    count toward a submission's word limit. Mirrors the same check in
+    build_pdf.py, used there for the PDF's {WORDCOUNT} marker."""
+    return _front_matter_flag(path, 'exclude_from_word_count')
+
+
+def _page_is_appendix(path):
+    """True if path's YAML front matter sets is_appendix: true - see
+    "Appendixes" in customise.md. Used to give the page's H1 (and any H2/H3
+    beneath it) letter-based numbering ("Appendix A", "A.1", ...) instead of
+    continuing the document's normal numeric sequence. Mirrors the same
+    check in build_pdf.py, used there for the PDF's Lua numbering filter."""
+    return _front_matter_flag(path, 'is_appendix')
 
 
 def _compute_site_word_count():
@@ -218,7 +233,10 @@ def _get_nav_snippet():
 def _heading_start_counts():
     """Maps each nav markdown file (relative to docs_dir) to the cumulative count of
     top-level headings on every page before it in nav order, so that heading numbering
-    can continue seamlessly from one page to the next, the same way it does in the PDF."""
+    can continue seamlessly from one page to the next, the same way it does in the PDF.
+    Appendix pages (see _page_is_appendix()) are skipped entirely - they get their own
+    letter-based numbering instead (see _appendix_letters()), and don't consume a number
+    from this sequence, so pages after them aren't left with a gap."""
     config_path = Path('zensical.toml')
     if not config_path.exists():
         return {}
@@ -231,8 +249,31 @@ def _heading_start_counts():
     running_total = 0
     for rel_path in _extract_nav_md_files(nav):
         starts[rel_path] = running_total
-        running_total += _count_top_level_headings(docs_dir / rel_path)
+        if not _page_is_appendix(docs_dir / rel_path):
+            running_total += _count_top_level_headings(docs_dir / rel_path)
     return starts
+
+
+def _appendix_letters():
+    """Maps each appendix-flagged nav page (see _page_is_appendix()) to its
+    letter - A for the first appendix page in nav order, B for the second,
+    and so on - regardless of how many numbered sections precede it. Mirrors
+    the PDF Lua filter's own sequential appendix counter."""
+    config_path = Path('zensical.toml')
+    if not config_path.exists():
+        return {}
+    config = toml.load(config_path)
+    project = config.get('project', {}) if isinstance(config.get('project'), dict) else {}
+    nav = project.get('nav') or config.get('nav') or []
+    docs_dir = Path(config.get('docs_dir', 'docs'))
+
+    letters = {}
+    index = 0
+    for rel_path in _extract_nav_md_files(nav):
+        if _page_is_appendix(docs_dir / rel_path):
+            index += 1
+            letters[rel_path] = chr(ord('A') + index - 1)
+    return letters
 
 
 def define_env(env):
@@ -325,7 +366,16 @@ def define_env(env):
         Usage: place `{{ heading_counter_reset(page) }}` near the top of each page;
         nothing else needs to change when you reorder pages or add/remove headings.
         Set project.extra.heading_numbering = false in zensical.toml to turn
-        numbering off entirely (content and sidebar) across the whole site."""
+        numbering off entirely (content and sidebar) across the whole site.
+
+        Pages flagged is_appendix: true (see "Appendixes" in customise.md) get
+        letter-based numbering instead - "Appendix A", "A.1", "A.1.1" - via
+        _appendix_letters(), and don't advance or consume the normal numeric
+        sequence at all. Since the letter is already known here, this bakes it
+        into the override CSS as a literal string rather than using CSS's own
+        counter(name, upper-alpha) styling - simpler, and it keeps the sidebar
+        table of contents (which can't easily mix a letter into a counter()
+        expression built for numbers) working the same way."""
         if not _heading_numbering_enabled():
             return (
                 '<style>\n'
@@ -338,8 +388,20 @@ def define_env(env):
                 '  }\n'
                 '</style>'
             )
+        page_path = getattr(page, 'path', '')
+        letter = _appendix_letters().get(page_path)
+        if letter:
+            return (
+                '<style>\n'
+                f'  .md-typeset h1::before {{ content: "Appendix {letter}. " !important; }}\n'
+                f'  .md-typeset h2::before {{ content: "{letter}." counter(h2-count) " " !important; }}\n'
+                f'  .md-typeset h3::before {{ content: "{letter}." counter(h2-count) "." counter(h3-count) " " !important; }}\n'
+                f'  .md-nav--secondary > .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {{ content: "{letter}." counter(toc2) " " !important; }}\n'
+                f'  .md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {{ content: "{letter}." counter(toc2) "." counter(toc3) " " !important; }}\n'
+                '</style>'
+            )
         starts = _heading_start_counts()
-        n = starts.get(getattr(page, 'path', ''), 0)
+        n = starts.get(page_path, 0)
         return (
             '<style>\n'
             f'  .md-typeset {{ counter-reset: h1-count {n} !important; }}\n'

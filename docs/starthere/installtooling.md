@@ -350,7 +350,7 @@ Cloning the documentation template creates a local copy of the template on your 
 | Can you push to it? | Yes | Yes (if you have write access to the remote source) |
 | Primary purpose | To propose changes to a project you don't own | To actually do development work, write code, and make commits |
 /// caption
-Table 10.3-1: Fork and Clone Comparison at a Glance
+Table 7.3-1: Fork and Clone Comparison at a Glance
 ///
 
 The features of forking and cloning are complementary. You can fork a repository to create your own copy on the remote host, and then clone that fork to your local machine to work on it. The standard workflow is:
@@ -388,7 +388,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
             
                 ![Image title](images/gitlab-fork-project.png){ width=70% }
                 /// caption
-                Figure 10.3.1-1: GitLab fork project
+                Figure 7.3.1-1: GitLab fork project
                 ///
            
             2. Enter your *Project name* using the format the coursework specifies. For example, for coursework 1 for the module COMM058 in the year 2026 for your GitLab ID az1234, enter 'cw1-az1234' in the project name field. Edit the *Project slug* to match the project name. Use all lowercase and a dash between words with no spaces.

@@ -89,11 +89,11 @@ This document template's documentation covers the following sections, in the ord
 
 `Zensical basics`
 
-: The [*Zensical basics*](./zensicalbasics.md) section describes the principles of Zensical and how to use it to create and manage your documentation.
+: The [*Zensical basics*](./zensicalbasics.md) section describes the principles of Zensical and how to use it to create and manage your documentation - the same general-purpose features available on any Zensical site.
 
 `Customise`
 
-: The [*Customise*](./customise.md) section discusses how to configure this template to give it different style and layout to meet your specific needs.
+: The [*Customise*](./customise.md) section discusses how to configure this template to give it different style and layout to meet your specific needs. Unlike *Zensical basics*, everything here is specific to this template - features `macros.py` and `build_pdf.py` add on top of Zensical (heading numbering, the references page pattern, Surrey/generic branding, and more) that don't exist in a stock Zensical project.
 
 `Additional tooling`
 

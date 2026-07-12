@@ -13,6 +13,9 @@ icon: lucide/book-open
 
 A small number of files control almost every visible part of this template - the website, the cover page, and the generated PDF: `zensical.toml` for configuration, `macros.py` for build-time logic, and `docs/stylesheets/extra.css`/`print.css` for appearance. This section walks through each of these in turn: customising the website's branding and behaviour, restructuring the document itself, customising the cover page, and adjusting the PDF's page layout. It ends with a full map of the template's directory structure, so you know where everything lives.
 
+!!! info "zendoc-specific features"
+    Where [Zensical basics](zensicalbasics.md) is a quick reference for Zensical's own general-purpose Markdown extensions (the same ones you'd find on any Zensical site), everything on this page is specific to this template: features `macros.py` and `build_pdf.py` add on top of Zensical (heading numbering, the references page pattern, Surrey/generic branding, PDF-only/web-only content, and so on) that only exist here, not in a stock Zensical project.
+
 ## Customise the web site
 
 Most website-wide settings live in `zensical.toml`, in the `[project]` and `[project.theme]` sections. The sections below describe the most commonly customised ones; see the [Zensical setup documentation](https://zensical.org/docs/setup/) for the full reference.

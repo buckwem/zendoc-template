@@ -199,6 +199,12 @@ SPDX-License-Identifier: MIT
   margin-top: -0.8em;
 }
 
+/* Used by docs/glossary.md - same reasoning as the reference entries
+   above, applied to the glossary list instead. */
+.md-typeset p.glossary + p.glossary {
+  margin-top: -0.8em;
+}
+
 /* ============================================================= */
 /* ============= Styles for text background colour ============= */
 /* ============================================================= */

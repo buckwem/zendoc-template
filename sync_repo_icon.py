@@ -77,7 +77,27 @@ def icon_for_host(host: str) -> tuple[str, str, str]:
     return "other", DEFAULT_ICON, host
 
 
-def update_toml(text: str, repo_url: str, repo_name: str, icon: str) -> tuple[str, list[str]]:
+def edit_uri_for_host(kind: str, docs_dir: str) -> str | None:
+    """Return the edit_uri to set for a given host kind, or None if the host
+    isn't one this template knows how to link into (in which case edit_uri
+    is left unset, and Zensical's "edit"/"view source" page buttons simply
+    don't appear - the same as Zensical's own built-in behaviour for an
+    unrecognised host).
+
+    Zensical falls back to its own built-in default (f"edit/master/{docs_dir}")
+    whenever edit_uri isn't set explicitly - hardcoding the "master" branch
+    name regardless of the repo's actual default branch, and only for an
+    exact "github.com"/"gitlab.com" host match (so a self-hosted GitLab
+    instance like Surrey's gets no default at all). This sets edit_uri
+    explicitly instead, using DEFAULT_BRANCH and matching by host kind (see
+    icon_for_host()) so a self-hosted GitLab instance is covered too - see
+    issue #40."""
+    if kind in ("github", "gitlab"):
+        return f"edit/{DEFAULT_BRANCH}/{docs_dir.strip('/')}/"
+    return None
+
+
+def update_toml(text: str, repo_url: str, repo_name: str, icon: str, edit_uri: str | None) -> tuple[str, list[str]]:
     changes = []
 
     def replace_once(pattern: str, replacement: str, label: str, src: str) -> str:
@@ -106,6 +126,27 @@ def update_toml(text: str, repo_url: str, repo_name: str, icon: str) -> tuple[st
         "theme.icon.repo",
         text,
     )
+
+    if edit_uri is not None:
+        edit_uri_line = f'edit_uri = "{edit_uri}"'
+        if re.search(r'^edit_uri = ".*"$', text, flags=re.MULTILINE):
+            text = replace_once(r'^edit_uri = ".*"$', edit_uri_line, "edit_uri", text)
+        else:
+            # First run on a checkout that predates this setting - insert it
+            # right after repo_name rather than requiring it to already exist.
+            new_text, count = re.subn(
+                r'^(repo_name = ".*")$',
+                r'\1\n' + edit_uri_line,
+                text,
+                count=1,
+                flags=re.MULTILINE,
+            )
+            if count == 0:
+                raise ValueError("Could not find repo_name to insert edit_uri after in zensical.toml")
+            if new_text != text:
+                changes.append("edit_uri")
+            text = new_text
+
     return text, changes
 
 
@@ -179,7 +220,10 @@ def main() -> int:
     repo_url = f"https://{host}/{owner}/{repo_name}"
 
     original_toml = TOML_PATH.read_text()
-    updated_toml, changes = update_toml(original_toml, repo_url, repo_name, icon)
+    docs_dir_match = re.search(r'^docs_dir\s*=\s*"([^"]*)"', original_toml, re.MULTILINE)
+    docs_dir = docs_dir_match.group(1) if docs_dir_match else "docs"
+    edit_uri = edit_uri_for_host(kind, docs_dir)
+    updated_toml, changes = update_toml(original_toml, repo_url, repo_name, icon, edit_uri)
     if changes:
         TOML_PATH.write_text(updated_toml)
 

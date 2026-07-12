@@ -386,6 +386,33 @@ The PDF also reuses your website's theme fonts (body copy, headings, and the hea
 !!! note
     The cover page (`docs/index.md`) never shows the running header or footer, and heading numbering (e.g. "11.4") is a separate setting - see [Changing heading numbering](#changing-heading-numbering).
 
+### Captions
+
+The [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-lists)-based `<figure>`/`<figcaption>` pattern in [Zensical basics](zensicalbasics.md#images) works for images, but this template also enables `pymdownx.blocks.caption` (`[project.markdown_extensions.pymdownx.blocks.caption]` in `zensical.toml`), a `/// caption ... ///` block that captions *either* an image *or* a table - and, unlike the `<figure>` approach, works correctly in the PDF too. It's already used throughout this template's own "Start Here" pages, for example:
+
+``` markdown
+| Who owns the target? | You (it's copied to your account) | You (it's on your machine) |
+| ...
+
+/// caption
+Table 7.3-1: Fork and Clone Comparison at a Glance
+///
+```
+
+``` markdown
+![GitLab fork project](images/gitlab-fork-project.png){ width=70% }
+/// caption
+Figure 7.3.1-1: GitLab fork project
+///
+```
+
+The caption block always comes *after* the image or table it captions - `pymdownx.blocks.caption` attaches to whichever element immediately precedes it.
+
+!!! info "How the PDF handles this"
+    Like attr_list (see [References and bibliography](#references-and-bibliography)), Pandoc doesn't understand `pymdownx.blocks.caption` syntax at all. `build_pdf.py` translates each caption into something Pandoc does understand, via two separate functions: `zensical_caption_replacer` wraps an image and its caption into a `<figure>`/`<figcaption>` pair; `table_caption_replacer` converts a table caption into Pandoc's own native `Table: ...` syntax, which Pandoc renders as a real `<caption>` bound inside the `<table>` element - keeping it from being separated from its table across a page break.
+
+By default, a table's caption appears at the **top** of the table in the PDF, not the bottom - a deliberate choice (`table caption { caption-side: top !important; ... }` in `build_pdf.py`'s compiled stylesheet), on the basis that a reader wants to know what a table is before reading it. This is PDF-only: the live website follows `pymdownx.blocks.caption`'s own default placement instead, so the same source can render slightly differently between the two outputs. To change the PDF's caption position (e.g. back to the bottom), open `build_pdf.py`, search for `caption-side`, and edit that rule.
+
 
 ## Finalising your document
 

@@ -328,6 +328,56 @@ def _walk_outside_fences(content, line_handler):
             break
     return '\n'.join(lines)
 
+def _split_fenced_blocks(text):
+    """Splits text into a list of (is_fenced, segment) tuples, alternating
+    between non-fenced and fenced (```/~~~) content, using the same fence
+    detection as the rest of this file. Used by apply_outside_fences()."""
+    lines = text.split('\n')
+    segments = []
+    current = []
+    in_fence, fence_char, fence_len = False, None, 0
+    for line in lines:
+        stripped = line.strip()
+        if not in_fence:
+            fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
+            if fence_match:
+                if current:
+                    segments.append((False, '\n'.join(current)))
+                current = [line]
+                in_fence = True
+                fence_char = fence_match.group(1)[0]
+                fence_len = len(fence_match.group(1))
+            else:
+                current.append(line)
+        else:
+            current.append(line)
+            close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
+            if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
+                in_fence = False
+                segments.append((True, '\n'.join(current)))
+                current = []
+    if current:
+        segments.append((in_fence, '\n'.join(current)))
+    return segments
+
+def apply_outside_fences(content, transform):
+    """Applies transform(text) -> text only to the portions of content that
+    are outside fenced code blocks, leaving fenced content completely
+    untouched. Needed for regex-based rewrites (e.g. the caption block
+    translation below) that would otherwise also match - and corrupt -
+    example syntax shown as literal text inside a fenced code block in the
+    docs (see docs/starthere/customise.md's "Captions" section, which shows
+    the caption syntax itself as an example). Segments are rejoined with "\n"
+    (not "") - _split_fenced_blocks() strips every newline via text.split(),
+    and each segment's own text only accounts for the newlines *within* it,
+    so the newline originally separating one segment from the next has to be
+    reinserted here, exactly once per boundary, regardless of whether
+    transform() changes a non-fenced segment's own line count."""
+    return '\n'.join(
+        segment if is_fenced else transform(segment)
+        for is_fenced, segment in _split_fenced_blocks(content)
+    )
+
 def tag_first_heading(content, anchor):
     """Gives a page's first top-level heading an explicit #anchor id (unless
     it already has one), so other pages can link to it by that id once
@@ -490,12 +540,12 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
             f"{indent}</figure>\n\n"
         )
 
-    content = re.sub(
+    content = apply_outside_fences(content, lambda text: re.sub(
         r'^([ \t]*)!\[([^\]]*)\]\(([^)]*)\)(?:\{([^}]*)\})?[ \t]*\n(?:[ \t]*\n)*\1///\s*caption\s*\n(.*?)\n\1///',
         zensical_caption_replacer,
-        content,
+        text,
         flags=re.MULTILINE | re.DOTALL
-    )
+    ))
 
     # AUTOMATED ZENSICAL TABLE CAPTION TRANSLATION ENGINE
     # Converts a caption block following a table into Pandoc's native table-caption
@@ -510,12 +560,12 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         caption_body = match.group(3).strip()
         return f"{table_lines}\nTable: {caption_body}\n\n"
 
-    content = re.sub(
+    content = apply_outside_fences(content, lambda text: re.sub(
         r'((?:^[ \t]*\|[^\n]*\n)+)(?:[ \t]*\n)*^([ \t]*)///\s*caption\s*\n(.*?)\n\2///[ \t]*\n?',
         table_caption_replacer,
-        content,
+        text,
         flags=re.MULTILINE | re.DOTALL
-    )
+    ))
 
     # GLOBAL LOCAL ASSET BASE64 ENCODING ENGINE
     def to_base64_data_uri(img_src, base_dir):
@@ -643,7 +693,13 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     def md_img_replacer(match):
         alt, src = match.group(1), match.group(2)
         return f"![{alt}]({to_base64_data_uri(src, os.path.dirname(file_path))})"
-    content = re.sub(r'!\[([^\]]*)\]\(((?!data:)[^)]+)\)', md_img_replacer, content)
+    # Fence-aware (see apply_outside_fences): otherwise an example showing
+    # ![...](...)  syntax as literal text inside a fenced code block (e.g.
+    # docs/starthere/customise.md's "Captions" section) gets "helpfully"
+    # resolved to a real file and inlined as a base64 data URI instead.
+    content = apply_outside_fences(content, lambda text: re.sub(
+        r'!\[([^\]]*)\]\(((?!data:)[^)]+)\)', md_img_replacer, text
+    ))
 
     # Encode all inline standard HTML image references directly into the body
     def html_img_replacer(match):

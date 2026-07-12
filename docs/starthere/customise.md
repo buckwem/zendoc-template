@@ -13,6 +13,9 @@ icon: lucide/book-open
 
 A small number of files control almost every visible part of this template - the website, the cover page, and the generated PDF: `zensical.toml` for configuration, `macros.py` for build-time logic, and `docs/stylesheets/extra.css`/`print.css` for appearance. This section walks through each of these in turn: customising the website's branding and behaviour, restructuring the document itself, customising the cover page, and adjusting the PDF's page layout. It ends with a full map of the template's directory structure, so you know where everything lives.
 
+!!! info "zendoc-specific features"
+    Where [Zensical basics](zensicalbasics.md) is a quick reference for Zensical's own general-purpose Markdown extensions (the same ones you'd find on any Zensical site), everything on this page is specific to this template: features `macros.py` and `build_pdf.py` add on top of Zensical (heading numbering, the references page pattern, Surrey/generic branding, PDF-only/web-only content, and so on) that only exist here, not in a stock Zensical project.
+
 ## Customise the web site
 
 Most website-wide settings live in `zensical.toml`, in the `[project]` and `[project.theme]` sections. The sections below describe the most commonly customised ones; see the [Zensical setup documentation](https://zensical.org/docs/setup/) for the full reference.
@@ -173,21 +176,10 @@ The `nav` list in `zensical.toml` and the heading numbering setting below contro
 
 ### Navigation structure
 
-`nav` (under `[project]` in `zensical.toml`) lists, in order, every page in your document and how they're grouped:
+`nav` (under `[project]` in `zensical.toml`) lists, in order, every page in your document and how they're grouped. Here's this template's own `nav`, right now, as an example - it's pulled directly from `zensical.toml` and updates automatically as you edit it, so it always matches what's actually configured:
 
 ```toml
-nav = [
-  {"Cover" = [
-    "index.md",
-  ]},
-  {"Originality" = [
-    {"1. Originality & AI Use" = "originality.md"}
-  ]},
-  {"Assignment" = [
-    {"2. Section" = "section1.md"},
-    {"3. Section" = "section2.md"}
-  ]}
-]
+{{ nav_snippet() }}
 ```
 
 Each entry is either a plain path to a markdown file, or a `{"Group name" = [...]}` block nesting further entries - top-level groups become tabs, and nested groups become collapsible sections in the sidebar. This same `nav` list, walked in this same order, is also what `build_pdf.py` uses to decide which files go into the PDF and in what order - so reordering, adding, or removing an entry here changes both outputs at once.
@@ -218,6 +210,54 @@ Keep the numbers in each title sequential as you add, remove, or reorder chapter
 
 !!! warning
     Each markdown file can contain only one heading 1 (`#`). Zensical numbers headings sequentially across the whole document in `nav` order, starting a new top-level number at each heading 1 - a second heading 1 in the same file breaks that numbering and confuses the table of contents. If you need another top-level heading, create a new markdown file for it and add it to `nav` instead.
+
+### References and bibliography
+
+Zensical doesn't include a dedicated citation or bibliography extension, but you can build a simple one using a references page.
+
+!!! info "How the PDF handles this"
+    Python-Markdown's [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-lists) extension - used below - is understood natively by the live website, but this template's PDF is built by [Pandoc](https://pandoc.org/), which has no idea what a standalone `{: #id }` line means and would otherwise leave it sitting in the output as literal, visible text. `build_pdf.py` automatically rewrites each entry into an equivalent raw HTML `<p>` tag before handing the page to Pandoc (see `convert_reference_attr_list_paragraphs` in `build_pdf.py`), so you can write plain attr_list Markdown below and both outputs render correctly - no manual HTML needed.
+
+1. Create a page for your sources (this template includes one at [`docs/references.md`](../references.md)). List each source as a paragraph, and give it a short, unique id using attr_list syntax on the line directly below it (no heading needed - attr_list works on plain paragraphs too):
+
+    ``` markdown
+    Skoulikari, A. (2023) *Learning Git: A Hands-On and Visual Guide to the Basics of Git*. Sebastopol, CA: O'Reilly Media.
+    {: #skou2023 .reference }
+    ```
+
+    Each entry needs a blank line before and after it - attr_list only recognises `{: ... }` as an id (rather than literal visible text) when it's the last line of its own paragraph, and `build_pdf.py`'s conversion for the PDF relies on that same boundary. Removing the blank lines to save space merges entries into one paragraph and breaks both outputs.
+
+2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar, and gets a number like your other sections.
+3. Cite the source in-text by linking to that paragraph's id, wrapping the link in an extra pair of square brackets so it reads like an in-text citation:
+
+    ``` markdown
+    Git is a tool used to manage version control.[[Skoulikari, 2023](references.md#skou2023)]
+    ```
+
+    Which renders as: Git is a tool used to manage version control.[[Skoulikari, 2023](../references.md#skou2023)]
+
+    (The path here is `../references.md` rather than `references.md` because this page lives in `docs/starthere/` - from `docs/section1.md` itself, `references.md` is correct, as shown in the code block above.)
+
+    !!! warning
+        In-text citation links like this resolve correctly on the website, but internal cross-page links generally don't resolve to the right place within the built PDF (a pre-existing limitation of this template's Pandoc-based PDF pipeline, not specific to references) - the link ends up pointing at a local file path rather than jumping to the anchor.
+
+4. Consecutive entries get the browser's normal spacing between paragraphs by default - noticeably looser than a typical bibliography. Give each entry's attr_list line a `.reference` class alongside its id (as shown in the code block above) so the template's layout rules - described next - can target them.
+
+5. Set `project.extra.reference_style` in `zensical.toml` to control how `.reference` entries are laid out, on both the website and the PDF build:
+
+    ``` toml
+    [project.extra]
+    reference_style = "european" # or "global"
+    ```
+
+    * `"european"` (the default) - single line spacing throughout, no indent, entries close together. Implemented by [`docs/stylesheets/extra.css`](../stylesheets/extra.css)'s `.md-typeset p.reference + p.reference` rule on the website.
+    * `"global"` - single line spacing within each entry, double spacing between entries, with a 0.5in/1.27cm hanging indent on wrapped lines (the common APA/MLA/Chicago style). Implemented by the `reference_style()` macro (see `macros.py`), called once near the top of the references page - `{% raw %}{{ reference_style() }}{% endraw %}` - which injects an overriding `<style>` block only when `"global"` is set.
+
+    !!! warning "The website and PDF need separate CSS for this"
+        Pandoc's HTML output for the PDF has no `.md-typeset` wrapper element at all, so any `.md-typeset`-prefixed selector - including the default `.reference` rule above - silently matches nothing there. `build_pdf.py` reads the same `reference_style` setting and writes the equivalent plain `.reference` (no `.md-typeset` prefix) CSS directly into the PDF's compiled stylesheet instead. If you adjust the spacing/indent values, update both `docs/stylesheets/extra.css` and the matching block in `build_pdf.py` (search for `reference_style_css`) to keep the website and PDF in sync.
+
+!!! tip
+    Keep ids short and stable (e.g. `skou2023`, author surname plus year) so citations keep working even if you reorder entries on the references page later. If a page citing a source is nested in a subdirectory, adjust the relative path to `references.md` accordingly.
 
 
 ## Customise front page
@@ -310,6 +350,10 @@ Repo: {{ repo_url }}{% endraw %}
 
 
 ## Customise PDF format
+
+PDF generation itself is a zendoc extension, in the same sense as the rest of this page: Zensical only builds the website, so `build_pdf.py` is this template's own build script, layered on top, that renders the same `docs/` content into a single-file PDF via [Pandoc](https://pandoc.org/) and [WeasyPrint](https://weasyprint.org/). It reuses `zensical.toml` settings wherever it can, so most website customisations (site name, copyright, fonts, and so on) apply to the PDF automatically - the sections below cover the handful of things that are PDF-specific.
+
+For how to actually run it as part of your day-to-day writing - installing its dependencies, the `python build_pdf.py` command itself, and troubleshooting a failed build - see [Build the PDF](startediting.md#build-the-pdf) in *Start editing*; this section is about customising its output once it's already working.
 
 `build_pdf.py` controls most of the generated PDF's page layout - the running header, the footer, the page size, and the fonts - either from `zensical.toml` settings you already use for the website, or (for page size and margins) directly in the script itself.
 

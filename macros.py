@@ -165,6 +165,34 @@ def _reference_style():
     return 'global' if style == 'global' else 'european'
 
 
+def _get_nav_snippet():
+    """Extracts the current `nav = [...]` block from zensical.toml verbatim -
+    same indentation, same comments - for the nav_snippet() macro used in
+    Customisation's "Navigation structure" section, so that example always
+    matches the real config instead of drifting stale as nav changes. Reads
+    the raw file text and bracket-matches rather than round-tripping through
+    `toml.load()`, since that would lose the formatting and comments that
+    make the example worth showing in the first place. Returns "" if
+    zensical.toml or a nav block can't be found."""
+    config_path = Path('zensical.toml')
+    if not config_path.exists():
+        return ''
+    text = config_path.read_text(encoding='utf-8')
+    match = re.search(r'^nav\s*=\s*\[', text, flags=re.MULTILINE)
+    if not match:
+        return ''
+    bracket_start = text.index('[', match.start())
+    depth = 0
+    for i in range(bracket_start, len(text)):
+        if text[i] == '[':
+            depth += 1
+        elif text[i] == ']':
+            depth -= 1
+            if depth == 0:
+                return text[match.start():i + 1]
+    return ''
+
+
 def _heading_start_counts():
     """Maps each nav markdown file (relative to docs_dir) to the cumulative count of
     top-level headings on every page before it in nav order, so that heading numbering
@@ -322,5 +350,18 @@ def define_env(env):
             '  }\n'
             '</style>'
         )
+
+    @env.macro
+    def nav_snippet():
+        """Returns the current `nav = [...]` block from zensical.toml,
+        verbatim, so the Navigation structure documentation always matches
+        the real config instead of a hand-maintained example that drifts
+        stale as nav changes. Usage: place inside a fenced code block:
+
+            ```toml
+            {{ nav_snippet() }}
+            ```
+        """
+        return _get_nav_snippet()
 
 

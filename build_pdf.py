@@ -394,7 +394,7 @@ def rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map):
                 in_fence = False
     return '\n'.join(lines)
 
-def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, is_index=False):
+def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, nav_snippet_text='', is_index=False):
     """Parses template conditionals, applies global asset filtering, and converts raw shortcodes
     to alphanumeric tokens while ignoring those nested inside code block environments.
     """
@@ -435,6 +435,12 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     # (see reference_style_enabled below), since Pandoc doesn't render Jinja and
     # would otherwise leak this through as literal text.
     content = re.sub(r'^[ \t]*\{\{\s*reference_style\(\s*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
+
+    # Replaces the website-only nav_snippet() Jinja macro call with the same
+    # extracted nav = [...] text it would render on the website (Pandoc
+    # doesn't render Jinja, so the literal "{{ nav_snippet() }}" would
+    # otherwise leak through as-is into the PDF).
+    content = re.sub(r'\{\{\s*nav_snippet\(\s*\)\s*\}\}', lambda _: nav_snippet_text, content)
 
     # References page only: rewrite attr_list `{: #id .class }` entries into
     # Pandoc-compatible raw HTML (see convert_reference_attr_list_paragraphs).
@@ -1144,6 +1150,7 @@ def main():
     page_anchor_map = build_page_anchor_map(md_files)
 
     calculated_vars = {}
+    macros_module = None
     if os.path.exists('macros.py'):
         print("🔧 Executing macros.py environment maps...")
         try:
@@ -1171,7 +1178,14 @@ def main():
                     if isinstance(v, (bool, str, int, float)): calculated_vars[k] = v
         except Exception as e:
             print(f"⚠️ Warning: Encountered an issue while executing macros.py: {e}")
-        
+
+    # PDF equivalent of the website's {{ nav_snippet() }} macro (see
+    # macros.py): reuses the same _get_nav_snippet() helper directly, since
+    # it's already loaded as a real module here - no need to duplicate the
+    # extraction logic the way reference_style's CSS had to be, since here
+    # both outputs just need the identical extracted text.
+    nav_snippet_text = macros_module._get_nav_snippet() if macros_module and hasattr(macros_module, '_get_nav_snippet') else ''
+
     theme_section = project_section.get('theme', {}) if isinstance(project_section, dict) else config.get('theme', {})
     font_section = theme_section.get('font', {}) if isinstance(theme_section, dict) else {}
     main_font, mono_font = "Inter", "JetBrains Mono"
@@ -1198,7 +1212,7 @@ def main():
         safe_name = path.replace('/', '_').replace('\\', '_')
         temp_out_path = os.path.join(temp_build_dir, safe_name)
         is_index = "index.md" in os.path.basename(path).lower()
-        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, is_index=is_index)
+        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, nav_snippet_text, is_index=is_index)
         processed_paths.append(temp_out_path)
 
     # Fill in the cover page's {WORDCOUNT}/{REPOURL} markers (see index.md),

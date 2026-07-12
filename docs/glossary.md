@@ -1,5 +1,6 @@
 ---
 icon: lucide/book-open
+exclude_from_word_count: true
 ---
 
 <!-- 

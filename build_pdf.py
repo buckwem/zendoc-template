@@ -160,6 +160,27 @@ def build_icon_registry(icon_dirs):
                         registry[flat_key] = full_path
     return registry
 
+def page_excluded_from_word_count(path):
+    """True if path's YAML front matter sets exclude_from_word_count: true -
+    see "Word count" in customise.md. Used to skip pages like References,
+    Acronyms, Glossary, and Originality & AI Use, which conventionally don't
+    count toward a submission's word limit. Mirrors the same check in
+    macros.py, used there for the website's {{ word_count }} variable. Reads
+    the original source file, not its preprocessed copy - preprocess_markdown()
+    already strips the front matter by the time a page reaches
+    compute_pdf_word_count()."""
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            text = f.read()
+    except OSError:
+        return False
+    if not text.startswith('---'):
+        return False
+    parts = text.split('---', 2)
+    if len(parts) < 3:
+        return False
+    return bool(re.search(r'^exclude_from_word_count:\s*true\s*$', parts[1], re.MULTILINE | re.IGNORECASE))
+
 def compute_pdf_word_count(markdown_paths):
     """Rough prose word count across the given already-preprocessed markdown
     files: strips fenced code, inline code, HTML tags/comments, and markdown
@@ -1322,9 +1343,17 @@ def main():
         with open(cover_path, 'r', encoding='utf-8') as f:
             cover_content = f.read()
         if '{WORDCOUNT}' in cover_content:
-            # Word count of the actual content pages (everything except the
-            # cover page itself).
-            word_count = compute_pdf_word_count(processed_paths[1:])
+            # Word count of the actual content pages: everything except the
+            # cover page itself, and any page opted out via
+            # exclude_from_word_count (see page_excluded_from_word_count()) -
+            # e.g. References, Acronyms, Glossary, Originality & AI Use.
+            # Checked against valid_paths (the original source, front matter
+            # intact) since processed_paths has already had it stripped.
+            counted_paths = [
+                processed_paths[i] for i in range(1, len(processed_paths))
+                if not page_excluded_from_word_count(valid_paths[i])
+            ]
+            word_count = compute_pdf_word_count(counted_paths)
             cover_content = cover_content.replace('{WORDCOUNT}', f'{word_count:,}')
         if '{REPOURL}' in cover_content:
             # Computed once by macros.py (shared with the website's

@@ -78,12 +78,31 @@ def _count_words_in_markdown(path):
     return len(text.split())
 
 
+def _page_excluded_from_word_count(path):
+    """True if path's YAML front matter sets exclude_from_word_count: true -
+    see "Word count" in customise.md. Used to skip pages like References,
+    Acronyms, Glossary, and Originality & AI Use, which conventionally don't
+    count toward a submission's word limit. Mirrors the same check in
+    build_pdf.py, used there for the PDF's {WORDCOUNT} marker."""
+    try:
+        text = Path(path).read_text(encoding='utf-8')
+    except OSError:
+        return False
+    if not text.startswith('---'):
+        return False
+    parts = text.split('---', 2)
+    if len(parts) < 3:
+        return False
+    return bool(re.search(r'^exclude_from_word_count:\s*true\s*$', parts[1], re.MULTILINE | re.IGNORECASE))
+
+
 def _compute_site_word_count():
     """Sums the prose word count across every nav page except the cover
-    (index.md), for the optional {{ word_count }} variable - see the
-    "Word count" section in customise.md for how to show or hide it.
-    Returns a comma-formatted string (e.g. "9,971") ready to drop straight
-    into a page with {{ word_count }}."""
+    (index.md) and any page opted out via exclude_from_word_count (see
+    _page_excluded_from_word_count()), for the optional {{ word_count }}
+    variable - see the "Word count" section in customise.md for how to show
+    or hide it. Returns a comma-formatted string (e.g. "9,971") ready to drop
+    straight into a page with {{ word_count }}."""
     config_path = Path('zensical.toml')
     if not config_path.exists():
         return "0"
@@ -96,7 +115,10 @@ def _compute_site_word_count():
     for rel_path in _extract_nav_md_files(nav):
         if os.path.basename(rel_path).lower() == 'index.md':
             continue
-        total += _count_words_in_markdown(docs_dir / rel_path)
+        full_path = docs_dir / rel_path
+        if _page_excluded_from_word_count(full_path):
+            continue
+        total += _count_words_in_markdown(full_path)
     return f"{total:,}"
 
 

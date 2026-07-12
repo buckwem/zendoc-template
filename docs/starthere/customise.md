@@ -24,7 +24,7 @@ Most website-wide settings live in `zensical.toml`, in the `[project]` and `[pro
 
 If the documentation website is part of the university's GitLab service, or the website's location falls under the University of Surrey domain, the build automatically changes the site logo to the University of Surrey logo. Otherwise, the site logo uses the default logos in the `docs/assets/` directory. You can change the default logo by replacing the existing default logo files with your own logo files named `logo_default_black.png` and `logo_default_white.png`.
 
-The logo-swap logic near the top of `macros.py` copies these files automatically at the start of every build or `zensical serve`: it copies either the Surrey pair or your default pair over `docs/assets/logo_black.png`/`logo_white.png` - the two files `extra.css` actually references for the light/dark logo swap. Don't edit `logo_black.png`/`logo_white.png` directly, since the next build overwrites them.
+Every build, and `zensical serve`, copies either the Surrey pair or your default pair over `docs/assets/logo_black.png`/`logo_white.png` - the two files `extra.css` actually references for the light/dark logo swap. Don't edit `logo_black.png`/`logo_white.png` directly, since the next build overwrites them.
 
 ### Site metadata
 
@@ -216,7 +216,7 @@ Keep the numbers in each title sequential as you add, remove, or reorder chapter
 Zensical doesn't include a dedicated citation or bibliography extension, but you can build a simple one using a references page.
 
 !!! info "How the PDF handles this"
-    Python-Markdown's [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-lists) extension - used below - is understood natively by the live website, but this template's PDF is built by [Pandoc](https://pandoc.org/), which has no idea what a standalone `{: #id }` line means and would otherwise leave it sitting in the output as literal, visible text. `build_pdf.py` automatically rewrites each entry into an equivalent raw HTML `<p>` tag before handing the page to Pandoc (see `convert_reference_attr_list_paragraphs` in `build_pdf.py`), so you can write plain attr_list Markdown below and both outputs render correctly - no manual HTML needed.
+    The [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-lists) syntax below is understood natively by the live website, but Pandoc (which builds the PDF) doesn't recognise it, and would otherwise leave `{: #id }` sitting in the output as literal, visible text. This template translates it automatically, so you can write the same plain attr_list Markdown below and both outputs render correctly - no manual HTML needed.
 
 1. Create a page for your sources (this template includes one at [`docs/references.md`](../references.md)). List each source as a paragraph, and give it a short, unique id using attr_list syntax on the line directly below it (no heading needed - attr_list works on plain paragraphs too):
 
@@ -225,7 +225,7 @@ Zensical doesn't include a dedicated citation or bibliography extension, but you
     {: #skou2023 .reference }
     ```
 
-    Each entry needs a blank line before and after it - attr_list only recognises `{: ... }` as an id (rather than literal visible text) when it's the last line of its own paragraph, and `build_pdf.py`'s conversion for the PDF relies on that same boundary. Removing the blank lines to save space merges entries into one paragraph and breaks both outputs.
+    Each entry needs a blank line before and after it - attr_list only recognises `{: ... }` as an id (rather than literal visible text) when it's the last line of its own paragraph. Removing the blank lines to save space merges entries into one paragraph and breaks both outputs.
 
 2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar, and gets a number like your other sections.
 3. Cite the source in-text by linking to that paragraph's id, wrapping the link in an extra pair of square brackets so it reads like an in-text citation:
@@ -250,11 +250,16 @@ Zensical doesn't include a dedicated citation or bibliography extension, but you
     reference_style = "european" # or "global"
     ```
 
-    * `"european"` (the default) - single line spacing throughout, no indent, entries close together. Implemented by [`docs/stylesheets/extra.css`](../stylesheets/extra.css)'s `.md-typeset p.reference + p.reference` rule on the website.
-    * `"global"` - single line spacing within each entry, double spacing between entries, with a 0.5in/1.27cm hanging indent on wrapped lines (the common APA/MLA/Chicago style). Implemented by the `reference_style()` macro (see `macros.py`), called once near the top of the references page - `{% raw %}{{ reference_style() }}{% endraw %}` - which injects an overriding `<style>` block only when `"global"` is set.
+    `"european"` (the default) - single line spacing, no indent, entries close together:
 
-    !!! warning "The website and PDF need separate CSS for this"
-        Pandoc's HTML output for the PDF has no `.md-typeset` wrapper element at all, so any `.md-typeset`-prefixed selector - including the default `.reference` rule above - silently matches nothing there. `build_pdf.py` reads the same `reference_style` setting and writes the equivalent plain `.reference` (no `.md-typeset` prefix) CSS directly into the PDF's compiled stylesheet instead. If you adjust the spacing/indent values, update both `docs/stylesheets/extra.css` and the matching block in `build_pdf.py` (search for `reference_style_css`) to keep the website and PDF in sync.
+    ![European reference style: single line spacing, no indent, entries close together](images/reference-style-european.png)
+
+    `"global"` - double spacing between entries, with a 0.5in/1.27cm hanging indent on wrapped lines (the common APA/MLA/Chicago style):
+
+    ![Global reference style: double spacing between entries, with a hanging indent on wrapped lines](images/reference-style-global.png)
+
+    !!! note
+        To change the spacing or indent values themselves, edit the CSS in `docs/stylesheets/extra.css` and `build_pdf.py` - each has a comment next to its `reference_style`-related rule explaining what to change.
 
 !!! tip
     Keep ids short and stable (e.g. `skou2023`, author surname plus year) so citations keep working even if you reorder entries on the references page later. If a page citing a source is nested in a subdirectory, adjust the relative path to `references.md` accordingly.
@@ -409,9 +414,9 @@ Figure 7.3.1-1: GitLab fork project
 The caption block always comes *after* the image or table it captions - `pymdownx.blocks.caption` attaches to whichever element immediately precedes it.
 
 !!! info "How the PDF handles this"
-    Like attr_list (see [References and bibliography](#references-and-bibliography)), Pandoc doesn't understand `pymdownx.blocks.caption` syntax at all. `build_pdf.py` translates each caption into something Pandoc does understand, via two separate functions: `zensical_caption_replacer` wraps an image and its caption into a `<figure>`/`<figcaption>` pair; `table_caption_replacer` converts a table caption into Pandoc's own native `Table: ...` syntax, which Pandoc renders as a real `<caption>` bound inside the `<table>` element - keeping it from being separated from its table across a page break.
+    Like attr_list (see [References and bibliography](#references-and-bibliography)), Pandoc doesn't understand `pymdownx.blocks.caption` syntax at all. This template translates it automatically for the PDF, so the same source works correctly in both outputs - a table's caption stays bound to its table, so it can't be separated from it across a page break.
 
-By default, a table's caption appears at the **top** of the table in the PDF, not the bottom - a deliberate choice (`table caption { caption-side: top !important; ... }` in `build_pdf.py`'s compiled stylesheet), on the basis that a reader wants to know what a table is before reading it. This is PDF-only: the live website follows `pymdownx.blocks.caption`'s own default placement instead, so the same source can render slightly differently between the two outputs. To change the PDF's caption position (e.g. back to the bottom), open `build_pdf.py`, search for `caption-side`, and edit that rule.
+By default, a table's caption appears at the **top** of the table in the PDF, not the bottom, on the basis that a reader wants to know what a table is before reading it. This is PDF-only: the live website follows `pymdownx.blocks.caption`'s own default placement instead, so the same source can render slightly differently between the two outputs. To change the PDF's caption position (e.g. back to the bottom), open `build_pdf.py` and search for `caption-side`.
 
 
 ## Finalising your document

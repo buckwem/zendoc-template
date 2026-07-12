@@ -158,7 +158,7 @@ extra_javascript = [
 ]
 ```
 
-`docs/stylesheets/extra.css` is where most of this template's own customisations live (the logo swap, header image, cover page title styles, and the `.pdf-only`/`.web-only` markers).
+[`docs/stylesheets/extra.css`](../stylesheets/extra.css) is where most of this template's own customisations live (the logo swap, header image, cover page title styles, and the `.pdf-only`/`.web-only` markers).
 
 ### Social links
 

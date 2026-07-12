@@ -176,21 +176,10 @@ The `nav` list in `zensical.toml` and the heading numbering setting below contro
 
 ### Navigation structure
 
-`nav` (under `[project]` in `zensical.toml`) lists, in order, every page in your document and how they're grouped:
+`nav` (under `[project]` in `zensical.toml`) lists, in order, every page in your document and how they're grouped. Here's this template's own `nav`, right now, as an example - it's pulled directly from `zensical.toml` and updates automatically as you edit it, so it always matches what's actually configured:
 
 ```toml
-nav = [
-  {"Cover" = [
-    "index.md",
-  ]},
-  {"Originality" = [
-    {"1. Originality & AI Use" = "originality.md"}
-  ]},
-  {"Assignment" = [
-    {"2. Section" = "section1.md"},
-    {"3. Section" = "section2.md"}
-  ]}
-]
+{{ nav_snippet() }}
 ```
 
 Each entry is either a plain path to a markdown file, or a `{"Group name" = [...]}` block nesting further entries - top-level groups become tabs, and nested groups become collapsible sections in the sidebar. This same `nav` list, walked in this same order, is also what `build_pdf.py` uses to decide which files go into the PDF and in what order - so reordering, adding, or removing an entry here changes both outputs at once.

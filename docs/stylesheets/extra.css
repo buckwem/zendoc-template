@@ -193,6 +193,12 @@ SPDX-License-Identifier: MIT
   margin-top: -0.8em;
 }
 
+/* Used by docs/acronyms.md - same reasoning as the reference entries
+   above, applied to the acronym list instead. */
+.md-typeset p.acronym + p.acronym {
+  margin-top: -0.8em;
+}
+
 /* ============================================================= */
 /* ============= Styles for text background colour ============= */
 /* ============================================================= */

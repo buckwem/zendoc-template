@@ -245,17 +245,17 @@ def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
     )
 
 def convert_reference_attr_list_paragraphs(content):
-    """Converts docs/references.md's `paragraph\n{: #id .class }` entries -
-    Python-Markdown's attr_list syntax, understood natively by the website -
+    """Converts docs/references.md's and docs/acronyms.md's `paragraph\n{: #id .class }`
+    entries - Python-Markdown's attr_list syntax, understood natively by the website -
     into `<p id="id" class="class" markdown="1">paragraph</p>` blocks instead,
     since Pandoc (used for the PDF) has no idea what a standalone `{: ... }`
     line means and would otherwise leave it sitting in the output as literal,
-    visible text. This lets docs/references.md itself stay as plain attr_list
+    visible text. This lets those pages themselves stay as plain attr_list
     Markdown; the rewrite only happens in memory, for the PDF build. Only
     matches a `{: ... }` line that directly follows one or more non-blank
     lines with no blank line in between (i.e. attached to that paragraph),
     and only touches lines containing a `#id` - attr_list lines without one
-    (not used in this file, but a reasonable safety net) are left alone."""
+    (not used in these files, but a reasonable safety net) are left alone."""
     pattern = re.compile(r'^((?:.+\n)+?)\{:\s*([^}]+?)\s*\}[ \t]*$', re.MULTILINE)
 
     def replacer(match):
@@ -492,9 +492,10 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     # otherwise leak through as-is into the PDF).
     content = re.sub(r'\{\{\s*nav_snippet\(\s*\)\s*\}\}', lambda _: nav_snippet_text, content)
 
-    # References page only: rewrite attr_list `{: #id .class }` entries into
-    # Pandoc-compatible raw HTML (see convert_reference_attr_list_paragraphs).
-    if os.path.basename(file_path) == 'references.md':
+    # References and acronyms pages only: rewrite attr_list `{: #id .class }`
+    # entries into Pandoc-compatible raw HTML (see
+    # convert_reference_attr_list_paragraphs).
+    if os.path.basename(file_path) in ('references.md', 'acronyms.md'):
         content = convert_reference_attr_list_paragraphs(content)
 
     # AUTOMATED VIDEO EMBEDDING INTERCEPTOR ENGINE
@@ -1828,8 +1829,18 @@ p.reference + p.reference {
 }
 """
 
+    # PDF equivalent of extra.css's ".md-typeset p.acronym + p.acronym" rule
+    # (see docs/acronyms.md) - same reasoning as reference_style_css above:
+    # Pandoc's HTML output has no ".md-typeset" wrapper, so this plain
+    # ".acronym" selector is what actually applies the tight spacing here.
+    acronym_style_css = """
+p.acronym + p.acronym {
+    margin-top: -0.8em !important;
+}
+"""
+
     with open(temp_compiled_css, "w", encoding="utf-8") as f:
-        f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css)
+        f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css + "\n\n" + acronym_style_css)
 
     cmd = [
         "pandoc",

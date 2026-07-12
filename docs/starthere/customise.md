@@ -203,10 +203,10 @@ heading_numbering = true
 The top level heading numbering shown in the sidebar isn't generated automatically - it's typed directly into each entry's title in `nav`, matching the pattern of the ones already there, for example:
 
 ```toml
-{"7. Appendix" = "appendix.md"}
+{"8. Appendix" = "appendix.md"}
 ```
 
-Keep the numbers in each title sequential as you add, remove, or reorder chapters - inserting a new entry partway through (as above, right after "6. References") means renumbering every entry after it, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
+Keep the numbers in each title sequential as you add, remove, or reorder chapters - inserting a new entry partway through (as above, right after "7. References") means renumbering every entry after it, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
 
 !!! warning
     Each markdown file can contain only one heading 1 (`#`). Zensical numbers headings sequentially across the whole document in `nav` order, starting a new top-level number at each heading 1 - a second heading 1 in the same file breaks that numbering and confuses the table of contents. If you need another top-level heading, create a new markdown file for it and add it to `nav` instead.
@@ -264,6 +264,31 @@ Zensical doesn't include a dedicated citation or bibliography extension, but you
 !!! tip
     Keep ids short and stable (e.g. `skou2023`, author surname plus year) so citations keep working even if you reorder entries on the references page later. If a page citing a source is nested in a subdirectory, adjust the relative path to `references.md` accordingly.
 
+### Acronyms and abbreviations
+
+Zensical doesn't include a dedicated glossary extension either, but you can build an acronyms page the same way as the references page above - a plain page of attr_list-anchored entries that other pages link straight into.
+
+!!! info "How the PDF handles this"
+    Like the references page, this relies on attr_list (see [References and bibliography](#references-and-bibliography) above) - Pandoc doesn't recognise it here either, and this template translates it automatically for the PDF, so the same source works correctly in both outputs.
+
+1. Create a page for your acronyms (this template includes one at [`docs/acronyms.md`](../acronyms.md)). List each acronym as a short paragraph, and give it a short, unique id using attr_list syntax on the line directly below it, the same as a reference entry:
+
+    ``` markdown
+    **CSS** - Cascading Style Sheets
+    {: #css .acronym }
+    ```
+
+    As with references, each entry needs a blank line before and after it, and the `.acronym` class is what keeps consecutive entries close together rather than using the browser's normal, looser paragraph spacing.
+
+2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar, and gets a number like your other sections.
+3. Link to an acronym the first time you use it in a page, the same way you'd cite a reference:
+
+    ``` markdown
+    This template uses [CSS](acronyms.md#css) to control the website's appearance.
+    ```
+
+!!! tip
+    Keep ids short and lowercase (e.g. `css`, `pdf`) so links keep working even if you reorder entries on the acronyms page later.
 
 ## Customise front page
 
@@ -400,14 +425,14 @@ The [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-l
 | ...
 
 /// caption
-Table 7.3-1: Fork and Clone Comparison at a Glance
+Table 9.3-1: Fork and Clone Comparison at a Glance
 ///
 ```
 
 ``` markdown
 ![GitLab fork project](images/gitlab-fork-project.png){ width=70% }
 /// caption
-Figure 7.3.1-1: GitLab fork project
+Figure 9.3.1-1: GitLab fork project
 ///
 ```
 
@@ -433,17 +458,18 @@ The "Start Here" pages you're reading now are author-facing instructions, not pa
   {"3. Section" = "section2.md"},
   {"4. Section" = "section3.md"},
   {"5. Section" = "section4.md"},
-  {"6. References" = "references.md"}
+  {"6. Acronyms" = "acronyms.md"},
+  {"7. References" = "references.md"}
 ]},
 # {"START HERE" = [
-#   {"7. Start Here" = "starthere/starthere.md"},
-#   {"8. Install tooling" = "starthere/installtooling.md"},
-#   {"9. Start editing" = "starthere/startediting.md"},
-#   {"10. Markdown basics" = "starthere/markdown.md"},
-#   {"11. Zensical basics" = "starthere/zensicalbasics.md"},
-#   {"12. Customisation" = "starthere/customise.md"},
-#   {"13. Additional tooling" = "starthere/additionaltooling.md"},
-#   {"14. Shell commands" = "starthere/shcommands.md"}
+#   {"8. Start Here" = "starthere/starthere.md"},
+#   {"9. Install tooling" = "starthere/installtooling.md"},
+#   {"10. Start editing" = "starthere/startediting.md"},
+#   {"11. Markdown basics" = "starthere/markdown.md"},
+#   {"12. Zensical basics" = "starthere/zensicalbasics.md"},
+#   {"13. Customisation" = "starthere/customise.md"},
+#   {"14. Additional tooling" = "starthere/additionaltooling.md"},
+#   {"15. Shell commands" = "starthere/shcommands.md"}
 # ]}
 ```
 
@@ -475,6 +501,7 @@ Now that you've customised the website, the document structure, the cover page, 
     * :material-file-document-outline: `section2.md` — The second section of your documentation for you to edit.
     * :material-file-document-outline: `section3.md` — The third section of your documentation for you to edit.
     * :material-file-document-outline: `section4.md` — The fourth section of your documentation for you to edit.
+    * :material-file-document-outline: `acronyms.md` — Your acronym list, for you to complete - see [Acronyms and abbreviations](#acronyms-and-abbreviations).
     * :material-file-document-outline: `references.md` — Your bibliography, for you to complete - see [References and bibliography](#references-and-bibliography).
     * :material-folder: **assets/** — Images, logos, and header backgrounds used across the site and the cover page.
     * :material-folder: **stylesheets/** — CSS for the website and the PDF.

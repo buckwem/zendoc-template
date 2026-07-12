@@ -445,6 +445,47 @@ def rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map):
                 in_fence = False
     return '\n'.join(lines)
 
+def rewrite_repo_file_links(content, current_docs_rel_path, docs_dir, repo_url):
+    """Rewrites relative links to non-Markdown repo files - e.g.
+    [extra.css](../stylesheets/extra.css) - into the file's canonical
+    GitHub/GitLab "blob" URL instead (see issue #19). Unlike the .md links
+    rewrite_internal_md_links() handles, these targets aren't part of the
+    concatenated PDF at all, so there's no in-document anchor to point at;
+    left as a plain relative path, Pandoc/WeasyPrint resolve it against the
+    build machine's own filesystem instead, producing a link that's
+    meaningless (and reveals a local file path) to anyone else reading the
+    PDF. Falls back to dropping the link and keeping just its text if
+    repo_url is empty or its host isn't recognised, rather than risk
+    guessing the wrong URL scheme. Skips fenced code blocks (so example link
+    syntax shown as literal text survives unchanged), image embeds (already
+    resolved to real embedded images by WeasyPrint, not links), and links
+    that are external (http(s)/mailto), fragment-only (#id), site-root
+    (leading /), or already handled by rewrite_internal_md_links (.md,
+    optionally with a #fragment)."""
+    repo_url_lower = repo_url.lower()
+    if 'github.com' in repo_url_lower:
+        blob_prefix = f'{repo_url}/blob/main/'
+    elif 'gitlab' in repo_url_lower:
+        blob_prefix = f'{repo_url}/-/blob/main/'
+    else:
+        blob_prefix = None
+
+    current_dir = os.path.dirname(current_docs_rel_path)
+    link_pattern = re.compile(r'(?<!!)\[([^\]]*)\]\(([^)\s]+)\)')
+
+    def replace_link(match):
+        text, target = match.group(1), match.group(2)
+        if target.startswith(('http://', 'https://', 'mailto:', '#', '/')):
+            return match.group(0)
+        if target.endswith('.md') or '.md#' in target:
+            return match.group(0)
+        if blob_prefix is None:
+            return text
+        repo_rel_path = os.path.normpath(os.path.join(docs_dir, current_dir, target)).replace('\\', '/')
+        return f'[{text}]({blob_prefix}{repo_rel_path})'
+
+    return apply_outside_fences(content, lambda text: link_pattern.sub(replace_link, text))
+
 def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, nav_snippet_text='', is_index=False):
     """Parses template conditionals, applies global asset filtering, and converts raw shortcodes
     to alphanumeric tokens while ignoring those nested inside code block environments.
@@ -469,6 +510,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     if own_anchor:
         content = tag_first_heading(content, own_anchor)
     content = rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map)
+    content = rewrite_repo_file_links(content, current_docs_rel_path, docs_dir, calculated_vars.get('repo_url', ''))
 
     content = render_mermaid_diagrams(content, temp_build_dir, mermaid_state)
 

@@ -400,17 +400,18 @@ The "Start Here" pages you're reading now are author-facing instructions, not pa
   {"2. Section" = "section1.md"},
   {"3. Section" = "section2.md"},
   {"4. Section" = "section3.md"},
-  {"5. Section" = "section4.md"}
+  {"5. Section" = "section4.md"},
+  {"6. References" = "references.md"}
 ]},
 # {"START HERE" = [
-#   {"6. Start Here" = "starthere/starthere.md"},
-#   {"7. Install tooling" = "starthere/installtooling.md"},
-#   {"8. Start editing" = "starthere/startediting.md"},
-#   {"9. Markdown basics" = "starthere/markdown.md"},
-#   {"10. Zensical basics" = "starthere/zensicalbasics.md"},
-#   {"11. Customisation" = "starthere/customise.md"},
-#   {"12. Additional tooling" = "starthere/additionaltooling.md"},
-#   {"13. Shell commands" = "starthere/shcommands.md"}
+#   {"7. Start Here" = "starthere/starthere.md"},
+#   {"8. Install tooling" = "starthere/installtooling.md"},
+#   {"9. Start editing" = "starthere/startediting.md"},
+#   {"10. Markdown basics" = "starthere/markdown.md"},
+#   {"11. Zensical basics" = "starthere/zensicalbasics.md"},
+#   {"12. Customisation" = "starthere/customise.md"},
+#   {"13. Additional tooling" = "starthere/additionaltooling.md"},
+#   {"14. Shell commands" = "starthere/shcommands.md"}
 # ]}
 ```
 

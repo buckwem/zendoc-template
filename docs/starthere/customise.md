@@ -443,6 +443,7 @@ Now that you've customised the website, the document structure, the cover page, 
     * :material-file-document-outline: `section2.md` — The second section of your documentation for you to edit.
     * :material-file-document-outline: `section3.md` — The third section of your documentation for you to edit.
     * :material-file-document-outline: `section4.md` — The fourth section of your documentation for you to edit.
+    * :material-file-document-outline: `references.md` — Your bibliography, for you to complete - see [References and bibliography](#references-and-bibliography).
     * :material-folder: **assets/** — Images, logos, and header backgrounds used across the site and the cover page.
     * :material-folder: **stylesheets/** — CSS for the website and the PDF.
         * :material-file-document-outline: `extra.css` — Most of the template's own website customisations (logo swap, header image, cover page styles, `.pdf-only`/`.web-only` markers).

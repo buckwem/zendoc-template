@@ -123,7 +123,7 @@ text = "Inter"
 code = "Jetbrains Mono"
 ```
 
-Use `text` for body copy and headings, and `code` for code blocks and inline code. Both default to Inter and JetBrains Mono if you leave this section unset. The PDF build reuses this same setting - see [Customise PDF format](#customise-pdf-format).
+Use `text` for body copy and headings, and `code` for code blocks and inline code. Both default to Inter and JetBrains Mono if you leave this section unset. The PDF build reuses this same setting - see [Customise PDF generation](#customise-pdf-generation).
 
 ### Icons
 
@@ -200,13 +200,13 @@ This will also disable heading numbering in the generated PDF output. If you wan
 heading_numbering = true
 ```
 
-The top level heading numbering shown in the sidebar isn't generated automatically - it's typed directly into each entry's title in `nav`, matching the pattern of the ones already there. For example, to add a new top-level chapter numbered "4", following on from the `nav` example above:
+The top level heading numbering shown in the sidebar isn't generated automatically - it's typed directly into each entry's title in `nav`, matching the pattern of the ones already there, for example:
 
 ```toml
-{"4. Section" = "section3.md"}
+{"7. Appendix" = "appendix.md"}
 ```
 
-Keep the numbers in each title sequential as you add, remove, or reorder chapters, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
+Keep the numbers in each title sequential as you add, remove, or reorder chapters - inserting a new entry partway through (as above, right after "6. References") means renumbering every entry after it, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
 
 !!! warning
     Each markdown file can contain only one heading 1 (`#`). Zensical numbers headings sequentially across the whole document in `nav` order, starting a new top-level number at each heading 1 - a second heading 1 in the same file breaks that numbering and confuses the table of contents. If you need another top-level heading, create a new markdown file for it and add it to `nav` instead.
@@ -349,7 +349,7 @@ Repo: {{ repo_url }}{% endraw %}
 ```
 
 
-## Customise PDF format
+## Customise PDF generation
 
 PDF generation itself is a zendoc extension, in the same sense as the rest of this page: Zensical only builds the website, so `build_pdf.py` is this template's own build script, layered on top, that renders the same `docs/` content into a single-file PDF via [Pandoc](https://pandoc.org/) and [WeasyPrint](https://weasyprint.org/). It reuses `zensical.toml` settings wherever it can, so most website customisations (site name, copyright, fonts, and so on) apply to the PDF automatically - the sections below cover the handful of things that are PDF-specific.
 

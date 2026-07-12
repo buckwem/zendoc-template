@@ -203,10 +203,13 @@ heading_numbering = true
 The top level heading numbering shown in the sidebar isn't generated automatically - it's typed directly into each entry's title in `nav`, matching the pattern of the ones already there, for example:
 
 ```toml
-{"9. Appendix" = "appendix.md"}
+{"6. Case Study" = "casestudy.md"}
 ```
 
-Keep the numbers in each title sequential as you add, remove, or reorder chapters - inserting a new entry partway through (as above, right after "8. References") means renumbering every entry after it, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
+Keep the numbers in each title sequential as you add, remove, or reorder chapters - inserting a new entry partway through (as above, right after "5. Section") means renumbering every entry after it, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
+
+!!! note
+    Appendix pages are the one exception - see [Appendixes](#appendixes) below - since they're lettered rather than numbered, and don't take a number from this sequence at all.
 
 !!! warning
     Each markdown file can contain only one heading 1 (`#`). Zensical numbers headings sequentially across the whole document in `nav` order, starting a new top-level number at each heading 1 - a second heading 1 in the same file breaks that numbering and confuses the table of contents. If you need another top-level heading, create a new markdown file for it and add it to `nav` instead.
@@ -227,7 +230,7 @@ Zensical doesn't include a dedicated citation or bibliography extension, but you
 
     Each entry needs a blank line before and after it - attr_list only recognises `{: ... }` as an id (rather than literal visible text) when it's the last line of its own paragraph. Removing the blank lines to save space merges entries into one paragraph and breaks both outputs.
 
-2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar, and gets a number like your other sections.
+2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar - as a regular numbered chapter, or as a lettered appendix (see [Appendixes](#appendixes) below). This template ships it as an appendix by default.
 3. Cite the source in-text by linking to that paragraph's id, wrapping the link in an extra pair of square brackets so it reads like an in-text citation:
 
     ``` markdown
@@ -280,7 +283,7 @@ Zensical doesn't include a dedicated acronym-list extension either, but you can 
 
     As with references, each entry needs a blank line before and after it, and the `.acronym` class is what keeps consecutive entries close together rather than using the browser's normal, looser paragraph spacing.
 
-2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar, and gets a number like your other sections.
+2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar - as a regular numbered chapter, or as a lettered appendix (see [Appendixes](#appendixes) below). This template ships it as an appendix by default.
 3. Link to an acronym the first time you use it in a page, the same way you'd cite a reference:
 
     ``` markdown
@@ -306,7 +309,7 @@ You can build a glossary of key terms the same way, in its own page - this templ
 
     Give glossary entries their own ids, distinct from any acronym ids for the same concept (for example `css-def` rather than `css`) - `build_pdf.py` concatenates every page into a single PDF document, so two entries sharing an id anywhere in the document would collide.
 
-2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar, and gets a number like your other sections.
+2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar - as a regular numbered chapter, or as a lettered appendix (see [Appendixes](#appendixes) below). This template ships it as an appendix by default.
 3. Link to a term the first time you use it in a page, the same way you'd cite a reference or an acronym:
 
     ``` markdown
@@ -315,6 +318,29 @@ You can build a glossary of key terms the same way, in its own page - this templ
 
 !!! tip
     If a term is also one of your acronyms, link the two entries to each other (see `docs/acronyms.md` and `docs/glossary.md` in this template for an example) rather than duplicating the explanation on both pages.
+
+### Appendixes
+
+Set `is_appendix: true` in a page's front matter to give its heading letter-based numbering - "Appendix A", "Appendix B", ... - instead of continuing the document's normal numbered sequence, matching the usual academic convention for appendixes. Sub-headings within an appendix page number the same way numbered sections do, just using the letter instead of a chapter number - "A.1", "A.1.1", and so on.
+
+```markdown
+---
+icon: lucide/book-open
+is_appendix: true
+---
+```
+
+Appendix pages are lettered in `nav` order - the first `is_appendix: true` page becomes Appendix A, the second becomes Appendix B, and so on - regardless of how many numbered chapters come before them, and without taking a number away from that sequence (see the note in [Changing heading numbering](#changing-heading-numbering) above). This template ships `docs/acronyms.md`, `docs/glossary.md`, and `docs/references.md` as appendixes by default, grouped under their own "Appendixes" tab in `nav`.
+
+!!! note
+    Like the numbered chapter titles in `nav` (see [Changing heading numbering](#changing-heading-numbering)), the "Appendix A"/"Appendix B" prefix shown in the sidebar isn't generated automatically - type it directly into each entry's title in `nav`, matching the pattern already there:
+
+    ```toml
+    {"Appendix A. Acronyms" = "acronyms.md"}
+    ```
+
+!!! tip
+    Appendixes conventionally don't count toward a submission's word limit either - pair `is_appendix: true` with `exclude_from_word_count: true` (see [Word count and repository link](#word-count-and-repository-link) above), as this template's own appendix pages already do.
 
 ## Customise front page
 
@@ -460,14 +486,14 @@ The [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-l
 | ...
 
 /// caption
-Table 10.3-1: Fork and Clone Comparison at a Glance
+Table 7.3-1: Fork and Clone Comparison at a Glance
 ///
 ```
 
 ``` markdown
 ![GitLab fork project](images/gitlab-fork-project.png){ width=70% }
 /// caption
-Figure 10.3.1-1: GitLab fork project
+Figure 7.3.1-1: GitLab fork project
 ///
 ```
 
@@ -492,20 +518,22 @@ The "Start Here" pages you're reading now are author-facing instructions, not pa
   {"2. Section" = "section1.md"},
   {"3. Section" = "section2.md"},
   {"4. Section" = "section3.md"},
-  {"5. Section" = "section4.md"},
-  {"6. Acronyms" = "acronyms.md"},
-  {"7. Glossary" = "glossary.md"},
-  {"8. References" = "references.md"}
+  {"5. Section" = "section4.md"}
+]},
+{"Appendixes" = [
+  {"Appendix A. Acronyms" = "acronyms.md"},
+  {"Appendix B. Glossary" = "glossary.md"},
+  {"Appendix C. References" = "references.md"}
 ]},
 # {"START HERE" = [
-#   {"9. Start Here" = "starthere/starthere.md"},
-#   {"10. Install tooling" = "starthere/installtooling.md"},
-#   {"11. Start editing" = "starthere/startediting.md"},
-#   {"12. Markdown basics" = "starthere/markdown.md"},
-#   {"13. Zensical basics" = "starthere/zensicalbasics.md"},
-#   {"14. Customisation" = "starthere/customise.md"},
-#   {"15. Additional tooling" = "starthere/additionaltooling.md"},
-#   {"16. Shell commands" = "starthere/shcommands.md"}
+#   {"6. Start Here" = "starthere/starthere.md"},
+#   {"7. Install tooling" = "starthere/installtooling.md"},
+#   {"8. Start editing" = "starthere/startediting.md"},
+#   {"9. Markdown basics" = "starthere/markdown.md"},
+#   {"10. Zensical basics" = "starthere/zensicalbasics.md"},
+#   {"11. Customisation" = "starthere/customise.md"},
+#   {"12. Additional tooling" = "starthere/additionaltooling.md"},
+#   {"13. Shell commands" = "starthere/shcommands.md"}
 # ]}
 ```
 

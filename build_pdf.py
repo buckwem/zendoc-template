@@ -160,15 +160,12 @@ def build_icon_registry(icon_dirs):
                         registry[flat_key] = full_path
     return registry
 
-def page_excluded_from_word_count(path):
-    """True if path's YAML front matter sets exclude_from_word_count: true -
-    see "Word count" in customise.md. Used to skip pages like References,
-    Acronyms, Glossary, and Originality & AI Use, which conventionally don't
-    count toward a submission's word limit. Mirrors the same check in
-    macros.py, used there for the website's {{ word_count }} variable. Reads
-    the original source file, not its preprocessed copy - preprocess_markdown()
+def page_front_matter_flag(path, key):
+    """True if path's YAML front matter sets key: true. Shared by
+    page_excluded_from_word_count() and page_is_appendix(). Reads the
+    original source file, not its preprocessed copy - preprocess_markdown()
     already strips the front matter by the time a page reaches
-    compute_pdf_word_count()."""
+    compute_pdf_word_count() or the Lua numbering filter."""
     try:
         with open(path, 'r', encoding='utf-8') as f:
             text = f.read()
@@ -179,7 +176,23 @@ def page_excluded_from_word_count(path):
     parts = text.split('---', 2)
     if len(parts) < 3:
         return False
-    return bool(re.search(r'^exclude_from_word_count:\s*true\s*$', parts[1], re.MULTILINE | re.IGNORECASE))
+    return bool(re.search(rf'^{re.escape(key)}:\s*true\s*$', parts[1], re.MULTILINE | re.IGNORECASE))
+
+def page_excluded_from_word_count(path):
+    """True if path's YAML front matter sets exclude_from_word_count: true -
+    see "Word count" in customise.md. Used to skip pages like References,
+    Acronyms, Glossary, and Originality & AI Use, which conventionally don't
+    count toward a submission's word limit. Mirrors the same check in
+    macros.py, used there for the website's {{ word_count }} variable."""
+    return page_front_matter_flag(path, 'exclude_from_word_count')
+
+def page_is_appendix(path):
+    """True if path's YAML front matter sets is_appendix: true - see
+    "Appendixes" in customise.md. Used to give the page's H1 (and any H2/H3
+    beneath it) letter-based numbering ("Appendix A", "A.1", ...) instead of
+    continuing the document's normal numeric sequence. Mirrors the same
+    check in macros.py, used there for the website's own numbering."""
+    return page_front_matter_flag(path, 'is_appendix')
 
 def compute_pdf_word_count(markdown_paths):
     """Rough prose word count across the given already-preprocessed markdown
@@ -400,7 +413,7 @@ def apply_outside_fences(content, transform):
         for is_fenced, segment in _split_fenced_blocks(content)
     )
 
-def tag_first_heading(content, anchor):
+def tag_first_heading(content, anchor, extra_class=None):
     """Gives a page's first top-level heading an explicit #anchor id (unless
     it already has one), so other pages can link to it by that id once
     everything is concatenated into a single PDF document. See
@@ -409,7 +422,14 @@ def tag_first_heading(content, anchor):
     .unnumbered .unlisted}), the id is inserted into that same block rather
     than appended as a second, separate {...} block - Pandoc only recognises
     one attribute block per heading, and a second one is left sitting in the
-    output as literal, visible text instead of being parsed as an id."""
+    output as literal, visible text instead of being parsed as an id.
+
+    If extra_class is given (e.g. "appendix" - see page_is_appendix() /
+    issue #24), it's added to the same block as a .class, giving the Lua
+    numbering filter's Header() function something to detect on the raw
+    Pandoc AST node - preprocess_markdown() itself has no reach into that
+    filter, so this attribute is the only way to carry the flag through."""
+    suffix = f'#{anchor}' + (f' .{extra_class}' if extra_class else '')
     def handler(_i, line):
         if not re.match(r'^#\s+\S', line):
             return None
@@ -418,8 +438,8 @@ def tag_first_heading(content, anchor):
             if '#' in brace_match.group(1):
                 return line  # already has an explicit id - leave it alone
             end = brace_match.end(1)
-            return f'{line[:end]} #{anchor}{line[end:]}'
-        return f'{line.rstrip()} {{#{anchor}}}'
+            return f'{line[:end]} {suffix}{line[end:]}'
+        return f'{line.rstrip()} {{{suffix}}}'
     return _walk_outside_fences(content, handler)
 
 def rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map):
@@ -529,7 +549,8 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     current_docs_rel_path = os.path.normpath(os.path.relpath(file_path, docs_dir)).replace('\\', '/')
     own_anchor = page_anchor_map.get(current_docs_rel_path)
     if own_anchor:
-        content = tag_first_heading(content, own_anchor)
+        extra_class = 'appendix' if page_is_appendix(file_path) else None
+        content = tag_first_heading(content, own_anchor, extra_class=extra_class)
     content = rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map)
     content = rewrite_repo_file_links(content, current_docs_rel_path, docs_dir, calculated_vars.get('repo_url', ''))
 
@@ -1398,7 +1419,17 @@ def main():
         f.write(lua_icon_db_string)
         f.write(
             "local h1, h2, h3 = 0, 0, 0\n"
+            "local appendix_index = 0\n"
+            "local in_appendix = false\n"
             f"local heading_numbering_enabled = {'true' if heading_numbering_enabled else 'false'}\n\n"
+            "-- Converts 1, 2, 3... to A, B, C... for appendix numbering (see\n"
+            "-- page_is_appendix() / issue #24). Single letters only - unlike CSS's\n"
+            "-- own upper-alpha counter style, Lua has no built-in equivalent, and an\n"
+            "-- academic report is never realistically going to have more than 26\n"
+            "-- appendixes.\n"
+            "local function to_letter(n)\n"
+            "  return string.char(64 + n)\n"
+            "end\n\n"
             "function Div(el)\n"
             "  if el.classes:includes('tabbox') then\n"
             "    local title = el.attributes['title'] or 'Tab'\n"
@@ -1412,17 +1443,32 @@ def main():
             "function Header(block)\n"
             "  if heading_numbering_enabled and not block.classes:includes('unnumbered') then\n"
             "    if block.level == 1 then\n"
-            "      h1 = h1 + 1\n"
             "      h2 = 0\n"
             "      h3 = 0\n"
-            "      table.insert(block.content, 1, pandoc.Str(tostring(h1) .. '. '))\n"
+            "      if block.classes:includes('appendix') then\n"
+            "        appendix_index = appendix_index + 1\n"
+            "        in_appendix = true\n"
+            "        table.insert(block.content, 1, pandoc.Str('Appendix ' .. to_letter(appendix_index) .. '. '))\n"
+            "      else\n"
+            "        h1 = h1 + 1\n"
+            "        in_appendix = false\n"
+            "        table.insert(block.content, 1, pandoc.Str(tostring(h1) .. '. '))\n"
+            "      end\n"
             "    elseif block.level == 2 then\n"
             "      h2 = h2 + 1\n"
             "      h3 = 0\n"
-            "      table.insert(block.content, 1, pandoc.Str(tostring(h1) .. '.' .. tostring(h2) .. ' '))\n"
+            "      if in_appendix then\n"
+            "        table.insert(block.content, 1, pandoc.Str(to_letter(appendix_index) .. '.' .. tostring(h2) .. ' '))\n"
+            "      else\n"
+            "        table.insert(block.content, 1, pandoc.Str(tostring(h1) .. '.' .. tostring(h2) .. ' '))\n"
+            "      end\n"
             "    elseif block.level == 3 then\n"
             "      h3 = h3 + 1\n"
-            "      table.insert(block.content, 1, pandoc.Str(tostring(h1) .. '.' .. tostring(h2) .. '.' .. tostring(h3) .. ' '))\n"
+            "      if in_appendix then\n"
+            "        table.insert(block.content, 1, pandoc.Str(to_letter(appendix_index) .. '.' .. tostring(h2) .. '.' .. tostring(h3) .. ' '))\n"
+            "      else\n"
+            "        table.insert(block.content, 1, pandoc.Str(tostring(h1) .. '.' .. tostring(h2) .. '.' .. tostring(h3) .. ' '))\n"
+            "      end\n"
             "    end\n"
             "  end\n"
             "  return block\n"

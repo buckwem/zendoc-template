@@ -102,6 +102,17 @@ Zensical supports Markdown image syntax using the `<figure>` tag to add captions
   <figcaption>Image caption</figcaption>
 </figure>
 
+This template also enables the [`pymdownx.blocks.caption`](https://facelessuser.github.io/pymdown-extensions/extensions/blocks/plugins/caption/){target="_blank"} extension, an alternative way to caption an image using a `/// caption ... ///` block straight after it, rather than wrapping it in `<figure>`/`<figcaption>` tags:
+
+``` markdown
+![Image title](https://dummyimage.com/600x400/){ width="300" }
+/// caption
+Image caption
+///
+```
+
+See [Captions](customise.md#captions) in Customisation for more detail, including how this same syntax also captions **tables**, and how this template handles it in the PDF.
+
 ## Diagrams
 
 Zensical supports [Mermaid](https://mermaid.js.org/){target="_blank"} diagrams. You can create flowcharts, sequence diagrams, and more. For further details, go to the [diagrams documentation](https://zensical.org/docs/authoring/diagrams/).

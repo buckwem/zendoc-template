@@ -123,7 +123,7 @@ text = "Inter"
 code = "Jetbrains Mono"
 ```
 
-Use `text` for body copy and headings, and `code` for code blocks and inline code. Both default to Inter and JetBrains Mono if you leave this section unset. The PDF build reuses this same setting - see [Customise PDF format](#customise-pdf-format).
+Use `text` for body copy and headings, and `code` for code blocks and inline code. Both default to Inter and JetBrains Mono if you leave this section unset. The PDF build reuses this same setting - see [Customise PDF generation](#customise-pdf-generation).
 
 ### Icons
 
@@ -200,13 +200,13 @@ This will also disable heading numbering in the generated PDF output. If you wan
 heading_numbering = true
 ```
 
-The top level heading numbering shown in the sidebar isn't generated automatically - it's typed directly into each entry's title in `nav`, matching the pattern of the ones already there. For example, to add a new top-level chapter numbered "4", following on from the `nav` example above:
+The top level heading numbering shown in the sidebar isn't generated automatically - it's typed directly into each entry's title in `nav`, matching the pattern of the ones already there, for example:
 
 ```toml
-{"4. Section" = "section3.md"}
+{"7. Appendix" = "appendix.md"}
 ```
 
-Keep the numbers in each title sequential as you add, remove, or reorder chapters, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
+Keep the numbers in each title sequential as you add, remove, or reorder chapters - inserting a new entry partway through (as above, right after "6. References") means renumbering every entry after it, since (unlike the in-page heading numbers) `nav` doesn't renumber these for you.
 
 !!! warning
     Each markdown file can contain only one heading 1 (`#`). Zensical numbers headings sequentially across the whole document in `nav` order, starting a new top-level number at each heading 1 - a second heading 1 in the same file breaks that numbering and confuses the table of contents. If you need another top-level heading, create a new markdown file for it and add it to `nav` instead.
@@ -349,7 +349,7 @@ Repo: {{ repo_url }}{% endraw %}
 ```
 
 
-## Customise PDF format
+## Customise PDF generation
 
 PDF generation itself is a zendoc extension, in the same sense as the rest of this page: Zensical only builds the website, so `build_pdf.py` is this template's own build script, layered on top, that renders the same `docs/` content into a single-file PDF via [Pandoc](https://pandoc.org/) and [WeasyPrint](https://weasyprint.org/). It reuses `zensical.toml` settings wherever it can, so most website customisations (site name, copyright, fonts, and so on) apply to the PDF automatically - the sections below cover the handful of things that are PDF-specific.
 
@@ -400,17 +400,18 @@ The "Start Here" pages you're reading now are author-facing instructions, not pa
   {"2. Section" = "section1.md"},
   {"3. Section" = "section2.md"},
   {"4. Section" = "section3.md"},
-  {"5. Section" = "section4.md"}
+  {"5. Section" = "section4.md"},
+  {"6. References" = "references.md"}
 ]},
 # {"START HERE" = [
-#   {"6. Start Here" = "starthere/starthere.md"},
-#   {"7. Install tooling" = "starthere/installtooling.md"},
-#   {"8. Start editing" = "starthere/startediting.md"},
-#   {"9. Markdown basics" = "starthere/markdown.md"},
-#   {"10. Zensical basics" = "starthere/zensicalbasics.md"},
-#   {"11. Customisation" = "starthere/customise.md"},
-#   {"12. Additional tooling" = "starthere/additionaltooling.md"},
-#   {"13. Shell commands" = "starthere/shcommands.md"}
+#   {"7. Start Here" = "starthere/starthere.md"},
+#   {"8. Install tooling" = "starthere/installtooling.md"},
+#   {"9. Start editing" = "starthere/startediting.md"},
+#   {"10. Markdown basics" = "starthere/markdown.md"},
+#   {"11. Zensical basics" = "starthere/zensicalbasics.md"},
+#   {"12. Customisation" = "starthere/customise.md"},
+#   {"13. Additional tooling" = "starthere/additionaltooling.md"},
+#   {"14. Shell commands" = "starthere/shcommands.md"}
 # ]}
 ```
 
@@ -442,6 +443,7 @@ Now that you've customised the website, the document structure, the cover page, 
     * :material-file-document-outline: `section2.md` — The second section of your documentation for you to edit.
     * :material-file-document-outline: `section3.md` — The third section of your documentation for you to edit.
     * :material-file-document-outline: `section4.md` — The fourth section of your documentation for you to edit.
+    * :material-file-document-outline: `references.md` — Your bibliography, for you to complete - see [References and bibliography](#references-and-bibliography).
     * :material-folder: **assets/** — Images, logos, and header backgrounds used across the site and the cover page.
     * :material-folder: **stylesheets/** — CSS for the website and the PDF.
         * :material-file-document-outline: `extra.css` — Most of the template's own website customisations (logo swap, header image, cover page styles, `.pdf-only`/`.web-only` markers).

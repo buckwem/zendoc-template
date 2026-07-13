@@ -500,6 +500,46 @@ def test_real_fork_clone_table_caption_is_numbered_in_the_built_pdf(pdf_full_tex
     assert m is not None, "Expected a numbered 'Fork and Clone Comparison at a Glance' table caption in the PDF"
 
 
+def test_real_figure_caption_image_is_horizontally_centered_under_its_caption(pdf_doc):
+    """Regression test: the <figure> zensical_caption_replacer() builds had
+    no text-align on it, so the <img> (a naturally inline-level element,
+    positioned by its parent's text-align) sat at its default left-aligned
+    position while the figcaption text ended up centered anyway (WeasyPrint's
+    own default for figcaption) - visibly misaligning the image under its
+    own caption. Checks the real "Initial commit" figure in the built PDF:
+    the image's horizontal center should match its caption's."""
+    image_bbox = None
+    caption_bbox = None
+    for page in pdf_doc:
+        blocks = page.get_text("dict")["blocks"]
+        image_bboxes = [b["bbox"] for b in blocks if b.get("type") == 1]
+        for block in blocks:
+            if block.get("type") != 0:
+                continue
+            text = "".join(s["text"] for line in block.get("lines", []) for s in line["spans"])
+            if "Figure" in text and "Initial commit" in text:
+                caption_bbox = block["bbox"]
+                # The image directly above this caption - not necessarily
+                # adjacent in blocks[] order (images can be listed out of
+                # visual reading order - see the vertical-gap match here
+                # instead of relying on list position).
+                above = [b for b in image_bboxes if b[3] <= caption_bbox[1] + 1]
+                if above:
+                    image_bbox = min(above, key=lambda b: caption_bbox[1] - b[3])
+                break
+        if caption_bbox is not None:
+            break
+
+    assert caption_bbox is not None, "Expected to find the 'Initial commit' figure caption in the PDF"
+    assert image_bbox is not None, "Expected an image immediately before the 'Initial commit' caption"
+
+    image_center = (image_bbox[0] + image_bbox[2]) / 2
+    caption_center = (caption_bbox[0] + caption_bbox[2]) / 2
+    assert abs(image_center - caption_center) < 1, (
+        f"Image center ({image_center}) doesn't match caption center ({caption_center})"
+    )
+
+
 CAPTION_SYNTAX_LEAK = re.compile(r"^\s*(?:///|--/)\s*(figure-caption|table-caption|caption)\b", re.MULTILINE)
 
 

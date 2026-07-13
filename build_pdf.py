@@ -2046,10 +2046,20 @@ img {
     max-width: 100% !important;
 }
 /* Keeps an image and its /// caption /// figcaption together as one atomic
-   unit, so the caption can never be pushed to a page apart from its image. */
+   unit, so the caption can never be pushed to a page apart from its image.
+   text-align: center centers the <img> itself (a naturally inline-level
+   element, so its parent's text-align controls its horizontal position) -
+   without this, only the figcaption text ends up centered (its own
+   centering comes from WeasyPrint's UA stylesheet default for figcaption),
+   leaving the image sitting at its default left-aligned position and
+   visibly misaligned under its own caption. Applies both to figures
+   zensical_caption_replacer() builds by hand and to Pandoc's own implicit
+   figures (any standalone image Pandoc auto-wraps in <figure>, e.g. the
+   institution logos on the front page). */
 figure {
     page-break-inside: avoid !important;
     break-inside: avoid-page !important;
+    text-align: center !important;
 }
 /* Applied via "{ .screenshot }" on an image (see "Captions" in
    customise.md) - matches the website's equivalent img.screenshot rule

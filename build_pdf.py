@@ -194,6 +194,38 @@ def page_is_appendix(path):
     check in macros.py, used there for the website's own numbering."""
     return page_front_matter_flag(path, 'is_appendix')
 
+def parse_caption_modifier(modifier):
+    """Parses the optional "| ..." modifier after a caption block's type
+    name - pymdownx.blocks.caption's own header syntax for overriding
+    position, number, id, and classes on a single caption (see "Captions"
+    in customise.md), e.g. "| < 5 #custom-id.some-class". Returns
+    (prepend, manual_number, custom_id, extra_classes):
+    - prepend: True/False if "<"/">" is present, else None (caller decides
+      the default - this template never sets a project-wide prepend: true,
+      so the extension's own default is append).
+    - manual_number: int if a bare integer token is present, else None.
+    - custom_id / extra_classes: from a "#id.class1.class2"-style token,
+      mirroring the CSS-selector shorthand the extension itself accepts."""
+    prepend = None
+    manual_number = None
+    custom_id = None
+    extra_classes = []
+    if not modifier:
+        return prepend, manual_number, custom_id, extra_classes
+    for token in modifier.split():
+        if token == '<':
+            prepend = True
+        elif token == '>':
+            prepend = False
+        elif token.isdigit():
+            manual_number = int(token)
+        elif token.startswith('#') or token.startswith('.'):
+            id_match = re.search(r'#([\w-]+)', token)
+            if id_match:
+                custom_id = id_match.group(1)
+            extra_classes.extend(re.findall(r'\.([\w-]+)', token))
+    return prepend, manual_number, custom_id, extra_classes
+
 def compute_pdf_word_count(markdown_paths):
     """Rough prose word count across the given already-preprocessed markdown
     files: strips fenced code, inline code, HTML tags/comments, and markdown
@@ -527,9 +559,23 @@ def rewrite_repo_file_links(content, current_docs_rel_path, docs_dir, repo_url):
 
     return apply_outside_fences(content, lambda text: link_pattern.sub(replace_link, text))
 
-def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, nav_snippet_text='', is_index=False):
+def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, nav_snippet_text='', is_index=False, chapter_id=None, caption_state=None):
     """Parses template conditionals, applies global asset filtering, and converts raw shortcodes
     to alphanumeric tokens while ignoring those nested inside code block environments.
+
+    chapter_id is this page's own chapter number ("7") or appendix letter
+    ("A") - computed once per page in main(), before any page is
+    preprocessed, by replicating macros.py's own nav-walk (see
+    _page_is_appendix()/_count_top_level_headings() there) - the same
+    number the website computes via heading_counter_reset() and the Lua
+    filter computes via its own h1 counter, needed here because figure/table
+    captions (see "Captions" in customise.md) are numbered "Figure
+    <chapter>.<n>" during this preprocessing pass, before pages are
+    concatenated and the Lua filter's counter exists. caption_state is a
+    shared dict threaded across every page's preprocess_markdown() call,
+    collecting id="..." values that requested a prepended (top) position so
+    main() can emit a targeted caption-side CSS rule for exactly those,
+    once every page has been preprocessed - see "prepend_table_ids" below.
     """
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
@@ -613,21 +659,57 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     )
 
     # AUTOMATED ZENSICAL CAPTION BLOCK TRANSLATION ENGINE
+    # Handles both the plain, unnumbered "caption" type (unchanged from
+    # before - no id, no prefix) and the numbered "figure-caption" type
+    # (see "Captions" in customise.md): auto-numbered "Figure <chapter>.<n>"
+    # using this page's own chapter_id plus a per-page counter mirroring
+    # pymdownx.blocks.caption's own website-side counter, a manual number
+    # override (honoured if given, and the auto-counter picks up from
+    # there), and a custom #id/.class in place of the auto-generated id -
+    # see parse_caption_modifier(). figure-caption always appends (image,
+    # then caption) to match this template's own usage; a "| <"/"| >"
+    # modifier is still parsed for completeness but isn't expected to be
+    # used with figures in this template's own docs.
+    figure_counter = 0
     def zensical_caption_replacer(match):
+        nonlocal figure_counter
         indent = match.group(1)
         alt_text = match.group(2)
         img_url = match.group(3)
-        caption_body = match.group(5).strip()
-        
+        caption_type = match.group(5)
+        modifier = match.group(6)
+        caption_body = match.group(7).strip()
+
+        prepend, manual_number, custom_id, extra_classes = parse_caption_modifier(modifier)
+        classes = list(extra_classes)
+        figure_id = custom_id
+
+        if caption_type == 'figure-caption':
+            figure_counter = max(figure_counter, manual_number) if manual_number else figure_counter + 1
+            this_number = manual_number if manual_number is not None else figure_counter
+            number_text = f"{chapter_id}.{this_number}." if chapter_id else f"{this_number}."
+            prefix_html = f'<span class="caption-prefix">Figure {number_text}</span> '
+            if figure_id is None:
+                figure_id = f"figure-{(chapter_id or 'x').lower()}-{this_number}"
+            classes.insert(0, 'zendoc-figure-caption')
+        else:
+            prefix_html = ''
+
+        class_attr = f' class="{" ".join(classes)}"' if classes else ''
+        id_attr = f' id="{figure_id}"' if figure_id else ''
+
+        img_html = f"{indent}  <img src=\"{img_url}\" alt=\"{alt_text}\" />\n"
+        figcaption_html = f"{indent}  <figcaption class=\"text-center-italic\" style=\"margin-top: 8px;\">{prefix_html}{caption_body}</figcaption>\n"
+        body = (figcaption_html + img_html) if prepend else (img_html + figcaption_html)
+
         return (
-            f"\n\n{indent}<figure class=\"text-center\">\n"
-            f"{indent}  <img src=\"{img_url}\" alt=\"{alt_text}\" />\n"
-            f"{indent}  <figcaption class=\"text-center-italic\" style=\"margin-top: 8px;\">{caption_body}</figcaption>\n"
+            f"\n\n{indent}<figure{id_attr}{class_attr}>\n"
+            f"{body}"
             f"{indent}</figure>\n\n"
         )
 
     content = apply_outside_fences(content, lambda text: re.sub(
-        r'^([ \t]*)!\[([^\]]*)\]\(([^)]*)\)(?:\{([^}]*)\})?[ \t]*\n(?:[ \t]*\n)*\1///\s*caption\s*\n(.*?)\n\1///',
+        r'^([ \t]*)!\[([^\]]*)\]\(([^)]*)\)(?:\{([^}]*)\})?[ \t]*\n(?:[ \t]*\n)*\1///\s*(figure-caption|caption)(?:[ \t]*\|[ \t]*([^\n]*))?[ \t]*\n(.*?)\n\1///',
         zensical_caption_replacer,
         text,
         flags=re.MULTILINE | re.DOTALL
@@ -635,19 +717,66 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
 
     # AUTOMATED ZENSICAL TABLE CAPTION TRANSLATION ENGINE
     # Converts a caption block following a table into Pandoc's native table-caption
-    # syntax ("Table: ..." immediately after the table), which Pandoc renders as a
-    # real <caption> bound inside the <table> element - keeping it structurally
-    # attached to the table so it can't be orphaned from it across a page break.
-    # Caption must come AFTER the table: pymdownx.blocks.caption (used on the live
-    # site) attaches a caption block to whichever sibling precedes it, so a caption
-    # placed before the table would wrongly attach to the paragraph above instead.
+    # syntax ("Table: ..." immediately after the table {#id .class}), which Pandoc
+    # renders as a real <caption> bound inside the <table> element - keeping it
+    # structurally attached to the table so it can't be orphaned from it across a
+    # page break. Caption must come AFTER the table: pymdownx.blocks.caption (used
+    # on the live site) attaches a caption block to whichever sibling precedes it,
+    # so a caption placed before the table would wrongly attach to the paragraph
+    # above instead.
+    #
+    # Numbering/id/class work exactly like figure-caption above, sharing the same
+    # chapter_id and parse_caption_modifier() logic, but with a separate counter
+    # (tables and figures are numbered independently). Position is different: Pandoc's
+    # native table-caption syntax always places the caption line *after* the table in
+    # the source, so genuinely moving it before the table isn't possible without
+    # hand-rolling table markup Pandoc would otherwise parse for us - "prepend" here
+    # instead means a real, per-table caption-side: top CSS override (added once every
+    # page has been preprocessed - see caption_state/prepend_table_ids in main()),
+    # visually equivalent to a true prepend without the risk of a hand-written
+    # Markdown-table-to-HTML conversion. The plain "caption" type keeps this template's
+    # original default of always showing at the top, for backward compatibility.
+    table_counter = 0
+    anon_table_counter = 0
     def table_caption_replacer(match):
+        nonlocal table_counter, anon_table_counter
         table_lines = match.group(1)
-        caption_body = match.group(3).strip()
-        return f"{table_lines}\nTable: {caption_body}\n\n"
+        caption_type = match.group(3)
+        modifier = match.group(4)
+        caption_body = match.group(5).strip()
+
+        prepend, manual_number, custom_id, extra_classes = parse_caption_modifier(modifier)
+        attrs = []
+
+        if caption_type == 'table-caption':
+            table_counter = max(table_counter, manual_number) if manual_number else table_counter + 1
+            this_number = manual_number if manual_number is not None else table_counter
+            number_text = f"{chapter_id}.{this_number}." if chapter_id else f"{this_number}."
+            caption_text = f"Table {number_text} {caption_body}"
+            table_id = custom_id or f"table-{(chapter_id or 'x').lower()}-{this_number}"
+            wants_top = prepend is True
+        else:
+            caption_text = caption_body
+            # A plain caption doesn't get a numbered id, but still needs a
+            # unique one so the top-position CSS override below (which is
+            # id-targeted, not a blanket rule - see the note above) can
+            # still apply to it for backward compatibility.
+            anon_table_counter += 1
+            table_id = custom_id or f"table-{(chapter_id or 'x').lower()}-caption-{anon_table_counter}"
+            wants_top = prepend is not False  # unset defaults to this template's original top placement
+
+        if table_id:
+            attrs.append(f'#{table_id}')
+        attrs.extend(f'.{c}' for c in extra_classes)
+
+        if wants_top and table_id and caption_state is not None:
+            caption_state.setdefault('prepend_table_ids', set()).add(table_id)
+
+        attr_block = f" {{{' '.join(attrs)}}}" if attrs else ''
+        return f"{table_lines}\nTable: {caption_text}{attr_block}\n\n"
 
     content = apply_outside_fences(content, lambda text: re.sub(
-        r'((?:^[ \t]*\|[^\n]*\n)+)(?:[ \t]*\n)*^([ \t]*)///\s*caption\s*\n(.*?)\n\2///[ \t]*\n?',
+        r'((?:^[ \t]*\|[^\n]*\n)+)(?:[ \t]*\n)*^([ \t]*)///\s*(table-caption|caption)(?:[ \t]*\|[ \t]*([^\n]*))?[ \t]*\n(.*?)\n\2///[ \t]*\n?',
         table_caption_replacer,
         text,
         flags=re.MULTILINE | re.DOTALL
@@ -1328,6 +1457,28 @@ def main():
     # both outputs just need the identical extracted text.
     nav_snippet_text = macros_module._get_nav_snippet() if macros_module and hasattr(macros_module, '_get_nav_snippet') else ''
 
+    # Each nav page's own chapter number ("7") or appendix letter ("A"),
+    # keyed by its docs_dir-relative path - needed for figure/table caption
+    # numbering (see preprocess_markdown()'s chapter_id parameter). Mirrors
+    # macros.py's own _heading_start_counts()/_appendix_letters(), reusing
+    # its _page_is_appendix()/_count_top_level_headings() helpers directly
+    # (already loaded above) rather than re-implementing the same nav walk
+    # a third time.
+    chapter_identifiers = {}
+    if macros_module and hasattr(macros_module, '_page_is_appendix') and hasattr(macros_module, '_count_top_level_headings'):
+        numeric_chapter = 0
+        appendix_index = 0
+        for f in md_files:
+            full_path = os.path.join(docs_dir, f)
+            if macros_module._page_is_appendix(full_path):
+                appendix_index += 1
+                chapter_identifiers[f] = chr(ord('A') + appendix_index - 1)
+            elif macros_module._count_top_level_headings(full_path) > 0:
+                numeric_chapter += 1
+                chapter_identifiers[f] = str(numeric_chapter)
+
+    caption_state = {}
+
     theme_section = project_section.get('theme', {}) if isinstance(project_section, dict) else config.get('theme', {})
     font_section = theme_section.get('font', {}) if isinstance(theme_section, dict) else {}
     main_font, mono_font = "Inter", "JetBrains Mono"
@@ -1354,7 +1505,9 @@ def main():
         safe_name = path.replace('/', '_').replace('\\', '_')
         temp_out_path = os.path.join(temp_build_dir, safe_name)
         is_index = "index.md" in os.path.basename(path).lower()
-        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, nav_snippet_text, is_index=is_index)
+        rel_path = os.path.normpath(os.path.relpath(path, docs_dir)).replace('\\', '/')
+        chapter_id = chapter_identifiers.get(rel_path)
+        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, nav_snippet_text, is_index=is_index, chapter_id=chapter_id, caption_state=caption_state)
         processed_paths.append(temp_out_path)
 
     # Fill in the cover page's {WORDCOUNT}/{REPOURL} markers (see index.md),
@@ -1698,9 +1851,12 @@ thead {
     display: table-header-group;
 }
 /* Bound inside <table> itself, so it can never be separated from the start
-   of the table across a page break (unlike a plain preceding paragraph). */
+   of the table across a page break (unlike a plain preceding paragraph).
+   caption-side itself isn't set here - it's added per-table, only for
+   captions that actually asked to be shown at the top (see
+   table_caption_replacer()/prepend_table_ids below) - Pandoc's own
+   default (bottom) applies to any table caption that didn't. */
 table caption {
-    caption-side: top !important;
     text-align: center !important;
     font-style: italic !important;
     margin-bottom: 8px !important;
@@ -1965,8 +2121,20 @@ p.glossary + p.glossary {
 }
 """
 
+    # Every table caption id that requested the top position (either a
+    # table-caption block with an explicit "| <", or a plain caption using
+    # this template's original default - see table_caption_replacer() /
+    # caption_state above), collected across every page's preprocessing
+    # pass. table caption itself (in the static part of this stylesheet,
+    # above) deliberately doesn't set caption-side at all, so Pandoc's own
+    # default (bottom) applies to any table caption not listed here.
+    caption_style_css = "\n".join(
+        f'table caption[id="{table_id}"] {{ caption-side: top !important; }}'
+        for table_id in sorted(caption_state.get('prepend_table_ids', set()))
+    )
+
     with open(temp_compiled_css, "w", encoding="utf-8") as f:
-        f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css + "\n\n" + acronym_style_css + "\n\n" + glossary_style_css)
+        f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css + "\n\n" + acronym_style_css + "\n\n" + glossary_style_css + "\n\n" + caption_style_css)
 
     cmd = [
         "pandoc",

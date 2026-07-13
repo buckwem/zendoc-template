@@ -106,7 +106,7 @@ Whenever you've made a change you want to keep, there are three things to do: **
         2. Click the :gitlab-branch: **Source Control** icon in the left-hand sidebar. You'll see a list of every changed and new file.
 
             ![Initial commit](images/initial-commit.png){ width="40%" }
-            /// caption
+            /// figure-caption
             Initial commit
             ///
 
@@ -114,14 +114,14 @@ Whenever you've made a change you want to keep, there are three things to do: **
         4. Press the **Commit**{: .bg-blue} button and select **Save All and Commit Changes**{: .bg-blue}. This records the snapshot on your computer only - you haven't sent anything anywhere yet.
 
             ![Commit changes](images/commit-changes.png){ width="40%" }
-            /// caption
+            /// figure-caption
             Commit changes
             ///
 
         5. Press **Sync Changes**{: .bg-blue} to push your commit to GitLab or GitHub (and pull down anyone else's changes too).
 
             ![Sync changes](images/sync-changes.png){ width="40%" }
-            /// caption
+            /// figure-caption
             Sync changes
             ///
 

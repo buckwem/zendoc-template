@@ -375,7 +375,15 @@ def define_env(env):
         into the override CSS as a literal string rather than using CSS's own
         counter(name, upper-alpha) styling - simpler, and it keeps the sidebar
         table of contents (which can't easily mix a letter into a counter()
-        expression built for numbers) working the same way."""
+        expression built for numbers) working the same way.
+
+        Figure/table captions (see "Captions" in customise.md) follow the
+        same pattern: the base rule in extra.css prepends "Figure "/"Table "
+        plus counter(h1-count) in front of pymdownx.blocks.caption's own
+        per-page auto-number, which already works unmodified on a normal
+        numeric page (h1-count is already this page's chapter number by the
+        time a caption appears) - only the disabled and appendix cases below
+        need an override, exactly like the heading rules above."""
         if not _heading_numbering_enabled():
             return (
                 '<style>\n'
@@ -386,6 +394,8 @@ def define_env(env):
                 '  .md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {\n'
                 '    content: "" !important;\n'
                 '  }\n'
+                '  .zendoc-figure-caption .caption-prefix::before { content: "Figure " !important; }\n'
+                '  .zendoc-table-caption .caption-prefix::before { content: "Table " !important; }\n'
                 '</style>'
             )
         page_path = getattr(page, 'path', '')
@@ -398,6 +408,8 @@ def define_env(env):
                 f'  .md-typeset h3::before {{ content: "{letter}." counter(h2-count) "." counter(h3-count) " " !important; }}\n'
                 f'  .md-nav--secondary > .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {{ content: "{letter}." counter(toc2) " " !important; }}\n'
                 f'  .md-nav--secondary > .md-nav__list > .md-nav__item .md-nav__list > .md-nav__item > .md-nav__link .md-ellipsis::before {{ content: "{letter}." counter(toc2) "." counter(toc3) " " !important; }}\n'
+                f'  .zendoc-figure-caption .caption-prefix::before {{ content: "Figure {letter}." !important; }}\n'
+                f'  .zendoc-table-caption .caption-prefix::before {{ content: "Table {letter}." !important; }}\n'
                 '</style>'
             )
         starts = _heading_start_counts()

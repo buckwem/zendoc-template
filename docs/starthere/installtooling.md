@@ -349,8 +349,8 @@ Cloning the documentation template creates a local copy of the template on your 
 | Who owns the target? | You (it's copied to your account) | You (it's on your machine) |
 | Can you push to it? | Yes | Yes (if you have write access to the remote source) |
 | Primary purpose | To propose changes to a project you don't own | To actually do development work, write code, and make commits |
-/// caption
-Table 7.3-1: Fork and Clone Comparison at a Glance
+/// table-caption | <
+Fork and Clone Comparison at a Glance
 ///
 
 The features of forking and cloning are complementary. You can fork a repository to create your own copy on the remote host, and then clone that fork to your local machine to work on it. The standard workflow is:
@@ -387,8 +387,8 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
             1. Click on the link to [fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/zendoc-template/-/forks/new){target="_blank"} to create a copy of the template for your use.
             
                 ![Image title](images/gitlab-fork-project.png){ width=70% }
-                /// caption
-                Figure 7.3.1-1: GitLab fork project
+                /// figure-caption
+                GitLab fork project
                 ///
            
             2. Enter your *Project name* using the format the coursework specifies. For example, for coursework 1 for the module COMM058 in the year 2026 for your GitLab ID az1234, enter 'cw1-az1234' in the project name field. Edit the *Project slug* to match the project name. Use all lowercase and a dash between words with no spaces.

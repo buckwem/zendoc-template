@@ -468,9 +468,21 @@ Every page except the cover shows a running header: your project's `site_name` (
 
 The header also shows the current chapter title, right-aligned - starting from the first numbered heading 1, so it's blank on the cover page and the Table of Contents. `build_pdf.py` computes it automatically from each page's heading 1 (including its chapter number), so there's nothing to configure here either.
 
+![PDF page header layout: site_name top-left, the current chapter's H1 top-right](images/pdf-page-header-layout.png)
+/// figure-caption
+PDF page header layout
+///
+
 ### Page footer
 
 Every page except the cover also shows a running footer: your `copyright` text (left-aligned - see [Copyright](#copyright)) and a "Page X of Y" counter (right-aligned).
+
+![PDF page footer layout: copyright bottom-left, and the Page N of M counter bottom-right](images/pdf-page-footer-layout.png)
+/// figure-caption
+PDF page footer layout
+///
+
+The cover page (`docs/index.md`) never shows this header or footer at all - see the note at the end of [Page size and margins](#page-size-and-margins) below.
 
 ### Page size and margins
 

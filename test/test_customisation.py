@@ -412,16 +412,23 @@ def test_reference_acronym_glossary_spacing_matches_between_website_and_pdf():
 # Institution branding
 # ---------------------------------------------------------------------------
 
-def test_generic_branding_shown_for_this_non_surrey_repo(public_dir, pdf_full_text):
-    """This repo's origin remote is github.com, not surrey.ac.uk, so
-    is_surrey (macros.py) should evaluate false and the cover page should
-    show the generic {% else %} branch's placeholder text (see
-    "Institution branding"), not the Surrey-specific branch."""
+def test_correct_branding_shown_for_this_repo(public_dir, pdf_full_text, macros):
+    """Institution branding (see customise.md) shows one of two {% if
+    is_surrey %} branches on the cover page - which one is correct depends
+    on which remote *this* checkout is actually building against (see
+    macros._detect_is_surrey(), reused here rather than hardcoding an
+    assumption - this repo builds on both a GitHub Actions pipeline
+    (non-Surrey) and a Surrey GitLab mirror pipeline)."""
     soup = soup_for(public_dir / "index.html")
     website_text = soup.get_text()
-    assert "Crested Eagle Labs" in website_text
-    assert "University of Surrey" not in website_text
-    assert "Crested Eagle Labs" in pdf_full_text[0]
+    if macros._detect_is_surrey():
+        assert "Faculty of Engineering and Physical Sciences" in website_text
+        assert "Crested Eagle Labs" not in website_text
+        assert "Faculty of Engineering and Physical Sciences" in pdf_full_text[0]
+    else:
+        assert "Crested Eagle Labs" in website_text
+        assert "University of Surrey" not in website_text
+        assert "Crested Eagle Labs" in pdf_full_text[0]
 
 
 # ---------------------------------------------------------------------------

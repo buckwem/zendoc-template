@@ -6,6 +6,7 @@ import re
 import subprocess
 import shutil
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 import toml
 
 # This function is called by Zensical to identify whether the documentation is being built
@@ -157,7 +158,12 @@ def _get_repo_url():
     remote (converting from git@host:path.git SSH syntax if necessary), for
     the optional {{ repo_url }} variable - see "Word count and repository
     link" in customise.md for how to show or hide it. Returns "" if there's
-    no git remote configured (e.g. the template hasn't been cloned yet)."""
+    no git remote configured (e.g. the template hasn't been cloned yet).
+
+    A GitLab CI/CD job's own checkout has its origin remote rewritten to
+    embed a short-lived "gitlab-ci-token:<token>@" credential for
+    authentication (see the Surrey mirror pipeline) - stripped out below so
+    it never ends up baked into a published PDF/website's repo link."""
     try:
         remote_url = subprocess.check_output(
             ["git", "config", "--get", "remote.origin.url"],
@@ -172,7 +178,15 @@ def _get_repo_url():
         host, path = ssh_match.group(1), ssh_match.group(2)
         return f"https://{host}/{path}"
     if remote_url.startswith(('http://', 'https://')):
-        return re.sub(r'\.git$', '', remote_url)
+        remote_url = re.sub(r'\.git$', '', remote_url)
+        parsed = urlparse(remote_url)
+        if parsed.username or parsed.password:
+            netloc = parsed.hostname or ''
+            if parsed.port:
+                netloc += f':{parsed.port}'
+            parsed = parsed._replace(netloc=netloc)
+            remote_url = urlunparse(parsed)
+        return remote_url
     return remote_url
 
 

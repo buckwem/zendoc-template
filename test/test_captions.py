@@ -79,6 +79,32 @@ def test_parse_caption_modifier_combines_all_tokens_together(build_pdf_module):
 
 
 # ---------------------------------------------------------------------------
+# image_attrs_to_html() - pure function, no build required (see issue #55).
+# ---------------------------------------------------------------------------
+
+def test_image_attrs_to_html_with_no_attrs(build_pdf_module):
+    assert build_pdf_module.image_attrs_to_html(None) == ''
+    assert build_pdf_module.image_attrs_to_html('') == ''
+
+
+def test_image_attrs_to_html_percentage_width_becomes_a_style(build_pdf_module):
+    assert build_pdf_module.image_attrs_to_html('width="40%"') == ' style="width:40%"'
+
+
+def test_image_attrs_to_html_bare_integer_width_becomes_an_attribute(build_pdf_module):
+    assert build_pdf_module.image_attrs_to_html('width=300') == ' width="300"'
+
+
+def test_image_attrs_to_html_combines_width_and_height_into_one_style(build_pdf_module):
+    result = build_pdf_module.image_attrs_to_html('width="40%" height="2cm"')
+    assert result == ' style="width:40%; height:2cm"'
+
+
+def test_image_attrs_to_html_other_keys_become_plain_attributes(build_pdf_module):
+    assert build_pdf_module.image_attrs_to_html('loading=lazy') == ' loading="lazy"'
+
+
+# ---------------------------------------------------------------------------
 # figure-caption: numbering, chapter id, manual override, custom id/class,
 # position, and the plain "caption" type staying unnumbered.
 # ---------------------------------------------------------------------------
@@ -164,6 +190,62 @@ def test_figure_caption_custom_id_and_class(build_pdf_module, tmp_path):
     )
     assert 'id="custom-fig-id"' in result
     assert 'class="zendoc-figure-caption my-class"' in result
+
+
+def test_figure_caption_preserves_the_images_percentage_width(build_pdf_module, tmp_path):
+    """Regression test for issue #55: zensical_caption_replacer() used to
+    build the <img> tag by hand from just the alt text and src, silently
+    dropping the "{ width="40%" }" attribute block entirely - Pandoc's own
+    image attribute handling never runs on this hand-written HTML, so
+    without image_attrs_to_html() re-applying it, the image fell back to
+    its raw intrinsic size (driven by whatever DPI the source file happens
+    to be saved at) instead of 40% of its container, rendering far too
+    large in the PDF."""
+    result = _preprocess(
+        build_pdf_module, tmp_path,
+        """
+        ![alt text](image.png){ width="40%" }
+        /// figure-caption
+        A worked example
+        ///
+        """,
+        chapter_id="1",
+    )
+    assert 'style="width:40%"' in result
+
+
+def test_figure_caption_preserves_the_images_pixel_width(build_pdf_module, tmp_path):
+    """A bare, unit-less width (e.g. "300") is Pandoc's legacy width="N"
+    HTML attribute (pixels), not a CSS style - see image_attrs_to_html()."""
+    result = _preprocess(
+        build_pdf_module, tmp_path,
+        """
+        ![alt text](image.png){ width=300 }
+        /// figure-caption
+        A worked example
+        ///
+        """,
+        chapter_id="1",
+    )
+    assert 'width="300"' in result
+    assert 'style="width:300"' not in result
+
+
+def test_figure_caption_without_a_width_attribute_is_unaffected(build_pdf_module, tmp_path):
+    """No "{ ... }" block at all (this template's plain, unnumbered caption
+    examples, e.g. the reference-style screenshots in customise.md) must
+    still produce a plain <img> with no stray style/width attribute."""
+    result = _preprocess(
+        build_pdf_module, tmp_path,
+        """
+        ![alt text](image.png)
+        /// figure-caption
+        A worked example
+        ///
+        """,
+        chapter_id="1",
+    )
+    assert '<img src="image.png" alt="alt text" />' in result
 
 
 def test_figure_caption_appendix_letter_chapter_id(build_pdf_module, tmp_path):

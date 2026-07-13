@@ -226,6 +226,38 @@ def parse_caption_modifier(modifier):
             extra_classes.extend(re.findall(r'\.([\w-]+)', token))
     return prepend, manual_number, custom_id, extra_classes
 
+def image_attrs_to_html(attrs):
+    """Converts a Pandoc-style image attribute block (the "{ width="40%" }"
+    in "![alt](src){ width="40%" }") into an HTML attribute string for a
+    hand-written <img> tag - needed because zensical_caption_replacer()
+    below builds its <figure>/<img>/<figcaption> markup directly as raw
+    HTML rather than letting Pandoc's own markdown reader process the image,
+    so Pandoc's own attribute handling (see issue #55) never sees this
+    block unless it's redone here. Mirrors Pandoc's own behaviour: a
+    width/height value that has a unit (e.g. "40%", "2cm") becomes an
+    inline CSS style (Pandoc emits `style="width:40%"` for `{width="40%"}`);
+    a bare integer becomes the legacy width/height HTML attribute (pixels).
+    Any other key becomes a plain HTML attribute. #id/.class shorthand
+    tokens are ignored here - not used on these images; the caption's own
+    #id/.class modifier (see parse_caption_modifier()) covers that instead."""
+    if not attrs:
+        return ''
+    style_parts = []
+    html_parts = []
+    for token in re.findall(r'[\w-]+="[^"]*"|[\w-]+=\S+', attrs):
+        key, _, value = token.partition('=')
+        value = value.strip('"\'')
+        if key in ('width', 'height'):
+            if re.match(r'^\d+$', value):
+                html_parts.append(f'{key}="{value}"')
+            else:
+                style_parts.append(f'{key}:{value}')
+        else:
+            html_parts.append(f'{key}="{value}"')
+    style_attr = f' style="{"; ".join(style_parts)}"' if style_parts else ''
+    html_attr = (' ' + ' '.join(html_parts)) if html_parts else ''
+    return f'{html_attr}{style_attr}'
+
 def compute_pdf_word_count(markdown_paths):
     """Rough prose word count across the given already-preprocessed markdown
     files: strips fenced code, inline code, HTML tags/comments, and markdown
@@ -676,6 +708,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         indent = match.group(1)
         alt_text = match.group(2)
         img_url = match.group(3)
+        image_attrs = match.group(4)
         caption_type = match.group(5)
         modifier = match.group(6)
         caption_body = match.group(7).strip()
@@ -698,7 +731,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         class_attr = f' class="{" ".join(classes)}"' if classes else ''
         id_attr = f' id="{figure_id}"' if figure_id else ''
 
-        img_html = f"{indent}  <img src=\"{img_url}\" alt=\"{alt_text}\" />\n"
+        img_html = f"{indent}  <img src=\"{img_url}\" alt=\"{alt_text}\"{image_attrs_to_html(image_attrs)} />\n"
         figcaption_html = f"{indent}  <figcaption class=\"text-center-italic\" style=\"margin-top: 8px;\">{prefix_html}{caption_body}</figcaption>\n"
         body = (figcaption_html + img_html) if prepend else (img_html + figcaption_html)
 

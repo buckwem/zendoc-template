@@ -109,3 +109,49 @@ def public_html_files(public_dir):
 def soup_for(html_path):
     """Parses one built HTML file with BeautifulSoup."""
     return BeautifulSoup(html_path.read_text(encoding="utf-8"), "html.parser")
+
+
+def _flatten_markdown_extensions(extensions_config, prefix=""):
+    """Flattens zensical.toml's nested [project.markdown_extensions.*]
+    tables into markdown.Markdown()'s flat "dotted.name" extension list -
+    e.g. {"pymdownx": {"betterem": {}}} becomes "pymdownx.betterem". A
+    table counts as a nested group (recursed into) only if every one of its
+    own values is itself a table - otherwise it's a leaf extension's own
+    config dict (e.g. pymdownx.highlight's anchor_linenums/line_spans/
+    pygments_lang_class are config values, not nested extensions)."""
+    flat = {}
+    for key, value in extensions_config.items():
+        dotted = f"{prefix}.{key}" if prefix else key
+        if isinstance(value, dict) and value and all(isinstance(v, dict) for v in value.values()):
+            flat.update(_flatten_markdown_extensions(value, dotted))
+        else:
+            flat[dotted] = value
+    return flat
+
+
+@pytest.fixture(scope="session")
+def markdown_extension_config(zensical_config):
+    """Returns (extensions, extension_configs) for markdown.Markdown(),
+    built from this project's real [project.markdown_extensions.*] config
+    in zensical.toml - so a config change is automatically reflected in
+    every test that uses this fixture instead of silently drifting out of
+    sync with a hardcoded extension list. Used by test_markdown_foundations.py
+    and test_zensical_basics.py.
+
+    Skips zensical.extensions.* (glightbox, macros) - these are Zensical's
+    own runtime integrations, not standalone pip-installable Markdown
+    extensions - and skips pymdownx.emoji, since its emoji_index/
+    emoji_generator config values are dotted references to
+    zensical.extensions.emoji callables that only Zensical's own loader
+    resolves; plain markdown.Markdown() takes the dotted strings literally
+    and errors. A caller that needs working emoji/icon rendering (see
+    test_zensical_basics.py) adds pymdownx.emoji back with the real
+    zensical.extensions.emoji.twemoji/to_svg callables imported directly."""
+    raw = zensical_config.get("project", {}).get("markdown_extensions", {})
+    flat = _flatten_markdown_extensions(raw)
+    extensions = [
+        name for name in flat
+        if not name.startswith("zensical.extensions") and name != "pymdownx.emoji"
+    ]
+    extension_configs = {name: flat[name] for name in extensions if flat[name]}
+    return extensions, extension_configs

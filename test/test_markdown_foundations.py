@@ -9,14 +9,15 @@ actually renders the way that page says it does.
 
 Renders hand-written snippets through a real markdown.Markdown() instance,
 built from this project's own zensical.toml extension config (see
-_markdown_extensions() below) rather than a hardcoded extension list, so a
-change to zensical.toml's [project.markdown_extensions.*] section is
-automatically reflected here instead of silently drifting out of sync.
-This is the same "call the real thing on a synthetic snippet" approach
-test_fences.py uses, extended to Zensical's website-side Markdown pipeline
-(markdown.md's syntax isn't PDF-specific, so there's no build_pdf.py
-function to call directly the way test_fences.py does) - so, like that
-batch, this one runs without building anything first."""
+conftest.py's markdown_extension_config fixture) rather than a hardcoded
+extension list, so a change to zensical.toml's
+[project.markdown_extensions.*] section is automatically reflected here
+instead of silently drifting out of sync. This is the same "call the real
+thing on a synthetic snippet" approach test_fences.py uses, extended to
+Zensical's website-side Markdown pipeline (markdown.md's syntax isn't
+PDF-specific, so there's no build_pdf.py function to call directly the way
+test_fences.py does) - so, like that batch, this one runs without building
+anything first."""
 
 import textwrap
 
@@ -28,53 +29,14 @@ def dedent(text):
     return textwrap.dedent(text).strip("\n") + "\n"
 
 
-def _flatten_extensions(extensions_config, prefix=""):
-    """Flattens zensical.toml's nested [project.markdown_extensions.*]
-    tables into markdown.Markdown()'s flat "dotted.name" extension list -
-    e.g. {"pymdownx": {"betterem": {}}} becomes "pymdownx.betterem". A
-    table counts as a nested group (recursed into) only if every one of its
-    own values is itself a table - otherwise it's a leaf extension's own
-    config dict (e.g. pymdownx.highlight's anchor_linenums/line_spans/
-    pygments_lang_class are config values, not nested extensions)."""
-    flat = {}
-    for key, value in extensions_config.items():
-        dotted = f"{prefix}.{key}" if prefix else key
-        if isinstance(value, dict) and value and all(isinstance(v, dict) for v in value.values()):
-            flat.update(_flatten_extensions(value, dotted))
-        else:
-            flat[dotted] = value
-    return flat
-
-
-def _markdown_extensions(zensical_config):
-    """Returns (extensions, extension_configs) for markdown.Markdown(),
-    built from this project's real [project.markdown_extensions.*] config.
-    Skips zensical.extensions.* (glightbox, macros) - these are Zensical's
-    own runtime integrations, not standalone pip-installable Markdown
-    extensions, and skips pymdownx.emoji - its emoji_index/emoji_generator
-    config values are dotted references to zensical.extensions.emoji
-    callables that only Zensical's own loader resolves; plain
-    markdown.Markdown() takes them as literal (non-callable) strings and
-    errors. Neither is needed to exercise anything documented in "Markdown
-    basics" (emoji is covered separately in "Zensical basics")."""
-    raw = zensical_config.get("project", {}).get("markdown_extensions", {})
-    flat = _flatten_extensions(raw)
-    extensions = [
-        name for name in flat
-        if not name.startswith("zensical.extensions") and name != "pymdownx.emoji"
-    ]
-    extension_configs = {name: flat[name] for name in extensions if flat[name]}
-    return extensions, extension_configs
-
-
 @pytest.fixture(scope="module")
-def render(zensical_config):
+def render(markdown_extension_config):
     """Returns a render(markdown_text) -> html function, backed by one
     shared markdown.Markdown() instance (rebuilding it per call is
     unnecessary work - Markdown.reset() clears per-document state like
     heading-id collision counters between calls, matching what a fresh
     instance would give each snippet)."""
-    extensions, extension_configs = _markdown_extensions(zensical_config)
+    extensions, extension_configs = markdown_extension_config
     md = markdown.Markdown(extensions=extensions, extension_configs=extension_configs)
 
     def render(text):

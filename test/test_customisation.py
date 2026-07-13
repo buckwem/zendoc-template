@@ -26,6 +26,7 @@ behaviour; "Social links" and a custom "Favicon" are unset in this
 template's own zensical.toml, so there's nothing configured to check
 against."""
 
+import hashlib
 import re
 
 from conftest import PDF_PATH, REPO_ROOT, soup_for
@@ -42,19 +43,36 @@ def _read(path):
 # Site logo
 # ---------------------------------------------------------------------------
 
-def test_default_logo_pair_is_copied_for_a_non_surrey_remote(docs_dir):
-    """This repo's own origin remote is github.com, not surrey.ac.uk, so the
-    Surrey/generic detection in macros.py (see "Institution branding")
-    should copy the *default* logo pair over logo_black.png/logo_white.png,
-    not the Surrey pair - checked by byte comparison, since both are real
-    binary PNGs, not something to diff as text."""
+def _sha256(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_correct_logo_pair_is_copied_for_this_remote(docs_dir, macros):
+    """Institution branding (see customise.md) swaps logo_black.png/
+    logo_white.png for either the Surrey or default pair, depending on
+    where *this* checkout's remote actually points - this repo builds on
+    both a GitHub Actions pipeline (non-Surrey) and a Surrey GitLab mirror
+    pipeline (see project docs on syncing the mirror), so the expected pair
+    depends on which one is currently running this test, not a hardcoded
+    assumption - reuses macros._detect_is_surrey() (the exact same check
+    define_env() itself uses) rather than guessing.
+
+    Compared by sha256 digest, not raw bytes: both files are real binary
+    PNGs, and pytest's assertion introspection tries to diff the full raw
+    bytes on a failing `assert a == b`, which for two ~100KB+ PNGs can
+    balloon into a multi-megabyte failure message - enough to exceed
+    GitLab CI's job log size limit outright on a real failure. A short hex
+    digest gives a clean, readable failure either way."""
+    is_surrey = macros._detect_is_surrey()
+    expected_name = "logo_surrey" if is_surrey else "logo_default"
+    other_name = "logo_default" if is_surrey else "logo_surrey"
     assets = docs_dir / "assets"
     for variant in ("black", "white"):
-        active = (assets / f"logo_{variant}.png").read_bytes()
-        default = (assets / f"logo_default_{variant}.png").read_bytes()
-        surrey = (assets / f"logo_surrey_{variant}.png").read_bytes()
-        assert active == default, f"logo_{variant}.png doesn't match logo_default_{variant}.png"
-        assert active != surrey, f"logo_{variant}.png matches the Surrey logo unexpectedly"
+        active = _sha256(assets / f"logo_{variant}.png")
+        expected = _sha256(assets / f"{expected_name}_{variant}.png")
+        other = _sha256(assets / f"{other_name}_{variant}.png")
+        assert active == expected, f"logo_{variant}.png doesn't match {expected_name}_{variant}.png"
+        assert active != other, f"logo_{variant}.png matches {other_name}_{variant}.png unexpectedly"
 
 
 def test_built_website_includes_the_active_logo_files(public_dir):

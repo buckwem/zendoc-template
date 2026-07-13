@@ -380,6 +380,39 @@ def convert_reference_attr_list_paragraphs(content):
 
     return pattern.sub(replacer, content)
 
+def convert_text_alignment_attr_list_paragraphs(content):
+    """Converts a paragraph followed by a bare `{: .text-center }` (or any of
+    the other five text-alignment/text-alignment-italic utility classes
+    defined in extra.css) into `<p class="...">paragraph</p>`, since Pandoc
+    (used for the PDF) has no idea what a standalone `{: ... }` line means and
+    would otherwise leave it sitting in the output as literal, visible text
+    (see issue #58). Unlike convert_reference_attr_list_paragraphs (id-based,
+    References/Acronyms/Glossary only), this runs on every page - deliberately
+    scoped to just these six known utility classes, and skipping anything with
+    an `#id` or an unrecognised class, so it can't collide with attr_list used
+    for other purposes (references, images, tables, code fences) elsewhere in
+    this file. Run through apply_outside_fences() so a documentation example
+    showing this exact syntax inside a fenced code block (e.g. a future
+    "Text alignment" section in customise.md, following the same pattern as
+    its existing References/Acronyms/Captions examples) is left as literal
+    text rather than being converted into a live, rendered paragraph."""
+    utility_classes = {
+        'text-center', 'text-right', 'text-justify',
+        'text-center-italic', 'text-right-italic', 'text-justify-italic',
+    }
+    pattern = re.compile(r'^((?:.+\n)+?)\{:\s*([^}]+?)\s*\}[ \t]*$', re.MULTILINE)
+
+    def replacer(match):
+        paragraph, attrs = match.group(1).rstrip('\n'), match.group(2)
+        if '#' in attrs:
+            return match.group(0)
+        classes = re.findall(r'\.([\w-]+)', attrs)
+        if not classes or not set(classes) <= utility_classes:
+            return match.group(0)
+        return f'<p class="{" ".join(classes)}" markdown="1">{paragraph}</p>'
+
+    return apply_outside_fences(content, lambda segment: pattern.sub(replacer, segment))
+
 def build_page_anchor_map(md_files):
     """Maps each nav markdown file (relative to docs_dir, e.g.
     "starthere/installtooling.md") to a deterministic anchor id (e.g.
@@ -672,6 +705,11 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     # convert_reference_attr_list_paragraphs).
     if os.path.basename(file_path) in ('references.md', 'acronyms.md', 'glossary.md'):
         content = convert_reference_attr_list_paragraphs(content)
+
+    # Every page: rewrite the six text-alignment utility classes' attr_list
+    # `{: .text-center }` entries into Pandoc-compatible raw HTML (see
+    # convert_text_alignment_attr_list_paragraphs).
+    content = convert_text_alignment_attr_list_paragraphs(content)
 
     # AUTOMATED VIDEO EMBEDDING INTERCEPTOR ENGINE
     def video_iframe_replacer(match):
@@ -2121,6 +2159,11 @@ img.twemoji, i.fa-solid, i.fa-regular, i.fa-brands, i.material-icons, i[class*="
 [class*="title-"][class*="-4"] { font-size: 15pt; line-height: 20pt; margin-bottom: 0.6em; }
 [class*="title-"][class*="-5"] { font-size: 13pt; line-height: 17pt; margin-bottom: 0.6em; }
 [class*="title-"][class*="-6"] { font-size: 11pt; line-height: 15pt; margin-bottom: 0.6em; }
+
+.text-center, .text-center-italic { text-align: center !important; }
+.text-right, .text-right-italic { text-align: right !important; }
+.text-justify, .text-justify-italic { text-align: justify !important; }
+.text-center-italic, .text-right-italic, .text-justify-italic { font-style: italic !important; }
 
 .gridcard-matrix, .gridcard-item,
 .text-center, .text-right, .text-justify,

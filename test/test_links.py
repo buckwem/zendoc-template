@@ -5,7 +5,9 @@
 shipped before - a PDF link pointing at the build machine's own local
 filesystem instead of something meaningful to a reader (issue #19, and the
 LAUNCH-type "View source" link fixed in issue #40), and an internal website
-link/anchor that doesn't resolve to anything (issue #16)."""
+link/anchor that doesn't resolve to anything (issue #16) - plus confirms
+every internal PDF cross-reference actually resolves to a real page (see
+issue #71 - customise.md has claimed the opposite for a while)."""
 
 from urllib.parse import urlsplit
 
@@ -40,6 +42,32 @@ def test_pdf_uri_links_are_not_local_filesystem_paths(pdf_doc):
             if uri.startswith("file://") or repo_root_str in uri:
                 offenders.append((page_number, uri))
     assert not offenders, f"PDF links pointing at a local filesystem path: {offenders}"
+
+
+GOTO_INTERNAL = 4
+
+
+def test_pdf_internal_goto_links_resolve_to_a_real_page(pdf_doc):
+    """Every internal cross-reference in the PDF - in-text citations linking
+    to references.md, acronym/glossary links, section cross-references, code
+    annotation markers, and more - is a "kind 4" (GoTo) link with a named
+    destination, resolved by build_page_anchor_map()/rewrite_internal_md_links()
+    in build_pdf.py (issue #16). Confirms every one of these actually points
+    at a real page inside the document, not an unresolved or out-of-range
+    target - contrary to a stale warning in customise.md's "References and
+    bibliography" section claiming these "generally don't resolve to the
+    right place" (see issue #71) - verified directly against this template's
+    own in-text citation to references.md#skou2023, which correctly lands on
+    the real References page."""
+    offenders = []
+    for page_number, page in enumerate(pdf_doc):
+        for link in page.get_links():
+            if link.get("kind") != GOTO_INTERNAL:
+                continue
+            target_page = link.get("page")
+            if target_page is None or not (0 <= target_page < pdf_doc.page_count):
+                offenders.append((page_number, link.get("nameddest"), target_page))
+    assert not offenders, f"Internal GoTo link(s) with no valid target page (page, nameddest, target): {offenders}"
 
 
 # ---------------------------------------------------------------------------

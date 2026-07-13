@@ -62,6 +62,17 @@ def test_built_website_includes_the_active_logo_files(public_dir):
     assert (public_dir / "assets" / "logo_white.png").exists()
 
 
+def test_pdf_cover_page_has_an_embedded_logo_image(pdf_doc):
+    """The website check above only confirms the right logo *files* exist -
+    this confirms the PDF cover page actually embeds one, using
+    get_image_info() (bounding boxes of images actually drawn on this
+    specific page) rather than get_images() (every image in the PDF's
+    shared resource pool, most of which - e.g. Figure 11.3/11.4's header/
+    footer diagrams - live nowhere near the cover page)."""
+    cover_images = pdf_doc[0].get_image_info()
+    assert cover_images, "No image found on the PDF cover page"
+
+
 # ---------------------------------------------------------------------------
 # Site metadata
 # ---------------------------------------------------------------------------
@@ -110,6 +121,47 @@ def test_repository_link_is_independent_of_cover_page_repourl_marker(zensical_co
     computed = macros._get_repo_url()
     assert computed, "macros._get_repo_url() returned nothing - no git remote configured?"
     assert computed.rstrip("/") == configured.rstrip("/")
+
+
+# ---------------------------------------------------------------------------
+# Release number (issue #60)
+# ---------------------------------------------------------------------------
+
+def test_release_number_looks_like_a_real_tag_when_present(pdf_full_text):
+    """Explicitly PDF-only (see "Word count and repository link" - "there's
+    no website equivalent"), and explicitly allowed to be absent (most
+    forks of this template never publish a release, so the whole line is
+    dropped rather than showing an empty "Release:" - see #60), so this
+    can't assert the line is always present. If it *is* present, it should
+    look like a real tag, not a leaked, un-substituted {RELEASE} marker."""
+    match = re.search(r"Release:\s*(\S*)", pdf_full_text[0])
+    if match is None:
+        return  # no release published for this repo right now - allowed
+    tag = match.group(1)
+    assert tag and tag != "{RELEASE}", f"Release line present but looks unsubstituted: {tag!r}"
+    assert re.match(r"^v?\d+(\.\d+)*", tag), f"Release tag doesn't look like a version: {tag!r}"
+
+
+def test_release_number_never_appears_on_the_website(public_dir):
+    """"Never appears" means "is CSS-hidden", not "absent from the HTML" -
+    .pdf-only content still exists in the markup (see
+    test_pdf_only_class_is_hidden_on_the_website's CSS check for how it's
+    actually hidden), so this confirms any real "Release:"-starting
+    paragraph carries the .pdf-only class, rather than searching the
+    page's whole get_text(). Deliberately checks real <p> tags, not a
+    plain text search - the actual Release <p> sits right after an HTML
+    comment that itself contains the word "Release:" while explaining the
+    marker, which a naive string search would match first instead of the
+    real element."""
+    soup = soup_for(public_dir / "index.html")
+    release_paragraphs = [
+        p for p in soup.find_all("p")
+        if p.get_text(strip=True).startswith("Release:")
+    ]
+    if not release_paragraphs:
+        return  # marker line deleted entirely - also fine, nothing to check
+    for p in release_paragraphs:
+        assert "pdf-only" in (p.get("class") or []), f"'Release:' paragraph found outside .pdf-only: {p}"
 
 
 # ---------------------------------------------------------------------------
@@ -172,6 +224,17 @@ def test_pdf_compiled_css_actually_uses_the_default_fonts(pdf_doc):
                 found_mono = True
     assert found_main, "No 'Inter' font found anywhere in the compiled PDF"
     assert found_mono, "No 'JetBrains Mono' font found anywhere in the compiled PDF"
+
+
+def test_website_also_uses_the_default_fonts(public_dir):
+    """customise.md's "Fonts" section: "the PDF build reuses this same
+    setting" - the website's own font is the actually-configured value the
+    PDF then reuses, so this is the more fundamental of the two checks, not
+    a redundant one. Zensical sets --md-text-font as an inline CSS custom
+    property and loads --md-code-font from Google Fonts."""
+    html = (public_dir / "index.html").read_text(encoding="utf-8")
+    assert '--md-text-font:"Inter"' in html
+    assert "JetBrains" in html
 
 
 # ---------------------------------------------------------------------------

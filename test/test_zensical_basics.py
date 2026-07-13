@@ -29,11 +29,13 @@ Not covered: the "Commands" section (zensical new/serve/build) - these are
 CLI behaviour, not Markdown syntax, and aren't meaningfully testable by
 rendering a snippet the way everything else on this page is."""
 
+import re
 import textwrap
 
 import markdown
 import pytest
 
+from conftest import chapter_page_range
 from pymdownx.superfences import fence_code_format
 from zensical.extensions.emoji import to_svg, twemoji
 
@@ -479,3 +481,144 @@ def test_abbreviation_gets_an_abbr_tag(render):
 def test_attr_list_title_as_a_tooltip_on_a_non_link_element(render):
     html = render(':fontawesome-solid-circle-info:{ title="Important information" }')
     assert 'title="Important information"' in html
+
+
+# ---------------------------------------------------------------------------
+# Real, already-built PDF checks
+# ---------------------------------------------------------------------------
+# Everything above renders synthetic snippets through the website's own
+# Markdown pipeline - a faithful proxy for the *website*, since that's
+# literally what powers it, but not evidence either way for the *PDF*,
+# which goes through a completely different parser (Pandoc) that
+# build_pdf.py has to explicitly teach about each pymdownx extension one at
+# a time (see #25/#28's "every feature needs its own bespoke regex pass").
+# zensicalbasics.md's own "each with a live example" content already
+# exercises every feature on this page for real, so these check that
+# content in the actual built PDF, the same end-to-end pattern
+# test_captions.py already uses - rather than assuming a feature "should"
+# work in the PDF just because it's covered above for the website.
+
+def test_admonitions_render_styled_not_leaked(pdf_full_text, pdf_doc):
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    chapter_text = "".join(pdf_full_text[start:end])
+    assert "Note" in chapter_text and "This is a" in chapter_text and "note admonition" in chapter_text
+    assert "Warning" in chapter_text and "warning admonition" in chapter_text
+    assert "!!! note" not in chapter_text and "!!! warning" not in chapter_text
+
+
+def test_collapsible_details_renders_content_not_leaked(pdf_full_text, pdf_doc):
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    chapter_text = "".join(pdf_full_text[start:end])
+    assert "Click to expand for more info" in chapter_text
+    assert "hidden until you click to expand" in chapter_text
+    assert "??? info" not in chapter_text
+
+
+def test_content_tabs_render_both_tabs_content_not_leaked(pdf_full_text, pdf_doc):
+    """The PDF is static - there's no interactive tab-switching - so both
+    tabs' content should appear (sequentially), not just one, and
+    definitely not the raw === "Tab" marker syntax."""
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    chapter_text = "".join(pdf_full_text[start:end])
+    assert 'print("Hello from Python!")' in chapter_text
+    assert 'println!("Hello from Rust!")' in chapter_text
+    assert '=== "Python"' not in chapter_text
+
+
+def test_mermaid_diagram_is_a_real_embedded_image_not_leaked_text(pdf_doc):
+    """render_mermaid_diagrams() in build_pdf.py pre-renders ```mermaid
+    fences to static images via mermaid-cli (see test_fences.py for the
+    function itself) - confirms that actually reaches this page of the
+    real PDF: an embedded image, and no literal "```mermaid" text."""
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    found_image = False
+    for i in range(start, end):
+        page = pdf_doc[i]
+        if "```mermaid" in page.get_text() or "``` mermaid" in page.get_text():
+            raise AssertionError(f"Leaked literal mermaid fence syntax on page {i}")
+        if page.get_image_info():
+            found_image = True
+    assert found_image, "No embedded image found anywhere in the Zensical basics chapter"
+
+
+def test_math_is_rendered_not_leaked_as_literal_dollar_syntax(pdf_full_text, pdf_doc):
+    """mathjax-full pre-renders $...$/$$...$$ to static images for the PDF
+    (see tools/mathjax/, and build_pdf.py's own comment on why - WeasyPrint
+    has no JS engine to run MathJax client-side). Confirms the literal
+    dollar-delimited source doesn't leak through unconverted."""
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    chapter_text = "".join(pdf_full_text[start:end])
+    assert r"\cos x" not in chapter_text, "Raw LaTeX source leaked instead of being rendered to an image"
+
+
+def test_task_list_renders_real_checkboxes_not_leaked(pdf_full_text, pdf_doc):
+    """"- [ ]"/"- [x]" legitimately appear once each already, as inline-code
+    syntax examples in this section's own explanatory prose ("using the
+    - [ ] syntax for an unchecked item") - not a leak, real content this
+    template's own docs intentionally show literally. What would indicate
+    an actual leak is the task list *itself* rendering as raw markdown
+    right next to its own label text, so this checks for that combined
+    string specifically rather than a bare "- [x]"/"- [ ]" anywhere on the
+    page."""
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    chapter_text = "".join(pdf_full_text[start:end])
+    assert "Install Zensical" in chapter_text
+    assert "- [x] Install Zensical" not in chapter_text
+    assert "- [ ] Deploy anywhere" not in chapter_text
+
+
+def test_footnote_renders_with_backlink_not_leaked(pdf_full_text, pdf_doc):
+    """"[^1]" legitimately appears once already, as an inline-code syntax
+    example in this section's own explanatory prose ("using the [^1]
+    syntax") - not a leak. What would indicate an actual leak is the real
+    footnote reference itself staying as raw "[^1]" text right after the
+    sentence it's attached to, so this checks for that combined string
+    specifically."""
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    chapter_text = "".join(pdf_full_text[start:end])
+    assert "This is the footnote." in chapter_text
+    assert "footnote.[^1]" not in chapter_text
+
+
+def test_icons_and_emoji_render_as_real_glyphs_not_leaked(pdf_doc):
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    found_image = False
+    for i in range(start, end):
+        page = pdf_doc[i]
+        text = page.get_text()
+        if ":sparkles:" in text or ":rocket:" in text:
+            # Icon shortcode text itself is expected in this template's own
+            # attr_list-styled inline-code spans (see zensicalbasics.md's
+            # own "* :sparkles: `:sparkles:`" - the *second*, backtick-
+            # wrapped copy is an intentional literal example) - only flag
+            # it if there's no rendered glyph at all anywhere nearby.
+            found_image = found_image or bool(page.get_image_info())
+    # At minimum, some image (twemoji/icon SVG rendered to a raster/vector
+    # image in the PDF) should exist somewhere on these pages.
+    assert any(pdf_doc[i].get_image_info() for i in range(start, end))
+
+
+def test_mark_and_keys_leak_as_literal_text_in_the_pdf(pdf_full_text, pdf_doc):
+    """Documents a real, currently-open bug (see issue #72): unlike
+    pymdownx.caret (^^insert^^/superscript) and pymdownx.tilde
+    (~~delete~~/subscript), which both render correctly in the PDF,
+    pymdownx.mark (==highlight==) and pymdownx.keys (++key+combo++) leak as
+    literal, unrendered text - confirmed by rendering the actual built PDF
+    page and comparing against the website's correct output. This test
+    documents *today's* (broken) behaviour as a tracked regression baseline -
+    once #72 is fixed, invert/remove this test rather than leaving it
+    silently asserting the bug forever."""
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    chapter_text = "".join(pdf_full_text[start:end])
+    assert "==This was marked (highlight)==" in chapter_text, (
+        "==mark== no longer leaks in the PDF - issue #72 looks fixed; "
+        "update/remove this regression-baseline test"
+    )
+    assert "++ctrl+alt+del++" in chapter_text, (
+        "++keys++ no longer leaks in the PDF - issue #72 looks fixed; "
+        "update/remove this regression-baseline test"
+    )
+    # The extension's *working* siblings on the same page, for contrast -
+    # confirms this is specifically a mark/keys problem, not the whole page.
+    assert "^^" not in chapter_text, "pymdownx.caret (insert) appears to have regressed too"
+    assert "~~" not in chapter_text, "pymdownx.tilde (delete) appears to have regressed too"

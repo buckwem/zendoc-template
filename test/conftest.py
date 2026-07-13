@@ -9,6 +9,7 @@ first, if you've just changed the git remote) before running these tests.
 See test/run_tests.py for the runner and CONTRIBUTING.md for usage."""
 
 import importlib.util
+import re
 import sys
 from pathlib import Path
 
@@ -109,6 +110,43 @@ def public_html_files(public_dir):
 def soup_for(html_path):
     """Parses one built HTML file with BeautifulSoup."""
     return BeautifulSoup(html_path.read_text(encoding="utf-8"), "html.parser")
+
+
+# Same signal test_numbering.py's _iter_headings() uses to tell a real H1
+# apart from a Table of Contents row repeating the same "N. Title" text at
+# body-text size: this template's print.css only gives real headings bold,
+# large text. A naive plain-text "page.get_text().startswith(...)" search
+# (the first approach used here, before issue #46's nav reorder exposed the
+# bug) can false-match a Table of Contents row instead of the real heading.
+_H1_BOLD_FLAG = 1 << 4
+_H1_MIN_SIZE = 20
+
+
+def chapter_page_range(pdf_doc, heading_prefix):
+    """Returns (start, end) page indexes [start, end) for the chapter whose
+    real H1 starts with heading_prefix (e.g. "11. Customisation"). start is
+    the page the heading itself is on; end is the page the *next* numbered
+    H1 starts on (or len(pdf_doc) if it's the last chapter). Used by
+    test_captions.py, test_zensical_basics.py, and test_markdown_foundations.py
+    to locate a specific chapter's real content in the built PDF without
+    hardcoding a page number that would break as nav is reordered or pages
+    are added/removed."""
+    start = None
+    for i, page in enumerate(pdf_doc):
+        for block in page.get_text("dict")["blocks"]:
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    if not span["flags"] & _H1_BOLD_FLAG or span["size"] < _H1_MIN_SIZE:
+                        continue
+                    text = span["text"].strip()
+                    if not text:
+                        continue
+                    if start is None and text.startswith(heading_prefix):
+                        start = i
+                    elif start is not None and re.match(r"^\d+\.\s", text):
+                        return start, i
+    assert start is not None, f"Couldn't find a chapter starting with '{heading_prefix}' in the PDF"
+    return start, len(pdf_doc)
 
 
 def _flatten_markdown_extensions(extensions_config, prefix=""):

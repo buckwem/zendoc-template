@@ -17,8 +17,12 @@ thing on a synthetic snippet" approach test_fences.py uses, extended to
 Zensical's website-side Markdown pipeline (markdown.md's syntax isn't
 PDF-specific, so there's no build_pdf.py function to call directly the way
 test_fences.py does) - so, like that batch, this one runs without building
-anything first."""
+anything first. One exception: test_pandoc_nests_a_two_space_list_unlike_python_markdown
+shells out to the real `pandoc` binary directly (same tool, same invocation
+shape build_pdf.py itself uses) to check a genuine website/PDF rendering
+discrepancy - see issue #70."""
 
+import subprocess
 import textwrap
 
 import markdown
@@ -186,6 +190,36 @@ def test_nested_list_at_two_spaces_does_not_nest(render):
         "changed from the default of 4; markdown.md's own example may need revisiting"
     )
     assert flat_html.count("<li>") == 3
+
+
+def test_pandoc_nests_a_two_space_list_unlike_python_markdown():
+    """Not a synthetic markdown.Markdown() check like the rest of this
+    file - a real subprocess call to the actual `pandoc` binary
+    build_pdf.py itself shells out to (see main()'s subprocess.run(cmd)),
+    since this is specifically about how the *PDF's* engine, not the
+    website's, handles the same source.
+
+    Confirms a genuine cross-output inconsistency (see issue #70's
+    follow-up comment): Pandoc's markdown reader nests a sub-list at just
+    2-space indentation - no 4-space requirement - unlike Python-Markdown's
+    strict 4-space rule (see test_nested_list_at_two_spaces_does_not_nest
+    above). So markdown.md's own 2-space "Nested item" example currently
+    renders as a *flat* list on the website but would render *correctly
+    nested* in the PDF if this same content were ever shown live there -
+    the two outputs don't just disagree on broken-vs-not, they'd disagree
+    on the actual structure. Both engines nest correctly at 4 spaces, so
+    fixing the example to 4 spaces (issue #70) resolves this too."""
+    result = subprocess.run(
+        ["pandoc", "-f", "markdown", "-t", "html"],
+        input="- Item 1\n- Item 2\n  - Nested item\n",
+        capture_output=True, text=True, check=True,
+    )
+    flat_html = result.stdout.replace("\n", "")
+    assert "<li>Item 2<ul>" in flat_html, (
+        "Pandoc no longer nests a 2-space sub-list - the cross-output "
+        "inconsistency this test documents may have resolved itself; "
+        "worth a comment on issue #70 either way"
+    )
 
 
 def test_ordered_list_renumbers_from_the_first_number(render):

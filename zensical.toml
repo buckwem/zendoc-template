@@ -388,6 +388,22 @@ heading_numbering = true
 #                           APA/MLA/Chicago style).
 reference_style = "european"
 
+# The PDF's page size (see "Page size and margins" in customise.md). Accepts
+# any standard CSS page size (e.g. "letter", "legal", "A3") or explicit
+# dimensions (e.g. "21cm 29.7cm"), optionally followed by "landscape".
+# PDF-only, has no effect on the live site.
+pdf_page_size = "A4"
+
+# The PDF's page margins, one per side - each accepts any valid CSS length
+# (e.g. "2cm", "0.75in"). The running header/footer live inside this margin,
+# so shrinking a side also narrows the space available to them there. See
+# "Page size and margins" in customise.md. PDF-only, has no effect on the
+# live site.
+pdf_margin_top = "2cm"
+pdf_margin_right = "2cm"
+pdf_margin_bottom = "2cm"
+pdf_margin_left = "2cm"
+
 # ----------------------------------------------------------------------------
 # Python Extensions
 #

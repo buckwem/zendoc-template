@@ -398,7 +398,7 @@ Delete both lines if you don't want the site name shown on the cover page.
 
 ### Word count and repository link
 
-Three elements on the cover page use marker classes out of the box: the automated word count, the repository link, and the "Download PDF" button.
+Four elements on the cover page use marker classes out of the box: the automated word count, the repository link, the latest release number, and the "Download PDF" button.
 
 **Word count**: `.pdf-only`, shows an automated word count of your document's content (excluding the cover page itself and the Table of Contents). To remove it from the PDF, open `docs/index.md` and delete the following line:
 
@@ -424,6 +424,14 @@ exclude_from_word_count: true
 ```
 
 The PDF build replaces the `{REPOURL}` marker with your repository's `origin` remote URL. If you delete the line, the PDF simply builds without a repository link - you don't need to change anything else.
+
+**Release number**: `.pdf-only`, shows the tag of your repository's latest published GitHub or GitLab release (e.g. `v0.0.11`), so a distributed PDF can be traced back to the exact version of the source it was built from. To remove it from the PDF, open `docs/index.md` and delete the following line:
+
+```markdown
+<p class="pdf-only">Release: {RELEASE}</p>
+```
+
+The PDF build fetches the latest release from your repository host's API and replaces the `{RELEASE}` marker with its tag. Unlike word count and repository link, this only happens if a release has actually been published - most forks of this template never publish one, so by default the whole line is dropped rather than showing an empty "Release:" label. There's no website equivalent: the live site already shows the same information in its own header (next to the star/fork counts), fetched by the browser itself, so nothing needs adding to any page for that.
 
 **To add the word count or repository link to the website**, add a line like one of the following to any page, for example next to the lines you just deleted on the cover page:
 

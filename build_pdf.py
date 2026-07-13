@@ -10,7 +10,9 @@ import re
 import importlib.util
 import glob
 import base64
+import json
 import urllib.request
+import urllib.parse
 
 # In-process cache so the same emoji is never fetched/read twice within a single build
 _TWEMOJI_SVG_CACHE = {}
@@ -295,6 +297,45 @@ def compute_pdf_word_count(markdown_paths):
         text = re.sub(r'[#*_~>|]', ' ', text)
         total_words += len(text.split())
     return total_words
+
+def get_latest_release_tag(repo_url):
+    """Returns the latest published release's tag name (e.g. "v0.0.11") for
+    a GitHub or GitLab repo_url, for the PDF cover page's optional {RELEASE}
+    marker (see index.md) - the PDF-side equivalent of the version already
+    shown live in the website's own header repo widget (see issue #61),
+    which fetches it client-side; Pandoc/WeasyPrint has no JS engine to do
+    the same, so this fetches it once here instead, at PDF build time.
+
+    Deliberately not computed in macros.py alongside repo_url/word_count,
+    since that would add a network call to every website rebuild (including
+    every live-reload save during `zensical serve`) for a value only the PDF
+    actually needs.
+
+    Returns "" on any failure - no repo_url, an unsupported host, no
+    published release, network unavailable, rate-limited, etc. - so a
+    missing release can never break the build; the caller drops the whole
+    {RELEASE} line in that case (see main()), since most forks of this
+    template will never publish a release at all."""
+    if not repo_url:
+        return ""
+    parsed = urllib.parse.urlparse(repo_url)
+    host = (parsed.hostname or "").lower()
+    owner_repo = parsed.path.strip("/")
+    if not owner_repo:
+        return ""
+    try:
+        if "github.com" in host:
+            api_url = f"https://api.github.com/repos/{owner_repo}/releases/latest"
+        elif "gitlab" in host:
+            project = urllib.parse.quote(owner_repo, safe="")
+            api_url = f"https://{parsed.hostname}/api/v4/projects/{project}/releases/permalink/latest"
+        else:
+            return ""
+        with urllib.request.urlopen(api_url, timeout=5) as resp:
+            data = json.load(resp)
+        return str(data.get("tag_name") or "")
+    except Exception:
+        return ""
 
 def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
     """Pre-renders ```mermaid fenced code blocks (see
@@ -1616,6 +1657,17 @@ def main():
             # Computed once by macros.py (shared with the website's
             # {{ repo_url }} variable) and picked up here via calculated_vars.
             cover_content = cover_content.replace('{REPOURL}', calculated_vars.get('repo_url', ''))
+        if '{RELEASE}' in cover_content:
+            # See get_latest_release_tag() - unlike {WORDCOUNT}/{REPOURL},
+            # which are always locally computable, most forks of this
+            # template will never have a published release, so an empty
+            # result drops the whole line rather than leaving a bare
+            # "Release: " label behind.
+            release_tag = get_latest_release_tag(calculated_vars.get('repo_url', ''))
+            if release_tag:
+                cover_content = cover_content.replace('{RELEASE}', release_tag)
+            else:
+                cover_content = re.sub(r'^.*\{RELEASE\}.*\n?', '', cover_content, flags=re.MULTILINE)
         if '{{ site_name }}' in cover_content:
             # Pandoc/build_pdf_final.py never evaluates Jinja, so the exact
             # same literal "{{ site_name }}" text used for the website's

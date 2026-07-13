@@ -543,23 +543,40 @@ def test_real_figure_caption_image_is_horizontally_centered_under_its_caption(pd
 CAPTION_SYNTAX_LEAK = re.compile(r"^\s*(?:///|--/)\s*(figure-caption|table-caption|caption)\b", re.MULTILINE)
 
 
-def _chapter_page_range(pdf_full_text, heading_prefix):
-    """Returns (start, end) page indexes [start, end) for the chapter whose H1
-    starts with heading_prefix (e.g. "11. Customisation") - start is the page
-    the heading itself is on, end is the page the *next* numbered H1 starts
-    on (or len(pdf_full_text) if it's the last chapter)."""
+# Same signal test_numbering.py's _iter_headings() uses to tell a real H1
+# apart from a Table of Contents row repeating the same "N. Title" text at
+# body-text size: this template's print.css only gives real headings bold,
+# large text.
+_H1_BOLD_FLAG = 1 << 4
+_H1_MIN_SIZE = 20
+
+
+def _chapter_page_range(pdf_doc, heading_prefix):
+    """Returns (start, end) page indexes [start, end) for the chapter whose
+    real H1 - not its Table of Contents row, which repeats the same text at
+    body-text size and would otherwise false-match - starts with
+    heading_prefix (e.g. "11. Customisation"). start is the page the heading
+    itself is on; end is the page the *next* numbered H1 starts on (or
+    len(pdf_doc) if it's the last chapter)."""
     start = None
-    for i, text in enumerate(pdf_full_text):
-        if start is None and text.strip().startswith(heading_prefix):
-            start = i
-            continue
-        if start is not None and re.match(r"^\d+\.\s", text.strip()):
-            return start, i
+    for i, page in enumerate(pdf_doc):
+        for block in page.get_text("dict")["blocks"]:
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    if not span["flags"] & _H1_BOLD_FLAG or span["size"] < _H1_MIN_SIZE:
+                        continue
+                    text = span["text"].strip()
+                    if not text:
+                        continue
+                    if start is None and text.startswith(heading_prefix):
+                        start = i
+                    elif start is not None and re.match(r"^\d+\.\s", text):
+                        return start, i
     assert start is not None, f"Couldn't find a chapter starting with '{heading_prefix}' in the PDF"
-    return start, len(pdf_full_text)
+    return start, len(pdf_doc)
 
 
-def test_no_unrelated_page_shows_literal_caption_block_syntax(pdf_full_text):
+def test_no_unrelated_page_shows_literal_caption_block_syntax(pdf_doc, pdf_full_text):
     """docs/starthere/zensicalbasics.md ("10. Zensical basics") and
     docs/starthere/customise.md's own "Captions" section ("11. Customisation")
     both intentionally show "/// figure-caption"/"/// table-caption"/
@@ -571,8 +588,8 @@ def test_no_unrelated_page_shows_literal_caption_block_syntax(pdf_full_text):
     page's caption blocks should have been fully translated, not left as
     literal, visible syntax."""
     example_chapter_ranges = [
-        _chapter_page_range(pdf_full_text, "10. Zensical basics"),
-        _chapter_page_range(pdf_full_text, "11. Customisation"),
+        _chapter_page_range(pdf_doc, "10. Zensical basics"),
+        _chapter_page_range(pdf_doc, "11. Customisation"),
     ]
     leaked_pages = [
         i for i, text in enumerate(pdf_full_text)

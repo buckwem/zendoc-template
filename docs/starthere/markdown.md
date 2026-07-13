@@ -92,7 +92,7 @@ Use a minus sign (-), asterisk (*), or plus sign (+).
 ```
 - Item 1
 - Item 2
-  - Nested item
+    - Nested item
 ```
 
 ### Ordered lists

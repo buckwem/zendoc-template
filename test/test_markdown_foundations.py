@@ -173,25 +173,6 @@ def test_nested_list_at_four_spaces_actually_nests(render):
     assert "<li>Item 2<ul>" in html.replace("\n", ""), html
 
 
-def test_nested_list_at_two_spaces_does_not_nest(render):
-    """The flip side of the 4-space rule, and a real trap: markdown.md's
-    own "Unordered lists" example currently uses 2-space indentation for
-    its "Nested item" line - per Python-Markdown's strict 4-space
-    requirement, that does NOT nest; it renders as a third flat, sibling
-    list item (see issue #70). This test documents that as the actual,
-    current rendered behaviour of that example - once #70 fixes the
-    example to use 4 spaces, this test should be deleted (and
-    test_nested_list_at_four_spaces_actually_nests above already covers
-    the correct, 4-space form)."""
-    html = render("- Item 1\n- Item 2\n  - Nested item\n")
-    flat_html = html.replace("\n", "")
-    assert "<li>Item 2<ul>" not in flat_html, (
-        "2-space indentation now nests - Python-Markdown's tab_length must have "
-        "changed from the default of 4; markdown.md's own example may need revisiting"
-    )
-    assert flat_html.count("<li>") == 3
-
-
 def test_pandoc_nests_a_two_space_list_unlike_python_markdown():
     """Not a synthetic markdown.Markdown() check like the rest of this
     file - a real subprocess call to the actual `pandoc` binary
@@ -199,16 +180,17 @@ def test_pandoc_nests_a_two_space_list_unlike_python_markdown():
     since this is specifically about how the *PDF's* engine, not the
     website's, handles the same source.
 
-    Confirms a genuine cross-output inconsistency (see issue #70's
-    follow-up comment): Pandoc's markdown reader nests a sub-list at just
-    2-space indentation - no 4-space requirement - unlike Python-Markdown's
-    strict 4-space rule (see test_nested_list_at_two_spaces_does_not_nest
-    above). So markdown.md's own 2-space "Nested item" example currently
-    renders as a *flat* list on the website but would render *correctly
-    nested* in the PDF if this same content were ever shown live there -
-    the two outputs don't just disagree on broken-vs-not, they'd disagree
-    on the actual structure. Both engines nest correctly at 4 spaces, so
-    fixing the example to 4 spaces (issue #70) resolves this too."""
+    Documents a general engine discrepancy worth knowing about (see issue
+    #70): Pandoc's markdown reader nests a sub-list at just 2-space
+    indentation - no 4-space requirement - unlike Python-Markdown's strict
+    4-space rule (test_nested_list_at_two_spaces_does_not_nest, once in
+    this file, was deleted once markdown.md's own 2-space example - the
+    concrete case that first surfaced this - was fixed to use 4 spaces).
+    Both engines agree at 4 spaces, so any *current* content in this
+    template is unaffected; this is a tripwire for the next time someone
+    writes a 2-space nested list assuming "it renders the same everywhere" -
+    it doesn't, the two outputs would disagree on the actual structure,
+    not just look different."""
     result = subprocess.run(
         ["pandoc", "-f", "markdown", "-t", "html"],
         input="- Item 1\n- Item 2\n  - Nested item\n",

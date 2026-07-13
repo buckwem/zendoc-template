@@ -104,6 +104,23 @@ def test_image_attrs_to_html_other_keys_become_plain_attributes(build_pdf_module
     assert build_pdf_module.image_attrs_to_html('loading=lazy') == ' loading="lazy"'
 
 
+def test_image_attrs_to_html_class_token_becomes_the_class_attribute(build_pdf_module):
+    """See issue #54: a ".screenshot" token frames a screenshot image the
+    same way in both outputs - this is the <img>'s own class, distinct from
+    the <figure>'s class (zendoc-figure-caption etc.)."""
+    assert build_pdf_module.image_attrs_to_html('.screenshot') == ' class="screenshot"'
+
+
+def test_image_attrs_to_html_combines_width_and_class(build_pdf_module):
+    result = build_pdf_module.image_attrs_to_html('width="40%" .screenshot')
+    assert 'class="screenshot"' in result
+    assert 'style="width:40%"' in result
+
+
+def test_image_attrs_to_html_id_token_becomes_the_id_attribute(build_pdf_module):
+    assert build_pdf_module.image_attrs_to_html('#my-img-id') == ' id="my-img-id"'
+
+
 # ---------------------------------------------------------------------------
 # figure-caption: numbering, chapter id, manual override, custom id/class,
 # position, and the plain "caption" type staying unnumbered.
@@ -229,6 +246,26 @@ def test_figure_caption_preserves_the_images_pixel_width(build_pdf_module, tmp_p
     )
     assert 'width="300"' in result
     assert 'style="width:300"' not in result
+
+
+def test_figure_caption_preserves_the_screenshot_class_on_the_image(build_pdf_module, tmp_path):
+    """See issue #54: ".screenshot" must land on the <img> itself (framing
+    it with a border/shadow - see extra.css and the equivalent PDF rule in
+    main()'s compiled CSS), not on the <figure> - the figure's own class
+    (zendoc-figure-caption etc.) is a separate attribute, set independently
+    by zensical_caption_replacer() itself, and must be unaffected."""
+    result = _preprocess(
+        build_pdf_module, tmp_path,
+        """
+        ![alt text](image.png){ width="40%" .screenshot }
+        /// figure-caption
+        A worked example
+        ///
+        """,
+        chapter_id="1",
+    )
+    assert '<img src="image.png" alt="alt text" class="screenshot" style="width:40%" />' in result
+    assert 'class="zendoc-figure-caption"' in result
 
 
 def test_figure_caption_without_a_width_attribute_is_unaffected(build_pdf_module, tmp_path):

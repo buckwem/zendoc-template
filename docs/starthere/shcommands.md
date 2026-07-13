@@ -30,6 +30,9 @@ Knowing where you are and how to move is the first step to understanding bash/zs
 | `cd ..` | Go Up: Moves one level up to the parent folder. |
 | `cd ~` | Home: Takes you back to your user folder. |
 | `clear` | Cleans up the terminal screen (Shortcut: Cmd + K). |
+/// table-caption | <
+Basic navigation commands
+///
 
 ## File and folder operations
 
@@ -48,6 +51,9 @@ Next, here are the shell commands to manage directories and files. You will be u
 | `rm -rf [dir]` | Force Remove: Deletes a folder and everything inside (Use with care!). |
 | `cat [file]` | Displays the entire contents of a file in the terminal. |
 | `less [file]` | Opens a file for reading (press q to exit). |
+/// table-caption | <
+File and folder operations
+///
 
 ## Editing files
 
@@ -60,6 +66,9 @@ You will need to edit files in the terminal. There are many editors available, e
 | `micro` | Modern / Modeless | A modern terminal editor with intuitive Ctrl+C/Ctrl+V shortcuts and mouse support. |
 | `helix` | Modal / Modern | A modern, fast terminal editor with built-in language server support and multiple cursors. |
 | `emacs` | Extendable Environment | Users who want an entire operating system of utilities inside their editor. |
+/// table-caption | <
+Terminal text editors
+///
 
 If you are new to terminal editors, start with `nano` or `micro`. If you want to learn a more powerful editor, try `vim` or `helix`.
 
@@ -76,6 +85,9 @@ Often the permissions of files and folders will need changing. Here are some com
 | `chmod 755 [file]` | Changes permissions (755 is standard for executable scripts). |
 | `chown [user] [file]` | Changes the owner of a file. |
 | `history` | Shows a list of all recently used commands. |
+/// table-caption | <
+Administrative and permissions commands
+///
 
 ## Viewing content
 
@@ -91,7 +103,9 @@ Handling text files with shell commands.
 | `head -n 20 [file]` | Shows you the top 20 lines of a file. |
 | `tail -n 20 [file]` | Shows you the bottom 20 lines. |
 | `tail -f [file]` | This is the "Live" mode where the option keeps the file open and updates the screen in real-time from file additions. This is how developers watch server logs as they happen. |
-
+/// table-caption | <
+Viewing file content
+///
 
 ## Searching and filtering
 
@@ -102,6 +116,9 @@ Essential commands for finding files and file contents.
 | `grep "word" [file]` | Searches for a specific string inside a file. |
 | `find . -name "*.txt"` | Finds all .txt files in the current directory and subdirectories. |
 | `[cmd] | grep "word"` | The Pipe (\|) takes the output of one command and sends it to another. |
+/// table-caption | <
+Searching and filtering commands
+///
 
 ## Essential keyboard shortcuts
 
@@ -112,6 +129,9 @@ There are some essential keyboard shortcuts to help you navigate the terminal mo
 | `Tab` | Auto complete. Start typing a folder name and hit Tab. If it's unique, it will finish it for you. |
 | `Arrow Up/Down` | Scroll through your previous commands. |
 | `Ctrl + C` | Cancel/Kill the currently running command. |
+/// table-caption | <
+Essential keyboard shortcuts
+///
 
 ## Stream shortcuts
 
@@ -122,6 +142,9 @@ Programs and files pass data between themselves using the operators below.
 | `>` | Overwrite: Sends output to a file, deleting whatever was there before. For example, `echo "hello" > file.txt`
 | `>>` | Append: Adds output to the end of a file without deleting the old stuff. For example, `echo "world" >> file.txt`
 | `|` | The Pipe: takes the "Standard Out" of the left command and shoves it into the "Standard In" of the right command. |
+/// table-caption | <
+Stream redirection operators
+///
 
 ## Job queue control
 
@@ -137,6 +160,9 @@ There are commands to manage jobs running in the background or suspended in the 
 | `fg %[id]` | Foreground: Brings a job back to the front so you can interact with it. |
 | `bg %[id]` | Background: Tells a suspended job to start running again, but in the background. |
 | `kill %[id]` |	Terminates a job in your list using its job number. |
+/// table-caption | <
+Job control shortcuts
+///
 
 ## Jobs and processes
 
@@ -151,6 +177,9 @@ There are commands available to manage processes and jobs running on your system
 | `kill [PID]` | Sends a "polite" request to a process to stop (SIGTERM). |
 | `kill -9 [PID]` | The "Executioner." Force-kills a process instantly (SIGKILL). |
 | `killall [name]` | Kills all processes with a certain name (For example, killall Finder). |
+/// table-caption | <
+Process management commands
+///
 
 ## Where to go next
 

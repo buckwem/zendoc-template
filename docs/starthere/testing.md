@@ -54,6 +54,9 @@ Shared fixtures live in `test/conftest.py` and cover both the failure-with-a-cle
 | `macros` / `build_pdf_module` | The actual `macros.py`/`build_pdf.py` modules, imported live |
 | `nav_pages` / `docs_dir` | The current `nav` list (docs_dir-relative paths) and `docs_dir` itself |
 | `zensical_config` | `zensical.toml`, parsed |
+/// table-caption | <
+Shared fixtures in test/conftest.py
+///
 
 Two different styles of test both have a place here, and most batches mix both:
 
@@ -74,6 +77,9 @@ Where a check needs "the real thing this feature is supposed to do" as a source 
 | `pdf_structure` | The cover page's computed fields (word count, repo URL) and the auto-generated Table of Contents are present and look like real data. |
 | `fences` | The fence-detection primitives (`apply_outside_fences()`, `tag_first_heading()`, `rewrite_internal_md_links()`, and the fence-skipping loops in `macros.py`'s heading/word counters) hold up under nested combinations of headings, admonitions, code blocks, content tabs, and grid cards - not just a single flat fenced block. |
 | `captions` | The PDF-side translation of the `caption`/`figure-caption`/`table-caption` blocks (see [Captions](customise.md#captions)) - auto-numbering with the page's chapter/appendix id, manual number overrides, custom id/class, prepend/append position, and no leaked `///` syntax - checked against both hand-written snippets and the real, already-built PDF. |
+/// table-caption | <
+Test suite batches
+///
 
 ## Where to go next
 

@@ -386,7 +386,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
 
             1. Click on the link to [fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/zendoc-template/-/forks/new){target="_blank"} to create a copy of the template for your use.
             
-                ![Image title](images/gitlab-fork-project.png){ width=70% }
+                ![Image title](images/gitlab-fork-project.png){ width=70% .screenshot }
                 /// figure-caption
                 GitLab fork project
                 ///

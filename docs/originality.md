@@ -42,3 +42,6 @@ I agree that the University may submit my work to means of checking this, such a
 |   |   |   |   |
 |  Gemini AI | Improve explanations in the coursework. | 1. Improve the following description to make clearer in no more than two sentences:  *<paragraph\>* | Used to make the discussion clearer.  |
 | Quillbot | Improve overall grammar and writing style as I edit a complex paragraphs. | No prompts - I put into the grammar checker and sometimes use the Improve function. | Used to improve my grammar and writing style as I edit each paragraph. |
+/// table-caption | <
+Statement on AI use example
+///

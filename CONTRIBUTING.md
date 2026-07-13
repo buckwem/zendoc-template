@@ -25,8 +25,22 @@ For anything beyond a small fix (typos, broken links), please open an issue firs
    - Website changes: `zensical serve` and check the page in a browser.
    - PDF-affecting changes (`build_pdf.py`, `macros.py`, `docs/stylesheets/print.css`): run `python build_pdf.py` and check `docs/site_documentation.pdf`.
    - Prose changes: optionally run `vale docs/` if you have [Vale](https://vale.sh/) installed (see [Additional tooling](docs/starthere/additionaltooling.md#install-vale-to-check-for-grammar-spelling-and-style-issues)); it's not enforced in CI.
+   - Run the test suite (see below) - it checks the built website and PDF for regressions in this template's own zendoc-specific features (numbering, word count, links, and so on), and runs in CI on every push.
 3. Open a pull request against `main`. `main` is protected, so all changes - including from maintainers - go through a PR.
 4. Reference the issue your PR addresses (e.g. `Fixes #123`) where applicable.
+
+## Running the test suite
+
+The test suite in `test/` checks the *built output*, not the build process itself - build the website and PDF first, then run the tests against them:
+
+```bash
+pip install -r requirements.txt -r testrequirements.txt
+python build_pdf.py
+zensical build
+python test/run_tests.py
+```
+
+Tests are grouped into batches (`build`, `links`, `numbering`, `word_count`, `content`, `pdf_structure`), each reporting its own pass/fail. Run `python test/run_tests.py --list` to see them, and `python test/run_tests.py --batch <name>` to run just one - useful when you're actively working on a specific capability and don't want to wait on the rest of the suite. Extra arguments after the batch options are passed straight through to `pytest`.
 
 ## Reporting bugs and requesting features
 

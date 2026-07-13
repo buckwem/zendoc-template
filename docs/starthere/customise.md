@@ -582,14 +582,17 @@ Now that you've customised the website, the document structure, the cover page, 
         * :material-file-document-outline: `customise.md` — This page: guide for customising the documentation template.
         * :material-file-document-outline: `additionaltooling.md` — Optional extra tooling (GitLab/GitHub, GitLens, and spell-checking VS Code extensions, commit signing, a GUI Git client, image optimisation, and Vale).
         * :material-file-document-outline: `shcommands.md` — Reference for shell commands used in the documentation.
+        * :material-file-document-outline: `testing.md` — How to run and extend the test suite in `test/`, for anyone contributing to the template itself.
 * :material-file-code-outline: `build_pdf.py` — Builds the single-file PDF version of your document.
 * :material-file-code-outline: `macros.py` — Zensical macro hooks (Surrey detection, word count, repository link, heading numbering).
 * :material-folder: **tools/** — Node.js tooling used only by `build_pdf.py`, not the website.
     * :material-folder: **mermaid/** — `mermaid-cli`, for rendering ` ```mermaid ` diagrams to images in the PDF.
     * :material-folder: **mathjax/** — `mathjax-full`, for rendering `$...$`/`$$...$$` maths to images in the PDF.
+* :material-folder: **test/** — The test suite that checks the built website and PDF for regressions - see [Testing](testing.md).
 * :material-file-cog-outline: `zensical.toml` — The project's configuration file.
 * :material-file-document-outline: `.vale.ini` — Configuration file for Vale, a syntax and style checker.
 * :material-file-document-outline: `requirements.txt` — Lists the Python dependencies required for the project.
+* :material-file-document-outline: `testrequirements.txt` — Lists the test suite's own dependencies, installed separately - see [Testing](testing.md).
 * :material-file-document-outline: `README.md` — The README file for the project, providing an overview and instructions.
 * :material-file-document-outline: `LICENSE` — The licence file for the project, specifying the terms under which you can use and distribute the project. This project uses the MIT license, the same choice Zensical itself uses. It's a permissive free software license that allows reuse within proprietary software, provided all copies of the licensed software include a copy of the MIT License terms and the copyright notice.
 * :material-file-document-outline: `.gitignore` — Specifies files and directories for Git to ignore.

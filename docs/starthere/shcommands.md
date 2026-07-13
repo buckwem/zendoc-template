@@ -151,3 +151,7 @@ There are commands available to manage processes and jobs running on your system
 | `kill [PID]` | Sends a "polite" request to a process to stop (SIGTERM). |
 | `kill -9 [PID]` | The "Executioner." Force-kills a process instantly (SIGKILL). |
 | `killall [name]` | Kills all processes with a certain name (For example, killall Finder). |
+
+## Where to go next
+
+Continue to [Testing](testing.md) if you're contributing to the template itself, or jump straight to [Finalising your document](customise.md#finalising-your-document) in Customisation once your report is ready to submit.

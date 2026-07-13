@@ -46,10 +46,11 @@ jobs:
       - run: sudo apt install -y google-chrome-stable
       - run: npm ci --prefix tools/mermaid
       - run: npm ci --prefix tools/mathjax
-      - run: pip install -r requirements.txt
+      - run: pip install -r requirements.txt -r testrequirements.txt
       - run: python sync_repo_icon.py
       - run: python build_pdf.py
       - run: zensical build --clean
+      - run: python test/run_tests.py
       - uses: actions/upload-pages-artifact@v4
         with:
           path: public

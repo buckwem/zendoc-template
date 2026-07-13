@@ -25,10 +25,11 @@ pages:
     - export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
     - npm ci --prefix tools/mermaid
     - npm ci --prefix tools/mathjax
-    - pip install -r requirements.txt
+    - pip install -r requirements.txt -r testrequirements.txt
     - python sync_repo_icon.py
     - python build_pdf.py
     - zensical build --clean
+    - python test/run_tests.py
   pages:
     publish: public
   rules:

@@ -226,24 +226,13 @@ SPDX-License-Identifier: MIT
 /* =========== Styles for reference/bibliography lists ========== */
 /* ============================================================= */
 
-/* Used by docs/references.md - tightens the gap between consecutive
-   reference entries, which are separate paragraphs (so each can carry
-   its own attr_list id for in-text citation links). */
-.md-typeset p.reference + p.reference {
-  margin-top: -0.8em;
-}
-
-/* Used by docs/acronyms.md - same reasoning as the reference entries
-   above, applied to the acronym list instead. */
-.md-typeset p.acronym + p.acronym {
-  margin-top: -0.8em;
-}
-
-/* Used by docs/glossary.md - same reasoning as the reference entries
-   above, applied to the glossary list instead. */
-.md-typeset p.glossary + p.glossary {
-  margin-top: -0.8em;
-}
+/* Reference/acronym/glossary list spacing (docs/references.md,
+   docs/acronyms.md, docs/glossary.md) is generated per-page instead of a
+   static rule here, via the reference_style()/acronym_style()/glossary_style()
+   macros in macros.py - see project.extra.reference_spacing_european etc. in
+   customise.md - so the values driving it live in one place
+   (zensical.toml) rather than needing their own placeholder-substitution
+   step in this file. */
 
 /* ============================================================= */
 /* ============= Styles for text background colour ============= */

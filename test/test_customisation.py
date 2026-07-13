@@ -33,6 +33,7 @@ from conftest import PDF_PATH, REPO_ROOT, soup_for
 
 EXTRA_CSS_PATH = REPO_ROOT / "docs" / "stylesheets" / "extra.css"
 BUILD_PDF_PATH = REPO_ROOT / "build_pdf.py"
+MACROS_PATH = REPO_ROOT / "macros.py"
 
 
 def _read(path):
@@ -373,39 +374,52 @@ def _css_rule_value(css_text, selector, property_name, occurrence=0):
     return matches[occurrence].strip() if len(matches) > occurrence else None
 
 
+def _default_kwarg(source_text, key):
+    """Returns the string literal default passed to a `.get('key', 'DEFAULT')`
+    call in source_text - used to compare macros.py's and build_pdf.py's
+    independently hand-written fallback literals for the same
+    project.extra.* setting name, for when it's left unset in zensical.toml."""
+    pattern = re.compile(re.escape(f"'{key}'") + r",\s*'([^']*)'")
+    match = pattern.search(source_text)
+    return match.group(1) if match else None
+
+
 def test_reference_acronym_glossary_spacing_matches_between_website_and_pdf():
     """.reference/.acronym/.glossary entries get tight paragraph spacing on
-    both outputs (see "References and bibliography"), duplicated by
-    necessity - extra.css's rule needs the .md-typeset wrapper the website
-    renders, build_pdf.py's needs a plain selector since Pandoc's HTML has
-    no such wrapper (see "How the PDF handles this"). Nothing keeps these
-    two independently hand-written values in sync if one changes without
-    the other - this test does.
-
-    extra.css only ever encodes the "european" (default) look statically -
-    "global" is injected at runtime only when reference_style = "global"
-    (see macros.py's reference_style() macro) - so this compares against
-    reference_style_css's "else" branch (europe/default) specifically, the
-    second "p.reference + p.reference" rule in build_pdf.py's source."""
-    extra_css = _read(EXTRA_CSS_PATH)
+    both outputs (see "References and bibliography"), driven by
+    project.extra.reference_spacing_european/reference_indent_global/
+    reference_spacing_global in zensical.toml (issue #66) - read
+    independently by macros.py's _reference_style_values() (website) and
+    build_pdf.py's main() (PDF), each with its own hardcoded fallback
+    literal for when a setting is left unset. Nothing keeps those two
+    fallback literals in sync if one changes without the other - this test
+    does - plus confirms build_pdf.py's generated CSS actually plugs each
+    value into the right selector (not, say, the wrong variable copy-pasted
+    into the acronym/glossary block)."""
+    macros_source = _read(MACROS_PATH)
     build_pdf_source = _read(BUILD_PDF_PATH)
 
-    website_value = _css_rule_value(extra_css, ".md-typeset p.reference + p.reference", "margin-top")
-    pdf_value = _css_rule_value(build_pdf_source, "p.reference + p.reference", "margin-top", occurrence=1)
-    assert website_value is not None, "No website spacing rule found for .reference"
-    assert pdf_value is not None, "No PDF (european/default branch) spacing rule found for .reference"
-    assert website_value == pdf_value, (
-        f".reference (european/default) spacing differs: website={website_value!r} vs PDF={pdf_value!r}"
-    )
+    for key, expected_default in (
+        ("reference_spacing_european", "-0.8em"),
+        ("reference_indent_global", "1.27cm"),
+        ("reference_spacing_global", "2em"),
+    ):
+        website_default = _default_kwarg(macros_source, key)
+        pdf_default = _default_kwarg(build_pdf_source, key)
+        assert website_default == expected_default, f"macros.py's {key!r} default is {website_default!r}, expected {expected_default!r}"
+        assert pdf_default == expected_default, f"build_pdf.py's {key!r} default is {pdf_default!r}, expected {expected_default!r}"
 
-    for cls in ("acronym", "glossary"):
-        website_value = _css_rule_value(extra_css, f".md-typeset p.{cls} + p.{cls}", "margin-top")
-        pdf_value = _css_rule_value(build_pdf_source, f"p.{cls} + p.{cls}", "margin-top")
-        assert website_value is not None, f"No website spacing rule found for .{cls}"
-        assert pdf_value is not None, f"No PDF spacing rule found for .{cls}"
-        assert website_value == pdf_value, (
-            f".{cls} spacing differs: website={website_value!r} vs PDF={pdf_value!r}"
-        )
+    # The generated CSS itself: each selector's margin-top/indent should
+    # reference the matching Python f-string placeholder, not a stray
+    # hardcoded literal or the wrong variable.
+    assert "margin-top: {reference_spacing_european} !important;" in build_pdf_source
+    assert "padding-left: {reference_indent_global} !important;" in build_pdf_source
+    assert "text-indent: -{reference_indent_global} !important;" in build_pdf_source
+    assert "margin-top: {reference_spacing_global} !important;" in build_pdf_source
+    assert build_pdf_source.count("margin-top: {reference_spacing_european} !important;") == 3, (
+        "Expected exactly 3 uses (reference/acronym/glossary, european/default branch) - "
+        "one may have been left on a stray hardcoded value instead"
+    )
 
 
 # ---------------------------------------------------------------------------

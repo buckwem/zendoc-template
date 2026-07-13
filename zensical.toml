@@ -388,6 +388,16 @@ heading_numbering = true
 #                           APA/MLA/Chicago style).
 reference_style = "european"
 
+# The spacing/indent values behind reference_style above, on both the
+# website and the PDF build - also used, unconditionally, for the Acronyms
+# and Glossary pages' own list spacing (docs/acronyms.md, docs/glossary.md),
+# which share the same tight "european" look but have no "global"-style
+# alternative to switch to. Accepts any valid CSS length. See "References
+# and bibliography" in customise.md.
+reference_spacing_european = "-0.8em"  # gap between entries, "european" style
+reference_indent_global = "1.27cm"     # hanging indent on wrapped lines, "global" style
+reference_spacing_global = "2em"       # gap between entries, "global" style
+
 # The PDF's page size (see "Page size and margins" in customise.md). Accepts
 # any standard CSS page size (e.g. "letter", "legal", "A3") or explicit
 # dimensions (e.g. "21cm 29.7cm"), optionally followed by "landscape".

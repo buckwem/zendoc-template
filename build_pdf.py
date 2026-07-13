@@ -729,12 +729,16 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     # and would otherwise leak through as literal text since Pandoc doesn't render Jinja.
     content = re.sub(r'^[ \t]*\{\{\s*heading_counter_reset\([^)]*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
 
-    # Strips the website-only reference_style() Jinja macro call (injects a CSS
-    # override <style> block on the References page for the live site); the PDF
-    # gets the equivalent CSS added directly to the compiled stylesheet instead
-    # (see reference_style_enabled below), since Pandoc doesn't render Jinja and
-    # would otherwise leak this through as literal text.
+    # Strips the website-only reference_style()/acronym_style()/glossary_style()
+    # Jinja macro calls (each injects a CSS <style> block on their respective
+    # page for the live site); the PDF gets the equivalent CSS added directly
+    # to the compiled stylesheet instead (see reference_style_global/
+    # reference_spacing_european etc. above and reference_style_css/
+    # acronym_style_css/glossary_style_css below), since Pandoc doesn't render
+    # Jinja and would otherwise leak these through as literal text.
     content = re.sub(r'^[ \t]*\{\{\s*reference_style\(\s*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
+    content = re.sub(r'^[ \t]*\{\{\s*acronym_style\(\s*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
+    content = re.sub(r'^[ \t]*\{\{\s*glossary_style\(\s*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
 
     # Replaces the website-only nav_snippet() Jinja macro call with the same
     # extracted nav = [...] text it would render on the website (Pandoc
@@ -1576,6 +1580,16 @@ def main():
     project_extra = project_section.get('extra', {}) if isinstance(project_section, dict) else {}
     heading_numbering_enabled = bool(project_extra.get('heading_numbering', True)) if isinstance(project_extra, dict) else True
     reference_style_global = str(project_extra.get('reference_style', 'european') if isinstance(project_extra, dict) else 'european').strip().lower() == 'global'
+    # Spacing/indent values behind reference_style_global above (see
+    # macros.py's matching _reference_style_values(), which the website's
+    # reference_style()/acronym_style()/glossary_style() macros use) -
+    # project.extra.reference_spacing_european/reference_indent_global/
+    # reference_spacing_global in zensical.toml. reference_spacing_european
+    # is also used, unconditionally, for the Acronyms/Glossary pages' PDF
+    # spacing below, same as on the website.
+    reference_spacing_european = str(project_extra.get('reference_spacing_european', '-0.8em')) if isinstance(project_extra, dict) else '-0.8em'
+    reference_indent_global = str(project_extra.get('reference_indent_global', '1.27cm')) if isinstance(project_extra, dict) else '1.27cm'
+    reference_spacing_global = str(project_extra.get('reference_spacing_global', '2em')) if isinstance(project_extra, dict) else '2em'
     # PDF page size/margins (see "Page size and margins" in customise.md) -
     # project.extra.pdf_page_size/pdf_margin_{top,right,bottom,left} in
     # zensical.toml, substituted into the @page CSS block below. No
@@ -2337,38 +2351,38 @@ img.twemoji, i.fa-solid, i.fa-regular, i.fa-brands, i.material-icons, i[class*="
     # anything here; these plain ".reference" selectors are what make either
     # style actually apply in the PDF.
     if reference_style_global:
-        reference_style_css = """
-p.reference {
-    padding-left: 1.27cm !important;
-    text-indent: -1.27cm !important;
-}
-p.reference + p.reference {
-    margin-top: 2em !important;
-}
+        reference_style_css = f"""
+p.reference {{
+    padding-left: {reference_indent_global} !important;
+    text-indent: -{reference_indent_global} !important;
+}}
+p.reference + p.reference {{
+    margin-top: {reference_spacing_global} !important;
+}}
 """
     else:
-        reference_style_css = """
-p.reference + p.reference {
-    margin-top: -0.8em !important;
-}
+        reference_style_css = f"""
+p.reference + p.reference {{
+    margin-top: {reference_spacing_european} !important;
+}}
 """
 
-    # PDF equivalent of extra.css's ".md-typeset p.acronym + p.acronym" rule
+    # PDF equivalent of the website's acronym_style() macro (see macros.py)
     # (see docs/acronyms.md) - same reasoning as reference_style_css above:
     # Pandoc's HTML output has no ".md-typeset" wrapper, so this plain
     # ".acronym" selector is what actually applies the tight spacing here.
-    acronym_style_css = """
-p.acronym + p.acronym {
-    margin-top: -0.8em !important;
-}
+    acronym_style_css = f"""
+p.acronym + p.acronym {{
+    margin-top: {reference_spacing_european} !important;
+}}
 """
 
-    # PDF equivalent of extra.css's ".md-typeset p.glossary + p.glossary" rule
+    # PDF equivalent of the website's glossary_style() macro (see macros.py)
     # (see docs/glossary.md) - same reasoning as reference_style_css above.
-    glossary_style_css = """
-p.glossary + p.glossary {
-    margin-top: -0.8em !important;
-}
+    glossary_style_css = f"""
+p.glossary + p.glossary {{
+    margin-top: {reference_spacing_european} !important;
+}}
 """
 
     # Every table caption id that requested the top position (either a

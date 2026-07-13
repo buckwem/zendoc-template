@@ -255,15 +255,15 @@ Zensical doesn't include a dedicated citation or bibliography extension, but you
 
     `"european"` (the default) - single line spacing, no indent, entries close together:
 
-    ![European reference style: single line spacing, no indent, entries close together](images/reference-style-european.png)
-    /// caption
+    ![European reference style: single line spacing, no indent, entries close together](images/reference-style-european.png){ .screenshot }
+    /// figure-caption
     European reference style
     ///
 
     `"global"` - double spacing between entries, with a 0.5in/1.27cm hanging indent on wrapped lines (the common APA/MLA/Chicago style):
 
-    ![Global reference style: double spacing between entries, with a hanging indent on wrapped lines](images/reference-style-global.png)
-    /// caption
+    ![Global reference style: double spacing between entries, with a hanging indent on wrapped lines](images/reference-style-global.png){ .screenshot }
+    /// figure-caption
     Global reference style
     ///
 
@@ -492,19 +492,19 @@ The [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-l
 
 This template configures three caption types under `[project.markdown_extensions.pymdownx.blocks.caption]` in `zensical.toml`:
 
-1. **`caption`** - plain and unnumbered, for a screenshot that doesn't need a "Figure N" label:
+1. **`caption`** - plain and unnumbered, for an image that doesn't need a "Figure N" label - a decorative image or an institution logo, rather than a screenshot or diagram that's part of the document's actual content:
 
     ``` markdown
-    ![Initial commit](images/initial-commit.png){ width="40%" }
+    ![Institution logo](images/logo.png)
     /// caption
-    Initial commit
+    Institution logo
     ///
     ```
 
 2. **`figure-caption`** - auto-numbered "Figure `<chapter>.<n>`" (e.g. "Figure 9.1"), attached to the image immediately before it. `<chapter>` is wherever this page ends up in `nav`; `<n>` auto-increments per page - reordering chapters, or adding another figure to the page, never needs a manual renumber:
 
     ``` markdown
-    ![GitLab fork project](images/gitlab-fork-project.png){ width=70% }
+    ![GitLab fork project](images/gitlab-fork-project.png){ width=70% .screenshot }
     /// figure-caption
     GitLab fork project
     ///
@@ -525,6 +525,22 @@ The caption block always comes *after* the image or table it captions, regardles
 
 !!! tip
     Force a specific number instead of the auto-incrementing one with `| 5` (later auto-numbers on the same page continue counting up from there, never going backwards); give a caption a stable custom id instead of the auto-generated one with `| #my-id`; add an extra CSS class with `| #my-id.my-class`. Combine modifiers with spaces, e.g. `/// table-caption | < 5 #my-id`.
+
+!!! note "Caption every image, diagram, and table"
+    Every screenshot, diagram, or other image that's actually part of the document's content gets `figure-caption`, and every table gets `table-caption` - so a reader can cite "Figure 7.2" or "Table 3.1" and mean something specific. Reserve the plain `caption` type for decorative images that aren't part of the content itself, like an institution logo (see the `caption` example above).
+
+### Screenshots
+
+Every screenshot of an application or website - as opposed to a logo, icon, or diagram - must have both `figure-caption` *and* the `.screenshot` class, which frames it with a subtle border, rounded corners, and a light shadow so it reads as "a picture of your screen" rather than blending into the body text. Add `.screenshot` as an extra attribute alongside `width`:
+
+``` markdown
+![Initial commit](images/initial-commit.png){ width="40%" .screenshot }
+/// figure-caption
+Initial commit
+///
+```
+
+`.screenshot` works the same way in both outputs - the underlying CSS rule lives in `docs/stylesheets/extra.css` for the website and the equivalent compiled block in `build_pdf.py` for the PDF, matching every other class this template applies to both.
 
 
 ## Finalising your document

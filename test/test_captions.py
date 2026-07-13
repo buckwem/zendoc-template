@@ -104,6 +104,23 @@ def test_image_attrs_to_html_other_keys_become_plain_attributes(build_pdf_module
     assert build_pdf_module.image_attrs_to_html('loading=lazy') == ' loading="lazy"'
 
 
+def test_image_attrs_to_html_class_token_becomes_the_class_attribute(build_pdf_module):
+    """See issue #54: a ".screenshot" token frames a screenshot image the
+    same way in both outputs - this is the <img>'s own class, distinct from
+    the <figure>'s class (zendoc-figure-caption etc.)."""
+    assert build_pdf_module.image_attrs_to_html('.screenshot') == ' class="screenshot"'
+
+
+def test_image_attrs_to_html_combines_width_and_class(build_pdf_module):
+    result = build_pdf_module.image_attrs_to_html('width="40%" .screenshot')
+    assert 'class="screenshot"' in result
+    assert 'style="width:40%"' in result
+
+
+def test_image_attrs_to_html_id_token_becomes_the_id_attribute(build_pdf_module):
+    assert build_pdf_module.image_attrs_to_html('#my-img-id') == ' id="my-img-id"'
+
+
 # ---------------------------------------------------------------------------
 # figure-caption: numbering, chapter id, manual override, custom id/class,
 # position, and the plain "caption" type staying unnumbered.
@@ -229,6 +246,26 @@ def test_figure_caption_preserves_the_images_pixel_width(build_pdf_module, tmp_p
     )
     assert 'width="300"' in result
     assert 'style="width:300"' not in result
+
+
+def test_figure_caption_preserves_the_screenshot_class_on_the_image(build_pdf_module, tmp_path):
+    """See issue #54: ".screenshot" must land on the <img> itself (framing
+    it with a border/shadow - see extra.css and the equivalent PDF rule in
+    main()'s compiled CSS), not on the <figure> - the figure's own class
+    (zendoc-figure-caption etc.) is a separate attribute, set independently
+    by zensical_caption_replacer() itself, and must be unaffected."""
+    result = _preprocess(
+        build_pdf_module, tmp_path,
+        """
+        ![alt text](image.png){ width="40%" .screenshot }
+        /// figure-caption
+        A worked example
+        ///
+        """,
+        chapter_id="1",
+    )
+    assert '<img src="image.png" alt="alt text" class="screenshot" style="width:40%" />' in result
+    assert 'class="zendoc-figure-caption"' in result
 
 
 def test_figure_caption_without_a_width_attribute_is_unaffected(build_pdf_module, tmp_path):
@@ -461,6 +498,46 @@ def test_real_fork_clone_table_caption_is_numbered_in_the_built_pdf(pdf_full_tex
     joined = "\n".join(pdf_full_text)
     m = REAL_TABLE_NUMBER.search(joined)
     assert m is not None, "Expected a numbered 'Fork and Clone Comparison at a Glance' table caption in the PDF"
+
+
+def test_real_figure_caption_image_is_horizontally_centered_under_its_caption(pdf_doc):
+    """Regression test: the <figure> zensical_caption_replacer() builds had
+    no text-align on it, so the <img> (a naturally inline-level element,
+    positioned by its parent's text-align) sat at its default left-aligned
+    position while the figcaption text ended up centered anyway (WeasyPrint's
+    own default for figcaption) - visibly misaligning the image under its
+    own caption. Checks the real "Initial commit" figure in the built PDF:
+    the image's horizontal center should match its caption's."""
+    image_bbox = None
+    caption_bbox = None
+    for page in pdf_doc:
+        blocks = page.get_text("dict")["blocks"]
+        image_bboxes = [b["bbox"] for b in blocks if b.get("type") == 1]
+        for block in blocks:
+            if block.get("type") != 0:
+                continue
+            text = "".join(s["text"] for line in block.get("lines", []) for s in line["spans"])
+            if "Figure" in text and "Initial commit" in text:
+                caption_bbox = block["bbox"]
+                # The image directly above this caption - not necessarily
+                # adjacent in blocks[] order (images can be listed out of
+                # visual reading order - see the vertical-gap match here
+                # instead of relying on list position).
+                above = [b for b in image_bboxes if b[3] <= caption_bbox[1] + 1]
+                if above:
+                    image_bbox = min(above, key=lambda b: caption_bbox[1] - b[3])
+                break
+        if caption_bbox is not None:
+            break
+
+    assert caption_bbox is not None, "Expected to find the 'Initial commit' figure caption in the PDF"
+    assert image_bbox is not None, "Expected an image immediately before the 'Initial commit' caption"
+
+    image_center = (image_bbox[0] + image_bbox[2]) / 2
+    caption_center = (caption_bbox[0] + caption_bbox[2]) / 2
+    assert abs(image_center - caption_center) < 1, (
+        f"Image center ({image_center}) doesn't match caption center ({caption_center})"
+    )
 
 
 CAPTION_SYNTAX_LEAK = re.compile(r"^\s*(?:///|--/)\s*(figure-caption|table-caption|caption)\b", re.MULTILINE)

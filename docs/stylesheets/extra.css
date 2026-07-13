@@ -193,6 +193,27 @@ SPDX-License-Identifier: MIT
   content: "Table " counter(h1-count) "."; }
 
 /* ============================================================= */
+/* ================ Styles for framed screenshots ================ */
+/* ============================================================= */
+
+/* Applied via "{ .screenshot }" on an image (see "Captions" in
+   customise.md) - a subtle border, rounded corners, and a light shadow
+   signal "this is a picture of your screen", distinguishing a real
+   application/tool screenshot from a logo, icon, or diagram, none of
+   which get this treatment. Kept deliberately flat/simple, matching this
+   template's existing admonition/tabbox styling, rather than a "browser
+   chrome" mockup. */
+.md-typeset img.screenshot {
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+[data-md-color-scheme="slate"] .md-typeset img.screenshot {
+  border-color: #4a4a4a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================= */
 /* ============== Styles for use with card grids =============== */
 /* ============================================================= */
 

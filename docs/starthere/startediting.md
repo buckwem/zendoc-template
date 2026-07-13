@@ -105,7 +105,7 @@ Whenever you've made a change you want to keep, there are three things to do: **
         1. Make sure you've saved your changed files (a filled circle next to a file name in the Explorer tab means it has unsaved changes - select the file and press `Ctrl+S` / `Cmd+S`).
         2. Click the :gitlab-branch: **Source Control** icon in the left-hand sidebar. You'll see a list of every changed and new file.
 
-            ![Initial commit](images/initial-commit.png){ width="40%" }
+            ![Initial commit](images/initial-commit.png){ width="40%" .screenshot }
             /// figure-caption
             Initial commit
             ///
@@ -113,14 +113,14 @@ Whenever you've made a change you want to keep, there are three things to do: **
         3. Type a short, descriptive message in the message box (for example, "Add section 2 draft") - this is the label future-you (or a marker) will see when looking back through the history.
         4. Press the **Commit**{: .bg-blue} button and select **Save All and Commit Changes**{: .bg-blue}. This records the snapshot on your computer only - you haven't sent anything anywhere yet.
 
-            ![Commit changes](images/commit-changes.png){ width="40%" }
+            ![Commit changes](images/commit-changes.png){ width="40%" .screenshot }
             /// figure-caption
             Commit changes
             ///
 
         5. Press **Sync Changes**{: .bg-blue} to push your commit to GitLab or GitHub (and pull down anyone else's changes too).
 
-            ![Sync changes](images/sync-changes.png){ width="40%" }
+            ![Sync changes](images/sync-changes.png){ width="40%" .screenshot }
             /// figure-caption
             Sync changes
             ///
@@ -166,8 +166,8 @@ Once your commit reaches the default branch, the [CI/CD pipeline](#automated-bui
 1. Go to your GitLab Pages address, in the form `https://`*namespace*`.pages.surrey.ac.uk/`*repository-name*. This template's own site is at [http://mb0105.pages.surrey.ac.uk/zendoc-template](http://mb0105.pages.surrey.ac.uk/zendoc-template){target="_blank"}.
 2. The first time you visit, GitLab prompts you to authorise GitLab Pages access to your project:
 
-    ![Authorise GitLab Pages](images/authorise-gitlab-pages.png){ width="40%" }
-    /// caption
+    ![Authorise GitLab Pages](images/authorise-gitlab-pages.png){ width="40%" .screenshot }
+    /// figure-caption
     Authorise GitLab Pages
     ///
 

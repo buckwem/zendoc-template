@@ -227,24 +227,34 @@ def parse_caption_modifier(modifier):
     return prepend, manual_number, custom_id, extra_classes
 
 def image_attrs_to_html(attrs):
-    """Converts a Pandoc-style image attribute block (the "{ width="40%" }"
-    in "![alt](src){ width="40%" }") into an HTML attribute string for a
-    hand-written <img> tag - needed because zensical_caption_replacer()
-    below builds its <figure>/<img>/<figcaption> markup directly as raw
-    HTML rather than letting Pandoc's own markdown reader process the image,
-    so Pandoc's own attribute handling (see issue #55) never sees this
-    block unless it's redone here. Mirrors Pandoc's own behaviour: a
-    width/height value that has a unit (e.g. "40%", "2cm") becomes an
-    inline CSS style (Pandoc emits `style="width:40%"` for `{width="40%"}`);
-    a bare integer becomes the legacy width/height HTML attribute (pixels).
-    Any other key becomes a plain HTML attribute. #id/.class shorthand
-    tokens are ignored here - not used on these images; the caption's own
-    #id/.class modifier (see parse_caption_modifier()) covers that instead."""
+    """Converts a Pandoc-style image attribute block (the "{ width="40%"
+    .screenshot }" in "![alt](src){ width="40%" .screenshot }") into an HTML
+    attribute string for a hand-written <img> tag - needed because
+    zensical_caption_replacer() below builds its <figure>/<img>/<figcaption>
+    markup directly as raw HTML rather than letting Pandoc's own markdown
+    reader process the image, so Pandoc's own attribute handling (see issue
+    #55) never sees this block unless it's redone here. Mirrors Pandoc's own
+    behaviour: a width/height value that has a unit (e.g. "40%", "2cm")
+    becomes an inline CSS style (Pandoc emits `style="width:40%"` for
+    `{width="40%"}`); a bare integer becomes the legacy width/height HTML
+    attribute (pixels). A ".class" token (e.g. ".screenshot" - see "Captions"
+    in customise.md) becomes the <img>'s own class attribute - distinct from
+    the <figure>'s own class (zendoc-figure-caption etc. - see
+    zensical_caption_replacer() below), since the framed-screenshot CSS
+    targets "img.screenshot" specifically. A "#id" token becomes the <img>'s
+    id. Any other key becomes a plain HTML attribute."""
     if not attrs:
         return ''
     style_parts = []
     html_parts = []
-    for token in re.findall(r'[\w-]+="[^"]*"|[\w-]+=\S+', attrs):
+    classes = []
+    for token in re.findall(r'[\w-]+="[^"]*"|[\w-]+=\S+|\.[\w-]+|#[\w-]+', attrs):
+        if token.startswith('.'):
+            classes.append(token[1:])
+            continue
+        if token.startswith('#'):
+            html_parts.append(f'id="{token[1:]}"')
+            continue
         key, _, value = token.partition('=')
         value = value.strip('"\'')
         if key in ('width', 'height'):
@@ -254,6 +264,8 @@ def image_attrs_to_html(attrs):
                 style_parts.append(f'{key}:{value}')
         else:
             html_parts.append(f'{key}="{value}"')
+    if classes:
+        html_parts.append(f'class="{" ".join(classes)}"')
     style_attr = f' style="{"; ".join(style_parts)}"' if style_parts else ''
     html_attr = (' ' + ' '.join(html_parts)) if html_parts else ''
     return f'{html_attr}{style_attr}'
@@ -2034,10 +2046,29 @@ img {
     max-width: 100% !important;
 }
 /* Keeps an image and its /// caption /// figcaption together as one atomic
-   unit, so the caption can never be pushed to a page apart from its image. */
+   unit, so the caption can never be pushed to a page apart from its image.
+   text-align: center centers the <img> itself (a naturally inline-level
+   element, so its parent's text-align controls its horizontal position) -
+   without this, only the figcaption text ends up centered (its own
+   centering comes from WeasyPrint's UA stylesheet default for figcaption),
+   leaving the image sitting at its default left-aligned position and
+   visibly misaligned under its own caption. Applies both to figures
+   zensical_caption_replacer() builds by hand and to Pandoc's own implicit
+   figures (any standalone image Pandoc auto-wraps in <figure>, e.g. the
+   institution logos on the front page). */
 figure {
     page-break-inside: avoid !important;
     break-inside: avoid-page !important;
+    text-align: center !important;
+}
+/* Applied via "{ .screenshot }" on an image (see "Captions" in
+   customise.md) - matches the website's equivalent img.screenshot rule
+   in extra.css, so a screenshot renders identically framed in both
+   outputs. */
+img.screenshot {
+    border: 1px solid #d0d0d0 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15) !important;
 }
 img.twemoji, i.fa-solid, i.fa-regular, i.fa-brands, i.material-icons, i[class*="fa-"], span[class*="octicon-"], .octicon {
     image-resolution: 96dpi !important;

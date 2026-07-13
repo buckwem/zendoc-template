@@ -1586,6 +1586,16 @@ def main():
     pdf_margin_right = str(project_extra.get('pdf_margin_right', '2cm')) if isinstance(project_extra, dict) else '2cm'
     pdf_margin_bottom = str(project_extra.get('pdf_margin_bottom', '2cm')) if isinstance(project_extra, dict) else '2cm'
     pdf_margin_left = str(project_extra.get('pdf_margin_left', '2cm')) if isinstance(project_extra, dict) else '2cm'
+    # PDF running header/footer text colour, font size, and divider line
+    # colour (see "Page header"/"Page footer" in customise.md) -
+    # project.extra.pdf_header_footer_{font_size,color,divider_color} in
+    # zensical.toml, substituted into all four @top-left/@top-right/
+    # @bottom-left/@bottom-right corners below. One setting each (not one
+    # per corner): nothing in the current design differentiates header from
+    # footer or left from right here.
+    pdf_header_footer_font_size = str(project_extra.get('pdf_header_footer_font_size', '10pt')) if isinstance(project_extra, dict) else '10pt'
+    pdf_header_footer_color = str(project_extra.get('pdf_header_footer_color', '#555555')) if isinstance(project_extra, dict) else '#555555'
+    pdf_header_footer_divider_color = str(project_extra.get('pdf_header_footer_divider_color', '#e2e8f0')) if isinstance(project_extra, dict) else '#e2e8f0'
     nav = project_section.get('nav', []) if isinstance(project_section, dict) else []
     if not nav: nav = config.get('nav', [])
     if not nav:
@@ -1939,10 +1949,10 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
     @top-left {
         content: "__SITE_NAME__" !important;
         font-family: "__MAIN_FONT__", sans-serif !important;
-        font-size: 10pt !important;
-        color: #555555 !important;
+        font-size: __PDF_HEADER_FOOTER_FONT_SIZE__ !important;
+        color: __PDF_HEADER_FOOTER_COLOR__ !important;
         vertical-align: bottom !important;
-        border-bottom: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid __PDF_HEADER_FOOTER_DIVIDER_COLOR__ !important;
         padding-bottom: 8px !important;
         /* Margin (not padding) below the border: pushes the box's bottom
            edge away from the content boundary, so content that lands
@@ -1963,10 +1973,10 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
     @top-right {
         content: string(chapter-title) !important;
         font-family: "__MAIN_FONT__", sans-serif !important;
-        font-size: 10pt !important;
-        color: #555555 !important;
+        font-size: __PDF_HEADER_FOOTER_FONT_SIZE__ !important;
+        color: __PDF_HEADER_FOOTER_COLOR__ !important;
         vertical-align: bottom !important;
-        border-bottom: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid __PDF_HEADER_FOOTER_DIVIDER_COLOR__ !important;
         padding-bottom: 8px !important;
         margin-bottom: 3mm !important;
         width: 50% !important;
@@ -1976,10 +1986,10 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
     @bottom-left {
         content: "__COPYRIGHT__" !important;
         font-family: "__MAIN_FONT__", sans-serif !important;
-        font-size: 10pt !important;
-        color: #555555 !important;
+        font-size: __PDF_HEADER_FOOTER_FONT_SIZE__ !important;
+        color: __PDF_HEADER_FOOTER_COLOR__ !important;
         vertical-align: top !important;
-        border-top: 1px solid #e2e8f0 !important;
+        border-top: 1px solid __PDF_HEADER_FOOTER_DIVIDER_COLOR__ !important;
         padding-top: 8px !important;
         margin-top: 3mm !important;
         width: 80% !important;
@@ -1993,10 +2003,10 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
     @bottom-right {
         content: "Page " counter(page) " of " counter(pages) !important;
         font-family: "__MAIN_FONT__", sans-serif !important;
-        font-size: 10pt !important;
-        color: #555555 !important;
+        font-size: __PDF_HEADER_FOOTER_FONT_SIZE__ !important;
+        color: __PDF_HEADER_FOOTER_COLOR__ !important;
         vertical-align: top !important;
-        border-top: 1px solid #e2e8f0 !important;
+        border-top: 1px solid __PDF_HEADER_FOOTER_DIVIDER_COLOR__ !important;
         padding-top: 8px !important;
         margin-top: 3mm !important;
         width: 20% !important;
@@ -2310,7 +2320,10 @@ img.twemoji, i.fa-solid, i.fa-regular, i.fa-brands, i.material-icons, i[class*="
                                      .replace("__PDF_MARGIN_TOP__", pdf_margin_top)\
                                      .replace("__PDF_MARGIN_RIGHT__", pdf_margin_right)\
                                      .replace("__PDF_MARGIN_BOTTOM__", pdf_margin_bottom)\
-                                     .replace("__PDF_MARGIN_LEFT__", pdf_margin_left)
+                                     .replace("__PDF_MARGIN_LEFT__", pdf_margin_left)\
+                                     .replace("__PDF_HEADER_FOOTER_FONT_SIZE__", pdf_header_footer_font_size)\
+                                     .replace("__PDF_HEADER_FOOTER_COLOR__", pdf_header_footer_color)\
+                                     .replace("__PDF_HEADER_FOOTER_DIVIDER_COLOR__", pdf_header_footer_divider_color)
 
     # PDF equivalent of the website's reference_style() macro (see macros.py):
     # project.extra.reference_style = "global" in zensical.toml switches the

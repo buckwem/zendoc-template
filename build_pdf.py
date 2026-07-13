@@ -13,6 +13,7 @@ import base64
 import json
 import urllib.request
 import urllib.parse
+import markdown
 
 # In-process cache so the same emoji is never fetched/read twice within a single build
 _TWEMOJI_SVG_CACHE = {}
@@ -1090,6 +1091,52 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         content
     )
 
+    # PYMDOWNX.MARK / PYMDOWNX.CARET (INSERT) / PYMDOWNX.KEYS TO RAW HTML
+    # Pandoc's markdown reader has no native support for ==mark== or
+    # ++keys++, so both leak through as literal text; ^^insert^^ silently
+    # collides with Pandoc's own single-caret superscript syntax and produces
+    # empty <sup></sup> tags instead of an underline (issue #72). Rewrite all
+    # three to raw HTML - which Pandoc's reader passes through untouched -
+    # before Pandoc ever sees them, the same way html_img_replacer() above
+    # does for <img> tags.
+    def mark_replacer(match):
+        if match.group(1) or match.group(2): return match.group(0)
+        return f"<mark>{match.group(3)}</mark>"
+
+    content = re.sub(
+        r'(```[\s\S]*?```)|(`[^`\n]*`)|==(?!\s)([^\n]+?)(?<!\s)==',
+        mark_replacer,
+        content
+    )
+
+    def insert_replacer(match):
+        if match.group(1) or match.group(2): return match.group(0)
+        return f"<ins>{match.group(3)}</ins>"
+
+    content = re.sub(
+        r'(```[\s\S]*?```)|(`[^`\n]*`)|\^\^(?!\s)([^\n]+?)(?<!\s)\^\^',
+        insert_replacer,
+        content
+    )
+
+    # pymdownx.keys' own key-alias database (184 entries mapping shorthand
+    # like "pg-up" to "Page Up", plus the CSS classes for each key) isn't
+    # worth reimplementing by hand - reuse it directly via a dedicated
+    # Markdown instance rather than hand-rolling the lookup table.
+    _keys_md = markdown.Markdown(extensions=['pymdownx.keys'])
+
+    def keys_replacer(match):
+        if match.group(1) or match.group(2): return match.group(0)
+        _keys_md.reset()
+        html = _keys_md.convert(match.group(0))
+        return html[len('<p>'):-len('</p>')] if html.startswith('<p>') else html
+
+    content = re.sub(
+        r'(```[\s\S]*?```)|(`[^`\n]*`)|\+{2}([\w\-]+(?:\+[\w\-]+)*?)\+{2}',
+        keys_replacer,
+        content
+    )
+
     content = re.sub(r'\{\s*target=[^}]*\}', '', content, flags=re.IGNORECASE)
     content = re.sub(r'^(#{1,6})\s+Footnotes\s*$', r'\1 Footnotes {#custom-footnotes-heading}', content, flags=re.MULTILINE | re.IGNORECASE)
 
@@ -2138,6 +2185,22 @@ code { padding: 2px 4px !important; border-radius: 3px !important; background-co
    breaks; without this, the padding above lands only on the first line (default
    box-decoration-break: slice), making it look indented relative to the rest. */
 pre code { padding: 0 !important; }
+
+/* pymdownx.keys (++key+combo++) box styling - reproduces the website's
+   light-mode --md-typeset-kbd-* custom properties (main.css), since only
+   extra.css/print.css (not the theme's own main/palette CSS) are pulled
+   into the PDF stylesheet above, so kbd's own theme rule never reaches
+   WeasyPrint otherwise. */
+kbd {
+    background-color: #fafafa !important;
+    border-radius: 3px !important;
+    box-shadow: 0 2px 0 1px #b8b8b8, 0 2px 0 #b8b8b8, 0 -2px 3px #ffffff inset !important;
+    display: inline-block !important;
+    font-size: 0.75em !important;
+    padding: 0 0.6em !important;
+    vertical-align: text-top !important;
+}
+.keys span { color: #757575 !important; padding: 0 0.2em !important; }
 
 /* ==========================================================================
    ADVANCED GLOBAL IMAGE AND VECTOR PROTECTION STANDARDS

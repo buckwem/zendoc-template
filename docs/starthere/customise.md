@@ -483,6 +483,17 @@ PDF page footer layout
 
 The cover page (`docs/index.md`) never shows this header or footer at all - see the note at the end of [Page size and margins](#page-size-and-margins) below.
 
+Set `project.extra.pdf_header_footer_font_size`, `pdf_header_footer_color`, and `pdf_header_footer_divider_color` in `zensical.toml` to change the header/footer text's font size, its colour, and the divider line's colour:
+
+```toml
+[project.extra]
+pdf_header_footer_font_size = "10pt"
+pdf_header_footer_color = "#555555"
+pdf_header_footer_divider_color = "#e2e8f0"
+```
+
+Each accepts any valid CSS value (e.g. `9pt`, `rgb(85, 85, 85)`). One setting each applies to the header and the footer together - there's no separate setting per corner, since nothing else about their appearance differs. All three default to the values shown above if left unset. `pdf_header_footer_divider_color` is independent of `pdf_header_footer_color` - changing the text colour doesn't automatically lighten or darken the divider line, so set both if you want them to match.
+
 ### Page size and margins
 
 Set `project.extra.pdf_page_size` and `project.extra.pdf_margin_top`/`pdf_margin_right`/`pdf_margin_bottom`/`pdf_margin_left` in `zensical.toml`:

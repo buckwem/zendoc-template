@@ -404,6 +404,14 @@ pdf_margin_right = "2cm"
 pdf_margin_bottom = "2cm"
 pdf_margin_left = "2cm"
 
+# The PDF's running header/footer text style (see "Page header"/"Page
+# footer" in customise.md). Each accepts any valid CSS value (e.g. "9pt",
+# "rgb(85, 85, 85)"). One setting each for header and footer together - PDF
+# only, has no effect on the live site.
+pdf_header_footer_font_size = "10pt"
+pdf_header_footer_color = "#555555"
+pdf_header_footer_divider_color = "#e2e8f0"
+
 # ----------------------------------------------------------------------------
 # Python Extensions
 #

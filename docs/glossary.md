@@ -10,6 +10,7 @@ is_appendix: true
 -->
 
 {{ heading_counter_reset(page) }}
+{{ glossary_style() }}
 
 # Glossary
 

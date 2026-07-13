@@ -266,8 +266,16 @@ Zensical doesn't include a dedicated citation or bibliography extension, but you
     Global reference style
     ///
 
-    !!! note
-        To change the spacing or indent values themselves, edit the CSS in `docs/stylesheets/extra.css` and `build_pdf.py` - each has a comment next to its `reference_style`-related rule explaining what to change.
+    Set `project.extra.reference_spacing_european`, `reference_indent_global`, and `reference_spacing_global` in `zensical.toml` to change the spacing/indent values themselves, on both the website and the PDF build:
+
+    ```toml
+    [project.extra]
+    reference_spacing_european = "-0.8em"  # gap between entries, "european" style
+    reference_indent_global = "1.27cm"     # hanging indent on wrapped lines, "global" style
+    reference_spacing_global = "2em"       # gap between entries, "global" style
+    ```
+
+    Each accepts any valid CSS length and defaults to the value shown above if left unset. `reference_spacing_european` also controls the [Acronyms](#acronyms-and-abbreviations) and [Glossary](#glossary) pages' own list spacing, which share the same tight "european" look but have no "global"-style alternative to switch to.
 
 !!! tip
     Keep ids short and stable (e.g. `skou2023`, author surname plus year) so citations keep working even if you reorder entries on the references page later. If a page citing a source is nested in a subdirectory, adjust the relative path to `references.md` accordingly.

@@ -206,14 +206,34 @@ def _reference_style():
     Returns "global" only when explicitly set to that value; anything else falls
     back to "european", so typos default to the current/default look rather than
     silently doing nothing."""
+    return _reference_style_values()[0]
+
+
+def _reference_style_values():
+    """Reads project.extra.reference_style plus the three spacing/indent values
+    behind it (see "References and bibliography" in customise.md) - shared by
+    reference_style()/acronym_style()/glossary_style() below and their
+    build_pdf.py PDF equivalents, so a value only needs to change in one place
+    (zensical.toml) rather than three (extra.css, macros.py, build_pdf.py).
+    Returns (style, spacing_european, indent_global, spacing_global):
+    - style: "global" only when explicitly set to that value, else "european".
+    - spacing_european: margin-top between consecutive entries in the default
+      "european" look - also used, unconditionally, for the acronym and
+      glossary list spacing (see acronym_style()/glossary_style() below).
+    - indent_global / spacing_global: the "global" look's hanging indent and
+      inter-entry spacing."""
     config_path = Path('zensical.toml')
     if not config_path.exists():
-        return 'european'
+        return 'european', '-0.8em', '1.27cm', '2em'
     config = toml.load(config_path)
     project = config.get('project', {}) if isinstance(config.get('project'), dict) else {}
     extra = project.get('extra', {}) if isinstance(project.get('extra'), dict) else {}
     style = str(extra.get('reference_style', 'european')).strip().lower()
-    return 'global' if style == 'global' else 'european'
+    style = 'global' if style == 'global' else 'european'
+    spacing_european = str(extra.get('reference_spacing_european', '-0.8em'))
+    indent_global = str(extra.get('reference_indent_global', '1.27cm'))
+    spacing_global = str(extra.get('reference_spacing_global', '2em'))
+    return style, spacing_european, indent_global, spacing_global
 
 
 def _get_nav_snippet():
@@ -453,25 +473,63 @@ def define_env(env):
     @env.macro
     def reference_style():
         """Controls the layout of .reference paragraphs on the References page
-        (see docs/references.md). The default look (extra.css's
-        `.md-typeset p.reference + p.reference` rule) is the "european" style:
-        single line spacing throughout, no indent, entries close together. Set
+        (see docs/references.md). The default look is the "european" style:
+        single line spacing throughout, no indent, entries close together -
+        spacing set by project.extra.reference_spacing_european. Set
         project.extra.reference_style = "global" in zensical.toml to switch to
         the common APA/MLA/Chicago style instead - single line spacing within
-        each entry, but double spacing *between* entries, with a 0.5in/1.27cm
-        hanging indent on wrapped lines - this overrides extra.css's rule for
-        the whole page. Usage: place `{{ reference_style() }}` once near the
-        top of the references page."""
-        if _reference_style() != 'global':
-            return ''
+        each entry, but double spacing *between* entries (reference_spacing_global),
+        with a hanging indent on wrapped lines (reference_indent_global). Usage:
+        place `{{ reference_style() }}` once near the top of the references page."""
+        style, spacing_european, indent_global, spacing_global = _reference_style_values()
+        if style != 'global':
+            return (
+                '<style>\n'
+                '  .md-typeset p.reference + p.reference {\n'
+                f'    margin-top: {spacing_european} !important;\n'
+                '  }\n'
+                '</style>'
+            )
         return (
             '<style>\n'
             '  .md-typeset p.reference {\n'
-            '    padding-left: 1.27cm !important;\n'
-            '    text-indent: -1.27cm !important;\n'
+            f'    padding-left: {indent_global} !important;\n'
+            f'    text-indent: -{indent_global} !important;\n'
             '  }\n'
             '  .md-typeset p.reference + p.reference {\n'
-            '    margin-top: 2em !important;\n'
+            f'    margin-top: {spacing_global} !important;\n'
+            '  }\n'
+            '</style>'
+        )
+
+    @env.macro
+    def acronym_style():
+        """Controls the layout of .acronym paragraphs on the Acronyms page
+        (see docs/acronyms.md) - same tight spacing as the References page's
+        default "european" look, and the same project.extra.reference_spacing_european
+        setting (see reference_style() above), since neither the acronym nor
+        glossary list has a "global"-style alternative to switch to. Usage:
+        place `{{ acronym_style() }}` once near the top of the acronyms page."""
+        _, spacing_european, _, _ = _reference_style_values()
+        return (
+            '<style>\n'
+            '  .md-typeset p.acronym + p.acronym {\n'
+            f'    margin-top: {spacing_european} !important;\n'
+            '  }\n'
+            '</style>'
+        )
+
+    @env.macro
+    def glossary_style():
+        """Controls the layout of .glossary paragraphs on the Glossary page
+        (see docs/glossary.md) - see acronym_style() above, same reasoning.
+        Usage: place `{{ glossary_style() }}` once near the top of the
+        glossary page."""
+        _, spacing_european, _, _ = _reference_style_values()
+        return (
+            '<style>\n'
+            '  .md-typeset p.glossary + p.glossary {\n'
+            f'    margin-top: {spacing_european} !important;\n'
             '  }\n'
             '</style>'
         )

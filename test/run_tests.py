@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: MIT
 
 """CLI runner for the test suite (see issue #44). Each test_<name>.py file
-is a "batch" - build, captions, content, fences, links, markdown_foundations,
-numbering, pdf_structure, word_count, zensical_basics - run individually or
-all together, each reporting its own pass/fail.
+is a "batch" - build, captions, content, customisation, fences, links,
+markdown_foundations, numbering, pdf_structure, word_count,
+zensical_basics - run individually or all together, each reporting its own
+pass/fail.
 
 Run the builds first - these tests check the *built* output, they don't
 build it themselves:

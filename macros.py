@@ -276,38 +276,53 @@ def _appendix_letters():
     return letters
 
 
-def define_env(env):
-    # ==========================================
-    # 1. SURREY ENVIRONMENT DETECTION LOGIC
-    # ==========================================
+def _detect_is_surrey(env=None):
+    """True if this checkout appears to be building for the University of
+    Surrey - checked via the GitLab CI/CD pipeline's own CI_SERVER_HOST env
+    var (true for both a direct Surrey GitLab run and this template's own
+    GitHub-to-Surrey-GitLab mirror sync), the local git remote (covers
+    `zensical serve` on a locally-cloned Surrey checkout), and - when env is
+    given - a brute-force string scan of Zensical's config as a fallback.
+    Extracted as a standalone function (rather than inlined in define_env()
+    below) so the test suite can call the exact same detection logic instead
+    of hardcoding an assumption about which remote CI happens to be running
+    against - see test_customisation.py's site-logo tests, which run
+    unchanged against both this repo's GitHub Actions pipeline (non-Surrey)
+    and its Surrey GitLab mirror pipeline (Surrey)."""
     target_domain = 'surrey.ac.uk'
 
     # Check 1: GitLab CI/CD Pipeline environment
-    is_surrey_ci = os.getenv('CI_SERVER_HOST') == target_domain
-    
+    if os.getenv('CI_SERVER_HOST') == target_domain:
+        return True
+
     # Check 2: Local Git Remote Origin (Perfect for local 'zensical serve' testing)
-    is_surrey_local_git = False
     try:
         # Automatically asks your local folder where its remote points
         remote_url = subprocess.check_output(
-            ["git", "config", "--get", "remote.origin.url"], 
+            ["git", "config", "--get", "remote.origin.url"],
             stderr=subprocess.DEVNULL
         ).decode("utf-8").strip()
         if target_domain in remote_url:
-            is_surrey_local_git = True
+            return True
     except Exception:
         # Fails silently if git isn't installed or initialized in this directory
         pass
 
     # Check 3: Brute-force string scan of Zensical's entire config scope
-    is_surrey_in_config = False
-    if hasattr(env, 'config'):
-        is_surrey_in_config = target_domain in str(env.config)
-    if not is_surrey_in_config and hasattr(env, 'variables'):
-        is_surrey_in_config = target_domain in str(env.variables)
+    if env is not None:
+        if hasattr(env, 'config') and target_domain in str(env.config):
+            return True
+        if hasattr(env, 'variables') and target_domain in str(env.variables):
+            return True
 
-    # Combine all checks: If ANY layer detects the domain, set to True
-    final_result = is_surrey_ci or is_surrey_local_git or is_surrey_in_config
+    return False
+
+
+def define_env(env):
+    # ==========================================
+    # 1. SURREY ENVIRONMENT DETECTION LOGIC
+    # ==========================================
+    final_result = _detect_is_surrey(env)
     # final_result = False  # This line is for testing purposes; remove it in production to enable the macro.
 
     # Bind the variable to your markdown files

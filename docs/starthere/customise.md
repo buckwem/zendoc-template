@@ -579,11 +579,6 @@ The "Start Here" pages you're reading now are author-facing instructions, not pa
   {"4. Section" = "section3.md"},
   {"5. Section" = "section4.md"}
 ]},
-{"Appendixes" = [
-  {"Appendix A. Acronyms" = "acronyms.md"},
-  {"Appendix B. Glossary" = "glossary.md"},
-  {"Appendix C. References" = "references.md"}
-]},
 # {"START HERE" = [
 #   {"6. Start Here" = "starthere/starthere.md"},
 #   {"7. Install tooling" = "starthere/installtooling.md"},
@@ -592,11 +587,17 @@ The "Start Here" pages you're reading now are author-facing instructions, not pa
 #   {"10. Zensical basics" = "starthere/zensicalbasics.md"},
 #   {"11. Customisation" = "starthere/customise.md"},
 #   {"12. Additional tooling" = "starthere/additionaltooling.md"},
-#   {"13. Shell commands" = "starthere/shcommands.md"}
-# ]}
+#   {"13. Shell commands" = "starthere/shcommands.md"},
+#   {"14. Testing" = "starthere/testing.md"}
+# ]},
+{"Appendixes" = [
+  {"Appendix A. Acronyms" = "acronyms.md"},
+  {"Appendix B. Glossary" = "glossary.md"},
+  {"Appendix C. References" = "references.md"}
+]}
 ```
 
-Since `nav` drives both outputs (see [Navigation structure](#navigation-structure)), commenting it out removes the whole "START HERE" tab from the website's sidebar and drops all eight pages from the generated PDF in one change - without touching any files on disk. This is the only step that's strictly required: it's what actually keeps this guidance out of the document you hand in.
+Since `nav` drives both outputs (see [Navigation structure](#navigation-structure)), commenting it out removes the whole "START HERE" tab from the website's sidebar and drops all nine pages from the generated PDF in one change - without touching any files on disk. This is the only step that's strictly required: it's what actually keeps this guidance out of the document you hand in.
 
 ### Delete the `starthere/` files
 

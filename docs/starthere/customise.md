@@ -256,10 +256,16 @@ Zensical doesn't include a dedicated citation or bibliography extension, but you
     `"european"` (the default) - single line spacing, no indent, entries close together:
 
     ![European reference style: single line spacing, no indent, entries close together](images/reference-style-european.png)
+    /// caption
+    European reference style
+    ///
 
     `"global"` - double spacing between entries, with a 0.5in/1.27cm hanging indent on wrapped lines (the common APA/MLA/Chicago style):
 
     ![Global reference style: double spacing between entries, with a hanging indent on wrapped lines](images/reference-style-global.png)
+    /// caption
+    Global reference style
+    ///
 
     !!! note
         To change the spacing or indent values themselves, edit the CSS in `docs/stylesheets/extra.css` and `build_pdf.py` - each has a comment next to its `reference_style`-related rule explaining what to change.
@@ -479,30 +485,46 @@ The PDF also reuses your website's theme fonts (body copy, headings, and the hea
 
 ### Captions
 
-The [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-lists)-based `<figure>`/`<figcaption>` pattern in [Zensical basics](zensicalbasics.md#images) works for images, but this template also enables `pymdownx.blocks.caption` (`[project.markdown_extensions.pymdownx.blocks.caption]` in `zensical.toml`), a `/// caption ... ///` block that captions *either* an image *or* a table - and, unlike the `<figure>` approach, works correctly in the PDF too. It's already used throughout this template's own "Start Here" pages, for example:
-
-``` markdown
-| Who owns the target? | You (it's copied to your account) | You (it's on your machine) |
-| ...
-
-/// caption
-Table 7.3-1: Fork and Clone Comparison at a Glance
-///
-```
-
-``` markdown
-![GitLab fork project](images/gitlab-fork-project.png){ width=70% }
-/// caption
-Figure 7.3.1-1: GitLab fork project
-///
-```
-
-The caption block always comes *after* the image or table it captions - `pymdownx.blocks.caption` attaches to whichever element immediately precedes it.
+The [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-lists)-based `<figure>`/`<figcaption>` pattern in [Zensical basics](zensicalbasics.md#images) works for images, but this template also enables `pymdownx.blocks.caption`, a `/// caption ... ///` block that captions *either* an image *or* a table, auto-numbers itself, and - unlike the `<figure>` approach - works correctly in the PDF too.
 
 !!! info "How the PDF handles this"
-    Like attr_list (see [References and bibliography](#references-and-bibliography)), Pandoc doesn't understand `pymdownx.blocks.caption` syntax at all. This template translates it automatically for the PDF, so the same source works correctly in both outputs - a table's caption stays bound to its table, so it can't be separated from it across a page break.
+    Pandoc doesn't understand `pymdownx.blocks.caption` syntax at all - including its own auto-numbering, which is computed by the Python-Markdown extension the website runs and Pandoc never does. This template translates the block into something Pandoc understands for the PDF, and separately computes the same `<chapter>.<n>` numbers the website shows, so the same source works - and numbers the same way - in both outputs.
 
-By default, a table's caption appears at the **top** of the table in the PDF, not the bottom, on the basis that a reader wants to know what a table is before reading it. This is PDF-only: the live website follows `pymdownx.blocks.caption`'s own default placement instead, so the same source can render slightly differently between the two outputs. To change the PDF's caption position (e.g. back to the bottom), open `build_pdf.py` and search for `caption-side`.
+This template configures three caption types under `[project.markdown_extensions.pymdownx.blocks.caption]` in `zensical.toml`:
+
+1. **`caption`** - plain and unnumbered, for a screenshot that doesn't need a "Figure N" label:
+
+    ``` markdown
+    ![Initial commit](images/initial-commit.png){ width="40%" }
+    /// caption
+    Initial commit
+    ///
+    ```
+
+2. **`figure-caption`** - auto-numbered "Figure `<chapter>.<n>`" (e.g. "Figure 9.1"), attached to the image immediately before it. `<chapter>` is wherever this page ends up in `nav`; `<n>` auto-increments per page - reordering chapters, or adding another figure to the page, never needs a manual renumber:
+
+    ``` markdown
+    ![GitLab fork project](images/gitlab-fork-project.png){ width=70% }
+    /// figure-caption
+    GitLab fork project
+    ///
+    ```
+
+3. **`table-caption`** - the same auto-numbering, but for a table, shown *below* it by default - just like a figure. Add `| <` after the type name to show it *above* the table instead, genuinely repositioned in both outputs rather than just a CSS visual trick; this template uses this for every table caption of its own (see [Fork and cloning the zendoc-template](installtooling.md#fork-and-cloning-the-zendoc-template) for a real example):
+
+    ``` markdown
+    | Feature | Fork | Clone |
+    |----|----|---|
+    | ... |
+    /// table-caption | <
+    Fork and Clone Comparison at a Glance
+    ///
+    ```
+
+The caption block always comes *after* the image or table it captions, regardless of where it's actually shown - `pymdownx.blocks.caption` attaches to whichever element immediately precedes it.
+
+!!! tip
+    Force a specific number instead of the auto-incrementing one with `| 5` (later auto-numbers on the same page continue counting up from there, never going backwards); give a caption a stable custom id instead of the auto-generated one with `| #my-id`; add an extra CSS class with `| #my-id.my-class`. Combine modifiers with spaces, e.g. `/// table-caption | < 5 #my-id`.
 
 
 ## Finalising your document

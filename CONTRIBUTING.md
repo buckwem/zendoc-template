@@ -40,7 +40,7 @@ zensical build
 python test/run_tests.py
 ```
 
-Tests are grouped into batches (`build`, `links`, `numbering`, `word_count`, `content`, `pdf_structure`), each reporting its own pass/fail. Run `python test/run_tests.py --list` to see them, and `python test/run_tests.py --batch <name>` to run just one - useful when you're actively working on a specific capability and don't want to wait on the rest of the suite. Extra arguments after the batch options are passed straight through to `pytest`.
+Tests are grouped into batches (`build`, `captions`, `content`, `fences`, `links`, `numbering`, `pdf_structure`, `word_count`), each reporting its own pass/fail. Run `python test/run_tests.py --list` to see them, and `python test/run_tests.py --batch <name>` to run just one - useful when you're actively working on a specific capability and don't want to wait on the rest of the suite. Extra arguments after the batch options are passed straight through to `pytest`. See [Testing](docs/starthere/testing.md) for the full guide.
 
 ## Reporting bugs and requesting features
 

@@ -437,6 +437,19 @@ custom_checkbox = true
 [project.markdown_extensions.tables]
 [project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.blocks.caption]
+# "caption" (no prefix) is kept for a plain, unnumbered caption - e.g. a
+# decorative screenshot that doesn't need a "Figure N" label. The {} in each
+# prefix marks where the extension's own per-page auto-number goes; the
+# "Figure "/"Table " word and the chapter number in front of it are added
+# by CSS (see extra.css's ".caption-prefix::before" rules) rather than
+# baked into the prefix template itself, since the extension has no way to
+# know this template's own cross-page chapter number - see "Captions" in
+# customise.md.
+types = [
+  { name = "caption" },
+  { name = "figure-caption", prefix = "{}.", classes = "zendoc-figure-caption" },
+  { name = "table-caption", prefix = "{}.", classes = "zendoc-table-caption" },
+]
 [project.markdown_extensions.zensical.extensions.glightbox]
 
 

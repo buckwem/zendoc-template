@@ -241,8 +241,7 @@ Zensical doesn't include a dedicated citation or bibliography extension, but you
 
     (The path here is `../references.md` rather than `references.md` because this page lives in `docs/starthere/` - from `docs/section1.md` itself, `references.md` is correct, as shown in the code block above.)
 
-    !!! warning
-        In-text citation links like this resolve correctly on the website, but internal cross-page links generally don't resolve to the right place within the built PDF (a pre-existing limitation of this template's Pandoc-based PDF pipeline, not specific to references) - the link ends up pointing at a local file path rather than jumping to the anchor.
+    This in-text citation link resolves correctly in both outputs - on the website, and as an internal cross-page link jumping straight to the cited entry within the built PDF.
 
 4. Consecutive entries get the browser's normal spacing between paragraphs by default - noticeably looser than a typical bibliography. Give each entry's attr_list line a `.reference` class alongside its id (as shown in the code block above) so the template's layout rules - described next - can target them.
 

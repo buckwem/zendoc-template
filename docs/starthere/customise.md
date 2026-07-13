@@ -460,7 +460,7 @@ PDF generation itself is a zendoc extension, in the same sense as the rest of th
 
 For how to actually run it as part of your day-to-day writing - installing its dependencies, the `python build_pdf.py` command itself, and troubleshooting a failed build - see [Build the PDF](startediting.md#build-the-pdf) in *Start editing*; this section is about customising its output once it's already working.
 
-`build_pdf.py` controls most of the generated PDF's page layout - the running header, the footer, the page size, and the fonts - either from `zensical.toml` settings you already use for the website, or (for page size and margins) directly in the script itself.
+`build_pdf.py` controls most of the generated PDF's page layout - the running header, the footer, the page size, and the fonts - either from `zensical.toml` settings you already use for the website, or (for page size and margins) their own PDF-only `zensical.toml` settings.
 
 ### Page header
 
@@ -486,17 +486,18 @@ The cover page (`docs/index.md`) never shows this header or footer at all - see 
 
 ### Page size and margins
 
-Unlike the header, footer, and fonts, page size and margins aren't exposed as `zensical.toml` settings - you set them directly in the `@page` CSS block inside `build_pdf.py`. To change them, open `build_pdf.py`, find the `@page { ... }` rule (search for `size: A4`), and edit:
+Set `project.extra.pdf_page_size` and `project.extra.pdf_margin_top`/`pdf_margin_right`/`pdf_margin_bottom`/`pdf_margin_left` in `zensical.toml`:
 
-```css
-@page {
-    size: A4;
-    margin: 2cm !important;
-    ...
-}
+```toml
+[project.extra]
+pdf_page_size = "A4"
+pdf_margin_top = "2cm"
+pdf_margin_right = "2cm"
+pdf_margin_bottom = "2cm"
+pdf_margin_left = "2cm"
 ```
 
-`size` accepts any standard CSS page size (e.g. `letter`, `legal`, `A3`) or explicit dimensions (e.g. `21cm 29.7cm`), optionally followed by `landscape`. `margin` sets the page margin on every side; the header and footer live inside this margin, so shrinking it also narrows the space available to them.
+`pdf_page_size` accepts any standard CSS page size (e.g. `letter`, `legal`, `A3`) or explicit dimensions (e.g. `21cm 29.7cm`), optionally followed by `landscape`. Each `pdf_margin_*` setting accepts any valid CSS length (e.g. `2cm`, `0.75in`) and can differ from the others - useful for, say, extra left margin for binding, or matching an institution's own asymmetric submission template. The header and footer live inside this margin, so shrinking a side also narrows the space available to them there. All five default to the values shown above if left unset, and none of them affect the live website.
 
 The PDF also reuses your website's theme fonts (body copy, headings, and the header/footer) - see [Fonts](#fonts) above for the `zensical.toml` setting.
 

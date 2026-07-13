@@ -1529,6 +1529,16 @@ def main():
     project_extra = project_section.get('extra', {}) if isinstance(project_section, dict) else {}
     heading_numbering_enabled = bool(project_extra.get('heading_numbering', True)) if isinstance(project_extra, dict) else True
     reference_style_global = str(project_extra.get('reference_style', 'european') if isinstance(project_extra, dict) else 'european').strip().lower() == 'global'
+    # PDF page size/margins (see "Page size and margins" in customise.md) -
+    # project.extra.pdf_page_size/pdf_margin_{top,right,bottom,left} in
+    # zensical.toml, substituted into the @page CSS block below. No
+    # validation: an invalid CSS length/size just silently breaks the PDF
+    # layout, the same as it always has when this was a raw CSS edit.
+    pdf_page_size = str(project_extra.get('pdf_page_size', 'A4')) if isinstance(project_extra, dict) else 'A4'
+    pdf_margin_top = str(project_extra.get('pdf_margin_top', '2cm')) if isinstance(project_extra, dict) else '2cm'
+    pdf_margin_right = str(project_extra.get('pdf_margin_right', '2cm')) if isinstance(project_extra, dict) else '2cm'
+    pdf_margin_bottom = str(project_extra.get('pdf_margin_bottom', '2cm')) if isinstance(project_extra, dict) else '2cm'
+    pdf_margin_left = str(project_extra.get('pdf_margin_left', '2cm')) if isinstance(project_extra, dict) else '2cm'
     nav = project_section.get('nav', []) if isinstance(project_section, dict) else []
     if not nav: nav = config.get('nav', [])
     if not nav:
@@ -1876,8 +1886,8 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
    A4 PAGE LAYOUT & UNIFIED HEADER/FOOTER CONFIGURATION
    ========================================================================== */
 @page {
-    size: A4;
-    margin: 2cm !important;
+    size: __PDF_PAGE_SIZE__;
+    margin: __PDF_MARGIN_TOP__ __PDF_MARGIN_RIGHT__ __PDF_MARGIN_BOTTOM__ __PDF_MARGIN_LEFT__ !important;
     @top-center { content: none !important; }
     @top-left {
         content: "__SITE_NAME__" !important;
@@ -2232,7 +2242,12 @@ img.twemoji, i.fa-solid, i.fa-regular, i.fa-brands, i.material-icons, i[class*="
     final_css_payload = css_blueprint.replace("__MAIN_FONT__", main_font)\
                                      .replace("__MONO_FONT__", mono_font)\
                                      .replace("__COPYRIGHT__", safe_copyright)\
-                                     .replace("__SITE_NAME__", safe_site_name)
+                                     .replace("__SITE_NAME__", safe_site_name)\
+                                     .replace("__PDF_PAGE_SIZE__", pdf_page_size)\
+                                     .replace("__PDF_MARGIN_TOP__", pdf_margin_top)\
+                                     .replace("__PDF_MARGIN_RIGHT__", pdf_margin_right)\
+                                     .replace("__PDF_MARGIN_BOTTOM__", pdf_margin_bottom)\
+                                     .replace("__PDF_MARGIN_LEFT__", pdf_margin_left)
 
     # PDF equivalent of the website's reference_style() macro (see macros.py):
     # project.extra.reference_style = "global" in zensical.toml switches the

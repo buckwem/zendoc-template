@@ -6,15 +6,34 @@ pages:
   image: python:latest
   tags:
     - pages
+  variables:
+    # The base image's own "pandoc" apt package lags several major versions
+    # behind upstream - old enough that some markdown edge cases (e.g.
+    # pymdownx.caret's "^^insert^^" syntax) parse differently than on a
+    # contributor's own dev machine, which is exactly what
+    # test/test_zensical_basics.py's leak-detection tests check against.
+    # Installing a specific upstream .deb release below instead of
+    # "apt-get install pandoc" keeps CI and local dev on the same version,
+    # rather than silently drifting whenever the base image's own package
+    # updates. Keep in sync with .github/workflows/docs.yml's PANDOC_VERSION.
+    PANDOC_VERSION: "3.10"
   script:
     - apt-get update
-    - apt-get install -y pandoc texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra
+    - apt-get install -y curl gnupg ca-certificates
+    - curl -fsSL -o /tmp/pandoc.deb "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb"
+    - apt-get install -y /tmp/pandoc.deb
+    # fonts-inter/fonts-jetbrains-mono: this template's default fonts (see
+    # "Fonts" in customise.md) - the website loads them from Google Fonts at
+    # view time, but WeasyPrint has no such fallback for the PDF; it needs
+    # the font files actually installed to embed them, and silently
+    # substitutes a generic system font instead of erroring if they're
+    # missing (see test_customisation.py's font-embedding check).
+    - apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra fonts-inter fonts-jetbrains-mono
     # Node + Chrome are only needed so build_pdf.py can pre-render
     # ```mermaid fenced code blocks to static images via mermaid-cli/Puppeteer,
     # and TeX math ($...$/$$...$$) to static images via mathjax-full (pure
     # Node, no browser needed for that one) - WeasyPrint has no JS engine to
     # run Mermaid.js/MathJax client-side like the live Zensical site does.
-    - apt-get install -y curl gnupg ca-certificates
     - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
     - apt-get install -y nodejs
     - curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg

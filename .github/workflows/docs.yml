@@ -7,6 +7,7 @@ on:
     branches:
       - master
       - main
+  workflow_dispatch:
 permissions:
   contents: read
   pages: write
@@ -28,6 +29,15 @@ jobs:
       # package names.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
+      # Ubuntu's own "pandoc" apt package lags several major versions behind
+      # upstream (3.1.3 on 24.04 at time of writing) - old enough that some
+      # markdown edge cases (e.g. pymdownx.caret's "^^insert^^" syntax) parse
+      # differently than on a contributor's own dev machine, which is exactly
+      # what test/test_zensical_basics.py's leak-detection tests check
+      # against. Installing a specific upstream .deb release below instead of
+      # "apt install pandoc" keeps CI and local dev on the same version,
+      # rather than silently drifting whenever Ubuntu's own package updates.
+      PANDOC_VERSION: "3.10"
     steps:
       - uses: actions/configure-pages@v5
       - uses: actions/checkout@v5
@@ -38,8 +48,17 @@ jobs:
         with:
           node-version: "22"
       - run: sudo apt update
-      - run: sudo apt install -y pandoc texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra
       - run: sudo apt install -y curl gnupg ca-certificates
+      - run: |
+          curl -fsSL -o /tmp/pandoc.deb "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb"
+          sudo apt install -y /tmp/pandoc.deb
+      # fonts-inter/fonts-jetbrains-mono: this template's default fonts (see
+      # "Fonts" in customise.md) - the website loads them from Google Fonts
+      # at view time, but WeasyPrint has no such fallback for the PDF; it
+      # needs the font files actually installed to embed them, and silently
+      # substitutes a generic system font instead of erroring if they're
+      # missing (see test_customisation.py's font-embedding check).
+      - run: sudo apt install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra fonts-inter fonts-jetbrains-mono
       - run: curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor | sudo tee /usr/share/keyrings/google-chrome.gpg > /dev/null
       - run: echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
       - run: sudo apt update

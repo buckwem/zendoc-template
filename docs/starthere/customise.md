@@ -530,7 +530,7 @@ This template configures three caption types under `[project.markdown_extensions
     ///
     ```
 
-3. **`table-caption`** - the same auto-numbering, but for a table, shown *below* it by default - just like a figure. Add `| <` after the type name to show it *above* the table instead, genuinely repositioned in both outputs rather than just a CSS visual trick; this template uses this for every table caption of its own (see [Fork and cloning the zendoc-template](installtooling.md#fork-and-cloning-the-zendoc-template) for a real example):
+3. **`table-caption`** - the same auto-numbering, but for a table, shown *below* it by default - just like a figure. Add `| <` after the type name to show it *above* the table instead, genuinely repositioned in both outputs rather than just a CSS visual trick:
 
     ``` markdown
     | Feature | Fork | Clone |
@@ -540,6 +540,9 @@ This template configures three caption types under `[project.markdown_extensions
     Fork and Clone Comparison at a Glance
     ///
     ```
+
+    !!! warning "Always add `| <` to `table-caption`"
+        `table-caption` has no setting that makes it default to top-positioned - `| <` isn't optional here, it's part of the syntax every single `table-caption` block needs. This template shows every table caption of its own above its table (see [Fork and cloning the zendoc-template](installtooling.md#fork-and-cloning-the-zendoc-template) for a real example); a `table-caption` block missing `| <` silently falls back to *below* the table instead, breaking that consistency without any warning. There's no `zensical.toml` setting to make this the default and skip typing `| <` each time - see [issue #68](https://github.com/buckwem/zendoc-template/issues/68) if you want to help change that.
 
 The caption block always comes *after* the image or table it captions, regardless of where it's actually shown - `pymdownx.blocks.caption` attaches to whichever element immediately precedes it.
 

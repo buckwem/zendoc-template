@@ -77,6 +77,7 @@ Where a check needs "the real thing this feature is supposed to do" as a source 
 | `pdf_structure` | The cover page's computed fields (word count, repo URL) and the auto-generated Table of Contents are present and look like real data. |
 | `fences` | The fence-detection primitives (`apply_outside_fences()`, `tag_first_heading()`, `rewrite_internal_md_links()`, and the fence-skipping loops in `macros.py`'s heading/word counters) hold up under nested combinations of headings, admonitions, code blocks, content tabs, and grid cards - not just a single flat fenced block. |
 | `captions` | The PDF-side translation of the `caption`/`figure-caption`/`table-caption` blocks (see [Captions](customise.md#captions)) - auto-numbering with the page's chapter/appendix id, manual number overrides, custom id/class, prepend/append position, and no leaked `///` syntax - checked against both hand-written snippets and the real, already-built PDF. |
+| `markdown_foundations` | The core Markdown syntax documented in [Markdown basics](markdown.md) - headings, text formatting, links/images, lists (including the 4-space nesting rule - see [issue #70](https://github.com/buckwem/zendoc-template/issues/70)), code blocks, tables, horizontal rules, task lists, and blockquotes - rendered through this project's real `markdown.Markdown()` extension config, not a hardcoded copy of it. |
 /// table-caption | <
 Test suite batches
 ///

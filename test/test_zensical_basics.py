@@ -598,27 +598,32 @@ def test_icons_and_emoji_render_as_real_glyphs_not_leaked(pdf_doc):
     assert any(pdf_doc[i].get_image_info() for i in range(start, end))
 
 
-def test_mark_and_keys_leak_as_literal_text_in_the_pdf(pdf_full_text, pdf_doc):
-    """Documents a real, currently-open bug (see issue #72): unlike
-    pymdownx.caret (^^insert^^/superscript) and pymdownx.tilde
-    (~~delete~~/subscript), which both render correctly in the PDF,
-    pymdownx.mark (==highlight==) and pymdownx.keys (++key+combo++) leak as
-    literal, unrendered text - confirmed by rendering the actual built PDF
-    page and comparing against the website's correct output. This test
-    documents *today's* (broken) behaviour as a tracked regression baseline -
-    once #72 is fixed, invert/remove this test rather than leaving it
-    silently asserting the bug forever."""
+def test_mark_insert_and_keys_render_styled_not_leaked(pdf_full_text, pdf_doc):
+    """issue #72: Pandoc's markdown reader has no native support for
+    pymdownx.mark (==highlight==) or pymdownx.keys (++key+combo++), so both
+    used to leak through as literal, unrendered text; pymdownx.caret's insert
+    mode (^^underline^^) used to silently collide with Pandoc's own
+    single-caret superscript syntax and produce an empty, invisible
+    <sup></sup> instead (a second, separate bug caught while fixing this
+    one - the underline never actually rendered, despite an earlier,
+    incorrect assumption that it did). build_pdf.py's preprocess_markdown()
+    now rewrites all three to raw HTML - which Pandoc passes through
+    untouched - before Pandoc ever parses them; confirmed here against the
+    actual built PDF page text, and separately by rendering the page to an
+    image and visually checking the highlight/underline/kbd-box styling."""
     start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
     chapter_text = "".join(pdf_full_text[start:end])
-    assert "==This was marked (highlight)==" in chapter_text, (
-        "==mark== no longer leaks in the PDF - issue #72 looks fixed; "
-        "update/remove this regression-baseline test"
-    )
-    assert "++ctrl+alt+del++" in chapter_text, (
-        "++keys++ no longer leaks in the PDF - issue #72 looks fixed; "
-        "update/remove this regression-baseline test"
-    )
-    # The extension's *working* siblings on the same page, for contrast -
-    # confirms this is specifically a mark/keys problem, not the whole page.
-    assert "^^" not in chapter_text, "pymdownx.caret (insert) appears to have regressed too"
-    assert "~~" not in chapter_text, "pymdownx.tilde (delete) appears to have regressed too"
+
+    assert "This was marked (highlight)" in chapter_text
+    assert "==This was marked (highlight)==" not in chapter_text
+
+    assert "This was inserted (underline)" in chapter_text
+    assert "^^This was inserted (underline)^^" not in chapter_text
+
+    assert "Ctrl" in chapter_text and "Alt" in chapter_text and "Del" in chapter_text
+    assert "++ctrl+alt+del++" not in chapter_text
+
+    # The extension's sibling on the same page, for contrast - confirms this
+    # is specifically the mark/insert/keys fix, not a regression elsewhere.
+    assert "This was deleted (strikethrough)" in chapter_text
+    assert "~~This was deleted (strikethrough)~~" not in chapter_text

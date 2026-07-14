@@ -333,8 +333,17 @@ You can build a glossary of key terms the same way, in its own page - this templ
 
     Which renders as: This document is written in \gls{markdown-def}.
 
+4. Cross-link an acronym to its own glossary entry (and vice versa) with a plain Markdown link, **not** `\gls{id}`. A "see also" reference needs to say something like "see the glossary", not repeat the term itself - `\gls{id}` always inserts the term's own registered text instead, so `\gls{css-def}` would read "See Cascading Style Sheets for the expansion" rather than "See the glossary...":
+
+    ``` markdown
+    **CSS** - Cascading Style Sheets. See the [glossary](glossary.md#css-def) for what this means in practice.
+    {: #css .acronym data-term="CSS" }
+    ```
+
+    This template's own `docs/acronyms.md`/`docs/glossary.md` cross-link every entry that has a counterpart on the other page this way - see [zendoc.glossary's own docs](https://buckwem.github.io/zendoc-extension/extensions/glossary/#cross-links-between-entries-use-a-plain-link-not-glsid) for the full rule of thumb: `\gls{id}` when the term's own name belongs in the sentence, a plain link when the link text needs to say something else entirely.
+
 !!! tip
-    If a term is also one of your acronyms, link the two entries to each other with a plain Markdown link (see `docs/acronyms.md` and `docs/glossary.md` in this template for an example) rather than duplicating the explanation on both pages - `\gls{id}` always inserts the term's own registered text, so it isn't the right fit for a "see also" link with its own wording.
+    If a term is also one of your acronyms, cross-link the two entries as shown above rather than duplicating the explanation on both pages.
 
 ### Appendixes
 

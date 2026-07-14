@@ -282,55 +282,59 @@ This template uses [`zendoc.citations`](https://buckwem.github.io/zendoc-extensi
 
 ### Acronyms and abbreviations
 
-Zensical doesn't include a dedicated acronym-list extension either, but you can build an acronyms page the same way as the references page above - a plain page of attr_list-anchored entries that other pages link straight into.
+This template uses [`zendoc.glossary`](https://buckwem.github.io/zendoc-extension/extensions/glossary/) (from the same [zendoc](https://github.com/buckwem/zendoc-extension) package as citations above - see [zendoc-template#87](https://github.com/buckwem/zendoc-template/issues/87)) for acronyms: define a term once, insert it by id with `\gls{id}` - it expands to the term's own text, linked to its definition.
 
 !!! info "How the PDF handles this"
-    Like the references page, this relies on attr_list (see [References and bibliography](#references-and-bibliography) above) - Pandoc doesn't recognise it here either, and this template translates it automatically for the PDF, so the same source works correctly in both outputs.
+    `\gls{id}` is `zendoc.glossary`'s own Python-Markdown syntax - understood natively by the live website, but Pandoc has no idea what it means, and would otherwise leave it sitting in the output as literal, visible text. This template translates it automatically (see `build_glossary_map()`/`resolve_gls()` in `build_pdf.py`), so you can write the same `\gls{id}` syntax below and both outputs render correctly.
 
-1. Create a page for your acronyms (this template includes one at [`docs/acronyms.md`](../acronyms.md)). List each acronym as a short paragraph, and give it a short, unique id using attr_list syntax on the line directly below it, the same as a reference entry:
+1. Create a page for your acronyms (this template includes one at [`docs/acronyms.md`](../acronyms.md)). List each acronym as a short paragraph, and give it an id plus a `data-term` attribute (the acronym's own text) using attr_list syntax on the line directly below it:
 
     ``` markdown
     **CSS** - Cascading Style Sheets
-    {: #css .acronym }
+    {: #css .acronym data-term="CSS" }
     ```
 
-    As with references, each entry needs a blank line before and after it, and the `.acronym` class is what keeps consecutive entries close together rather than using the browser's normal, looser paragraph spacing.
+    Each entry needs a blank line before and after it, and the `.acronym` class is what keeps consecutive entries close together rather than using the browser's normal, looser paragraph spacing.
 
 2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar - as a regular numbered chapter, or as a lettered appendix (see [Appendixes](#appendixes) below). This template ships it as an appendix by default.
-3. Link to an acronym the first time you use it in a page, the same way you'd cite a reference:
+3. Insert the acronym the first time you use it in a page with `\gls{id}`:
 
     ``` markdown
-    This template uses [CSS](acronyms.md#css) to control the website's appearance.
+    This template uses \gls{css} to control the website's appearance.
     ```
 
+    Which renders as: This template uses \gls{css} to control the website's appearance.
+
 !!! tip
-    Keep ids short and lowercase (e.g. `css`, `pdf`) so links keep working even if you reorder entries on the acronyms page later.
+    Keep ids short and lowercase (e.g. `css`, `pdf`) so `\gls{id}` keeps working even if you reorder entries on the acronyms page later.
 
 ### Glossary
 
-You can build a glossary of key terms the same way, in its own page - this template includes one at `docs/glossary.md`, right after the acronyms page in `nav`.
+You can build a glossary of key terms the same way, in its own page - this template includes one at `docs/glossary.md`, right after the acronyms page in `nav`. Acronym entries and glossary entries share the same `zendoc.glossary` registry - they're the same kind of thing, an id with a short display text - so a `\gls{id}` works identically whichever page defines it.
 
 !!! info "How the PDF handles this"
-    Like the references and acronyms pages, this relies on attr_list too - Pandoc doesn't recognise it here either, and this template translates it automatically for the PDF, so the same source works correctly in both outputs.
+    Same as acronyms above - `\gls{id}` is translated automatically for the PDF build.
 
-1. Create a page for your glossary (this template includes one at [`docs/glossary.md`](../glossary.md)). List each term as a short paragraph, and give it a unique id using attr_list syntax, the same as a reference or acronym entry:
+1. Create a page for your glossary (this template includes one at [`docs/glossary.md`](../glossary.md)). List each term as a short paragraph, and give it an id plus a `data-term` attribute using attr_list syntax, the same as an acronym entry:
 
     ``` markdown
     **Markdown** - A lightweight markup language for formatting plain text...
-    {: #markdown-def .glossary }
+    {: #markdown-def .glossary data-term="Markdown" }
     ```
 
-    Give glossary entries their own ids, distinct from any acronym ids for the same concept (for example `css-def` rather than `css`) - `build_pdf.py` concatenates every page into a single PDF document, so two entries sharing an id anywhere in the document would collide.
+    Give glossary entries their own ids, distinct from any acronym ids for the same concept (for example `css-def` rather than `css`) - `zendoc.glossary` shares one id namespace across every page, so two entries sharing an id anywhere in the site would collide.
 
 2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar - as a regular numbered chapter, or as a lettered appendix (see [Appendixes](#appendixes) below). This template ships it as an appendix by default.
-3. Link to a term the first time you use it in a page, the same way you'd cite a reference or an acronym:
+3. Insert the term the first time you use it in a page with `\gls{id}`, the same way as an acronym:
 
     ``` markdown
-    This document is written in [Markdown](glossary.md#markdown-def).
+    This document is written in \gls{markdown-def}.
     ```
 
+    Which renders as: This document is written in \gls{markdown-def}.
+
 !!! tip
-    If a term is also one of your acronyms, link the two entries to each other (see `docs/acronyms.md` and `docs/glossary.md` in this template for an example) rather than duplicating the explanation on both pages.
+    If a term is also one of your acronyms, link the two entries to each other with a plain Markdown link (see `docs/acronyms.md` and `docs/glossary.md` in this template for an example) rather than duplicating the explanation on both pages - `\gls{id}` always inserts the term's own registered text, so it isn't the right fit for a "see also" link with its own wording.
 
 ### Appendixes
 

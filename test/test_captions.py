@@ -41,6 +41,7 @@ def _preprocess(build_pdf_module, tmp_path, source, chapter_id=None, caption_sta
         mermaid_state={"count": 0},
         page_anchor_map={},
         citation_map={},
+        glossary_map={},
         chapter_id=chapter_id,
         caption_state=caption_state,
     )

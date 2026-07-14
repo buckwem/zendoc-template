@@ -291,6 +291,7 @@ def test_preprocess_markdown_handles_grid_tab_admonition_code_nesting(tmp_path, 
         mermaid_state={"count": 0},
         page_anchor_map={},
         citation_map={},
+        glossary_map={},
     )
 
     result = out_file.read_text(encoding="utf-8")

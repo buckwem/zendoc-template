@@ -13,7 +13,7 @@ icon: lucide/book-open
 
 ## SubSection
 
-Git is a tool used to manage version control in software development with many developers making changes at the same time.[[Skoulikari, 2023](references.md#skou2023)].
+Git is a tool used to manage version control in software development with many developers making changes at the same time.\cite{skou2023}
 
 Above is an example of using references in a document. The reference is linked to the references section of the document, which is automatically generated from the references.md file.
 

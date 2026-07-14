@@ -216,34 +216,34 @@ Keep the numbers in each title sequential as you add, remove, or reorder chapter
 
 ### References and bibliography
 
-Zensical doesn't include a dedicated citation or bibliography extension, but you can build a simple one using a references page.
+This template uses [`zendoc.citations`](https://buckwem.github.io/zendoc-extension/extensions/citations/) (from the [zendoc](https://github.com/buckwem/zendoc-extension) package, already installed and enabled in `zensical.toml` - see [zendoc-template#25](https://github.com/buckwem/zendoc-template/issues/25)) for citations: define a source once, cite it by key anywhere with `\cite{id}`.
 
 !!! info "How the PDF handles this"
-    The [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-lists) syntax below is understood natively by the live website, but Pandoc (which builds the PDF) doesn't recognise it, and would otherwise leave `{: #id }` sitting in the output as literal, visible text. This template translates it automatically, so you can write the same plain attr_list Markdown below and both outputs render correctly - no manual HTML needed.
+    `\cite{id}` is `zendoc.citations`' own Python-Markdown syntax - understood natively by the live website, but Pandoc (which builds the PDF) has no idea what it means, and would otherwise leave it sitting in the output as literal, visible text. This template translates it automatically (see `build_citation_map()`/`resolve_citations()` in `build_pdf.py`), so you can write the same `\cite{id}` syntax below and both outputs render correctly - no manual HTML or per-output link needed.
 
-1. Create a page for your sources (this template includes one at [`docs/references.md`](../references.md)). List each source as a paragraph, and give it a short, unique id using attr_list syntax on the line directly below it (no heading needed - attr_list works on plain paragraphs too):
+1. Create a page for your sources (this template includes one at [`docs/references.md`](../references.md)). List each source as a paragraph, and give it a short, unique id plus a short display text using [attr_list](https://zensical.org/docs/authoring/formatting/#attribute-lists) syntax on the line directly below it (no heading needed - attr_list works on plain paragraphs too):
 
     ``` markdown
     Skoulikari, A. (2023) *Learning Git: A Hands-On and Visual Guide to the Basics of Git*. Sebastopol, CA: O'Reilly Media.
-    {: #skou2023 .reference }
+    {: #skou2023 .reference data-cite-text="Skoulikari, 2023" }
     ```
 
     Each entry needs a blank line before and after it - attr_list only recognises `{: ... }` as an id (rather than literal visible text) when it's the last line of its own paragraph. Removing the blank lines to save space merges entries into one paragraph and breaks both outputs.
 
 2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar - as a regular numbered chapter, or as a lettered appendix (see [Appendixes](#appendixes) below). This template ships it as an appendix by default.
-3. Cite the source in-text by linking to that paragraph's id, wrapping the link in an extra pair of square brackets so it reads like an in-text citation:
+3. Cite the source in-text with `\cite{id}`:
 
     ``` markdown
-    Git is a tool used to manage version control.[[Skoulikari, 2023](references.md#skou2023)]
+    Git is a tool used to manage version control.\cite{skou2023}
     ```
 
-    Which renders as: Git is a tool used to manage version control.[[Skoulikari, 2023](../references.md#skou2023)]
+    Which renders as: Git is a tool used to manage version control.\cite{skou2023}
 
-    (The path here is `../references.md` rather than `references.md` because this page lives in `docs/starthere/` - from `docs/section1.md` itself, `references.md` is correct, as shown in the code block above.)
+    No relative path to work out, regardless of which page cites it - unlike a hand-typed Markdown link, `\cite{id}` resolves the same way from any page, and the `data-cite-text` you set once is reused everywhere the source is cited. Cite more than one source in the same place with a comma: `\cite{skou2023,chacon2014}` renders `\cite{skou2023,chacon2014}`.
 
-    This in-text citation link resolves correctly in both outputs - on the website, and as an internal cross-page link jumping straight to the cited entry within the built PDF.
+    This in-text citation resolves correctly in both outputs - on the website, and as an internal cross-page link jumping straight to the cited entry within the built PDF.
 
-4. Consecutive entries get the browser's normal spacing between paragraphs by default - noticeably looser than a typical bibliography. Give each entry's attr_list line a `.reference` class alongside its id (as shown in the code block above) so the template's layout rules - described next - can target them.
+4. Consecutive entries get the browser's normal spacing between paragraphs by default - noticeably looser than a typical bibliography. Give each entry's attr_list line a `.reference` class alongside its id and `data-cite-text` (as shown in the code block above) so the template's layout rules - described next - can target them.
 
 5. Set `project.extra.reference_style` in `zensical.toml` to control how `.reference` entries are laid out, on both the website and the PDF build:
 
@@ -278,7 +278,7 @@ Zensical doesn't include a dedicated citation or bibliography extension, but you
     Each accepts any valid CSS length and defaults to the value shown above if left unset. `reference_spacing_european` also controls the [Acronyms](#acronyms-and-abbreviations) and [Glossary](#glossary) pages' own list spacing, which share the same tight "european" look but have no "global"-style alternative to switch to.
 
 !!! tip
-    Keep ids short and stable (e.g. `skou2023`, author surname plus year) so citations keep working even if you reorder entries on the references page later. If a page citing a source is nested in a subdirectory, adjust the relative path to `references.md` accordingly.
+    Keep ids short and stable (e.g. `skou2023`, author surname plus year) so citations keep working even if you reorder entries on the references page later. Unlike a hand-typed link, `\cite{id}` needs no adjustment when citing from a page nested in a subdirectory.
 
 ### Acronyms and abbreviations
 

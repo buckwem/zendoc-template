@@ -474,14 +474,17 @@ custom_checkbox = true
 # than re-deriving it); zendoc.refs adds \ref{id} section cross-references
 # that resolve to the target's current number; zendoc.citations adds
 # \cite{id} citations - define a source once via attr_list's
-# data-cite-text attribute (see docs/references.md), cite it anywhere.
-# Unlike pymdownx/zensical's own namespaces, Zensical doesn't hoist a
-# nested "zendoc.headings" table into that dotted extension name, so these
-# need a quoted key instead - see
-# https://buckwem.github.io/zendoc-extension/ and zendoc-template#25.
+# data-cite-text attribute (see docs/references.md), cite it anywhere;
+# zendoc.glossary adds \gls{id} - define a term once via attr_list's
+# data-term attribute (see docs/acronyms.md/docs/glossary.md), insert it
+# anywhere. Unlike pymdownx/zensical's own namespaces, Zensical doesn't
+# hoist a nested "zendoc.headings" table into that dotted extension name,
+# so these need a quoted key instead - see
+# https://buckwem.github.io/zendoc-extension/ and zendoc-template#25/#87.
 [project.markdown_extensions."zendoc.headings"]
 [project.markdown_extensions."zendoc.refs"]
 [project.markdown_extensions."zendoc.citations"]
+[project.markdown_extensions."zendoc.glossary"]
 [project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.blocks.caption]
 # "caption" (no prefix) is kept for a plain, unnumbered caption - e.g. a

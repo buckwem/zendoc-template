@@ -508,6 +508,42 @@ def build_citation_map(md_files, docs_dir):
                     citation_map[id_match.group(1)] = text_match.group(1)
     return citation_map
 
+def build_glossary_map(md_files, docs_dir):
+    """Scans every nav markdown file for {: #id ... data-term="..." }
+    attr_list attributes - zendoc.glossary's own term-definition syntax
+    (https://buckwem.github.io/zendoc-extension/extensions/glossary/),
+    understood natively by the live website - building a map of term id to
+    its display text. Used by resolve_gls() below to translate \\gls{id}
+    into a Pandoc-compatible link before Pandoc ever sees it: Pandoc has no
+    idea what \\gls{...} means (it's zendoc.glossary's own Python-Markdown
+    syntax, resolved by code that never runs inside Pandoc) and would
+    otherwise leave it sitting in the PDF as literal, visible text - the
+    same problem build_citation_map() solves for \\cite{...}. Skips fenced
+    code blocks (via _split_fenced_blocks(), defined below but resolved at
+    call time, not definition time), so a documentation page showing this
+    exact attr_list syntax as a literal example - e.g. customise.md's
+    "Acronyms and abbreviations"/"Glossary" sections - isn't mistaken for a
+    real definition."""
+    glossary_map = {}
+    attr_pattern = re.compile(r'\{:\s*([^}]+?)\s*\}')
+    for rel_path in md_files:
+        full_path = os.path.join(docs_dir, rel_path)
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except OSError:
+            continue
+        for is_fenced, segment in _split_fenced_blocks(content):
+            if is_fenced:
+                continue
+            for attr_match in attr_pattern.finditer(segment):
+                attrs = attr_match.group(1)
+                id_match = re.search(r'#([\w-]+)', attrs)
+                term_match = re.search(r'data-term="([^"]*)"', attrs)
+                if id_match and term_match:
+                    glossary_map[id_match.group(1)] = term_match.group(1)
+    return glossary_map
+
 def _walk_outside_fences(content, line_handler):
     """Shared fence-aware line-by-line walk: calls line_handler(line) for every
     line outside a fenced code block *and* outside an HTML comment (leaving
@@ -743,7 +779,34 @@ def resolve_citations(content, citation_map):
 
     return re.sub(r'(```[\s\S]*?```)|(`[^`\n]*`)|\\cite\{([^}]+)\}', replacer, content)
 
-def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, citation_map, nav_snippet_text='', is_index=False, chapter_id=None, caption_state=None):
+def resolve_gls(content, glossary_map):
+    """Converts \\gls{id} (zendoc.glossary's own Python-Markdown syntax -
+    see build_glossary_map()) into a Pandoc-compatible link, e.g.
+    \\gls{css} -> [CSS](#css) - inserting the term's own registered text,
+    linked, in place of the \\gls{...} token. Uses a plain in-document
+    anchor (#id) rather than a page-relative link: paragraph ids are
+    already unique across the whole concatenated PDF document once
+    convert_reference_attr_list_paragraphs() has run, so no per-page anchor
+    prefixing is needed here, unlike rewrite_internal_md_links()'s heading
+    anchors. Unlike \\cite{...}, \\gls{...} only ever takes a single id -
+    there's no multi-id/bracketed form. An id with no matching definition
+    falls back to "?", mirroring zendoc.glossary's own default `unresolved`
+    marker. Protects both fenced code blocks and inline code spans (e.g.
+    `\\gls{id}` shown as a syntax reference in customise.md's "Acronyms and
+    abbreviations"/"Glossary" sections), mirroring mark_replacer()/
+    insert_replacer()'s own three-way-alternation pattern rather than
+    apply_outside_fences(), which only protects fenced blocks, not inline
+    spans."""
+    def replacer(match):
+        if match.group(1) or match.group(2):
+            return match.group(0)
+        term_id = match.group(3)
+        term = glossary_map.get(term_id, '?')
+        return f'[{term}](#{term_id})'
+
+    return re.sub(r'(```[\s\S]*?```)|(`[^`\n]*`)|\\gls\{([^}\s]+)\}', replacer, content)
+
+def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, citation_map, glossary_map, nav_snippet_text='', is_index=False, chapter_id=None, caption_state=None):
     """Parses template conditionals, applies global asset filtering, and converts raw shortcodes
     to alphanumeric tokens while ignoring those nested inside code block environments.
 
@@ -784,6 +847,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     content = rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map)
     content = rewrite_repo_file_links(content, current_docs_rel_path, docs_dir, calculated_vars.get('repo_url', ''))
     content = resolve_citations(content, citation_map)
+    content = resolve_gls(content, glossary_map)
 
     content = render_mermaid_diagrams(content, temp_build_dir, mermaid_state)
 
@@ -1691,6 +1755,7 @@ def main():
         sys.exit(1)
     page_anchor_map = build_page_anchor_map(md_files)
     citation_map = build_citation_map(md_files, docs_dir)
+    glossary_map = build_glossary_map(md_files, docs_dir)
 
     calculated_vars = {}
     macros_module = None
@@ -1779,7 +1844,7 @@ def main():
         is_index = "index.md" in os.path.basename(path).lower()
         rel_path = os.path.normpath(os.path.relpath(path, docs_dir)).replace('\\', '/')
         chapter_id = chapter_identifiers.get(rel_path)
-        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, citation_map, nav_snippet_text, is_index=is_index, chapter_id=chapter_id, caption_state=caption_state)
+        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, citation_map, glossary_map, nav_snippet_text, is_index=is_index, chapter_id=chapter_id, caption_state=caption_state)
         processed_paths.append(temp_out_path)
 
     # Fill in the cover page's {WORDCOUNT}/{REPOURL} markers (see index.md),

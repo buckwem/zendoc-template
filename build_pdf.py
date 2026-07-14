@@ -472,6 +472,42 @@ def build_page_anchor_map(md_files):
         page_anchor_map[key] = f'page-{slug}'
     return page_anchor_map
 
+def build_citation_map(md_files, docs_dir):
+    """Scans every nav markdown file for {: #id ... data-cite-text="..." }
+    attr_list attributes - zendoc.citations' own citation-definition syntax
+    (https://buckwem.github.io/zendoc-extension/extensions/citations/),
+    understood natively by the live website - building a map of citation id
+    to its short display text. Used by resolve_citations() below to
+    translate \\cite{id} into a Pandoc-compatible link before Pandoc ever
+    sees it: Pandoc has no idea what \\cite{...} means (it's zendoc.citations'
+    own Python-Markdown syntax, resolved by code that never runs inside
+    Pandoc) and would otherwise leave it sitting in the PDF as literal,
+    visible text, the same problem convert_reference_attr_list_paragraphs()
+    solves for attr_list itself. Skips fenced code blocks (via
+    _split_fenced_blocks(), defined below but resolved at call time, not
+    definition time), so a documentation page showing this exact attr_list
+    syntax as a literal example - e.g. customise.md's "References and
+    bibliography" section - isn't mistaken for a real definition."""
+    citation_map = {}
+    attr_pattern = re.compile(r'\{:\s*([^}]+?)\s*\}')
+    for rel_path in md_files:
+        full_path = os.path.join(docs_dir, rel_path)
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except OSError:
+            continue
+        for is_fenced, segment in _split_fenced_blocks(content):
+            if is_fenced:
+                continue
+            for attr_match in attr_pattern.finditer(segment):
+                attrs = attr_match.group(1)
+                id_match = re.search(r'#([\w-]+)', attrs)
+                text_match = re.search(r'data-cite-text="([^"]*)"', attrs)
+                if id_match and text_match:
+                    citation_map[id_match.group(1)] = text_match.group(1)
+    return citation_map
+
 def _walk_outside_fences(content, line_handler):
     """Shared fence-aware line-by-line walk: calls line_handler(line) for every
     line outside a fenced code block *and* outside an HTML comment (leaving
@@ -678,7 +714,36 @@ def rewrite_repo_file_links(content, current_docs_rel_path, docs_dir, repo_url):
 
     return apply_outside_fences(content, lambda text: link_pattern.sub(replace_link, text))
 
-def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, nav_snippet_text='', is_index=False, chapter_id=None, caption_state=None):
+def resolve_citations(content, citation_map):
+    """Converts \\cite{id} / \\cite{id1,id2,...} (zendoc.citations' own
+    Python-Markdown syntax - see build_citation_map()) into a
+    Pandoc-compatible bracketed, semicolon-joined list of links, e.g.
+    \\cite{skou2023} -> [Skoulikari, 2023](#skou2023) - mirroring the shape
+    of the live website's own zendoc.citations rendering closely enough for
+    the PDF. Uses a plain in-document anchor (#id) rather than a
+    page-relative link: paragraph ids are already unique across the whole
+    concatenated PDF document once convert_reference_attr_list_paragraphs()
+    has run, so no per-page anchor prefixing is needed here, unlike
+    rewrite_internal_md_links()'s heading anchors. A key with no matching
+    definition (a typo, or one only defined on a page not yet scanned into
+    citation_map - shouldn't happen, since build_citation_map() scans every
+    nav page up front, but kept as a safety net) falls back to "?", mirroring
+    zendoc.citations' own default `unresolved` marker. Protects both fenced
+    code blocks and inline code spans (e.g. `\\cite{id}` shown as a syntax
+    reference in customise.md's "References and bibliography" section),
+    mirroring mark_replacer()/insert_replacer()'s own three-way-alternation
+    pattern rather than apply_outside_fences(), which only protects fenced
+    blocks, not inline spans."""
+    def replacer(match):
+        if match.group(1) or match.group(2):
+            return match.group(0)
+        keys = [k.strip() for k in match.group(3).split(',') if k.strip()]
+        entries = [f'[{citation_map.get(key, "?")}](#{key})' for key in keys]
+        return '[' + '; '.join(entries) + ']'
+
+    return re.sub(r'(```[\s\S]*?```)|(`[^`\n]*`)|\\cite\{([^}]+)\}', replacer, content)
+
+def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, citation_map, nav_snippet_text='', is_index=False, chapter_id=None, caption_state=None):
     """Parses template conditionals, applies global asset filtering, and converts raw shortcodes
     to alphanumeric tokens while ignoring those nested inside code block environments.
 
@@ -718,6 +783,7 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
         content = tag_first_heading(content, own_anchor, extra_class=extra_class)
     content = rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map)
     content = rewrite_repo_file_links(content, current_docs_rel_path, docs_dir, calculated_vars.get('repo_url', ''))
+    content = resolve_citations(content, citation_map)
 
     content = render_mermaid_diagrams(content, temp_build_dir, mermaid_state)
 
@@ -1624,6 +1690,7 @@ def main():
         print("❌ Error: No valid markdown files found.")
         sys.exit(1)
     page_anchor_map = build_page_anchor_map(md_files)
+    citation_map = build_citation_map(md_files, docs_dir)
 
     calculated_vars = {}
     macros_module = None
@@ -1712,7 +1779,7 @@ def main():
         is_index = "index.md" in os.path.basename(path).lower()
         rel_path = os.path.normpath(os.path.relpath(path, docs_dir)).replace('\\', '/')
         chapter_id = chapter_identifiers.get(rel_path)
-        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, nav_snippet_text, is_index=is_index, chapter_id=chapter_id, caption_state=caption_state)
+        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, citation_map, nav_snippet_text, is_index=is_index, chapter_id=chapter_id, caption_state=caption_state)
         processed_paths.append(temp_out_path)
 
     # Fill in the cover page's {WORDCOUNT}/{REPOURL} markers (see index.md),

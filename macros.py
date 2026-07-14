@@ -8,6 +8,7 @@ import shutil
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 import toml
+from zendoc.headings import prescan as zendoc_heading_prescan
 
 # This function is called by Zensical to identify whether the documentation is being built
 # in a Surrey GitLab CI/CD Pipeline or if the repository URL contains the domain `surrey.gitlab.ac.uk`.
@@ -264,52 +265,6 @@ def _get_nav_snippet():
     return ''
 
 
-def _heading_start_counts():
-    """Maps each nav markdown file (relative to docs_dir) to the cumulative count of
-    top-level headings on every page before it in nav order, so that heading numbering
-    can continue seamlessly from one page to the next, the same way it does in the PDF.
-    Appendix pages (see _page_is_appendix()) are skipped entirely - they get their own
-    letter-based numbering instead (see _appendix_letters()), and don't consume a number
-    from this sequence, so pages after them aren't left with a gap."""
-    config_path = Path('zensical.toml')
-    if not config_path.exists():
-        return {}
-    config = toml.load(config_path)
-    project = config.get('project', {}) if isinstance(config.get('project'), dict) else {}
-    nav = project.get('nav') or config.get('nav') or []
-    docs_dir = Path(config.get('docs_dir', 'docs'))
-
-    starts = {}
-    running_total = 0
-    for rel_path in _extract_nav_md_files(nav):
-        starts[rel_path] = running_total
-        if not _page_is_appendix(docs_dir / rel_path):
-            running_total += _count_top_level_headings(docs_dir / rel_path)
-    return starts
-
-
-def _appendix_letters():
-    """Maps each appendix-flagged nav page (see _page_is_appendix()) to its
-    letter - A for the first appendix page in nav order, B for the second,
-    and so on - regardless of how many numbered sections precede it. Mirrors
-    the PDF Lua filter's own sequential appendix counter."""
-    config_path = Path('zensical.toml')
-    if not config_path.exists():
-        return {}
-    config = toml.load(config_path)
-    project = config.get('project', {}) if isinstance(config.get('project'), dict) else {}
-    nav = project.get('nav') or config.get('nav') or []
-    docs_dir = Path(config.get('docs_dir', 'docs'))
-
-    letters = {}
-    index = 0
-    for rel_path in _extract_nav_md_files(nav):
-        if _page_is_appendix(docs_dir / rel_path):
-            index += 1
-            letters[rel_path] = chr(ord('A') + index - 1)
-    return letters
-
-
 def _detect_is_surrey(env=None):
     """True if this checkout appears to be building for the University of
     Surrey - checked via the GitLab CI/CD pipeline's own CI_SERVER_HOST env
@@ -418,13 +373,20 @@ def define_env(env):
         numbering off entirely (content and sidebar) across the whole site.
 
         Pages flagged is_appendix: true (see "Appendixes" in customise.md) get
-        letter-based numbering instead - "Appendix A", "A.1", "A.1.1" - via
-        _appendix_letters(), and don't advance or consume the normal numeric
-        sequence at all. Since the letter is already known here, this bakes it
-        into the override CSS as a literal string rather than using CSS's own
+        letter-based numbering instead - "Appendix A", "A.1", "A.1.1". Since
+        the letter is already known here, this bakes it into the override
+        CSS as a literal string rather than using CSS's own
         counter(name, upper-alpha) styling - simpler, and it keeps the sidebar
         table of contents (which can't easily mix a letter into a counter()
         expression built for numbers) working the same way.
+
+        The start count/letter themselves come from zendoc.headings'
+        prescan() (see zensical.toml's numbering="continuous" config for
+        zendoc.headings) rather than being recomputed here - this macro's
+        only job is formatting them into this template's own CSS class
+        names; zendoc.headings is the single source of truth for what
+        number/letter a page actually gets, so this always matches what
+        \ref{} shows for a heading on this page (see zendoc-template#89).
 
         Figure/table captions (see "Captions" in customise.md) follow the
         same pattern: the base rule in extra.css prepends "Figure "/"Table "
@@ -448,7 +410,9 @@ def define_env(env):
                 '</style>'
             )
         page_path = getattr(page, 'path', '')
-        letter = _appendix_letters().get(page_path)
+        prescan = zendoc_heading_prescan()
+        start_counts, appendix_letters = prescan if prescan is not None else ({}, {})
+        letter = appendix_letters.get(page_path)
         if letter:
             return (
                 '<style>\n'
@@ -461,8 +425,7 @@ def define_env(env):
                 f'  .zendoc-table-caption .caption-prefix::before {{ content: "Table {letter}." !important; }}\n'
                 '</style>'
             )
-        starts = _heading_start_counts()
-        n = starts.get(page_path, 0)
+        n = start_counts.get(page_path, 0)
         return (
             '<style>\n'
             f'  .md-typeset {{ counter-reset: h1-count {n} !important; }}\n'

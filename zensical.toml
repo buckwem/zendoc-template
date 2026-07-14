@@ -482,6 +482,15 @@ custom_checkbox = true
 # so these need a quoted key instead - see
 # https://buckwem.github.io/zendoc-extension/ and zendoc-template#25/#87.
 [project.markdown_extensions."zendoc.headings"]
+# numbering = "continuous" makes h1 numbering carry on across pages in nav
+# order (page two's first h1 continues from wherever page one left off)
+# instead of restarting at 1 on every page - matching the sidebar numbering
+# in nav (see "Changing heading numbering" in customise.md) and fixing
+# \ref{}'s cross-page number (zendoc-template#89). A page whose front
+# matter sets is_appendix: true (see "Appendixes" in customise.md) gets
+# letter-based numbering instead, and doesn't consume a number from the
+# sequence.
+numbering = "continuous"
 [project.markdown_extensions."zendoc.refs"]
 [project.markdown_extensions."zendoc.citations"]
 [project.markdown_extensions."zendoc.glossary"]

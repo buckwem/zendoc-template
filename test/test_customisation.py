@@ -33,11 +33,12 @@ import re
 from zendoc.pdf.build import build_pdf
 from zendoc.pdf.css import build_css
 from zendoc.pdf.icons import build_icon_registry, discover_icon_dirs
+from zendoc.settings import reference_style_values
+from zendoc.zensical_macros import _get_repo_url
 
 from conftest import PDF_PATH, REPO_ROOT, soup_for
 
 EXTRA_CSS_PATH = REPO_ROOT / "docs" / "stylesheets" / "extra.css"
-MACROS_PATH = REPO_ROOT / "macros.py"
 
 
 def _read(path):
@@ -134,15 +135,16 @@ def test_repository_link_matches_config(public_dir, zensical_config):
     assert repo_link["href"] == project["repo_url"]
 
 
-def test_repository_link_is_independent_of_cover_page_repourl_marker(zensical_config, macros):
+def test_repository_link_is_independent_of_cover_page_repourl_marker(zensical_config):
     """customise.md's note in "Repository link": the sidebar link above
     reads zensical.toml's own repo_url directly; the cover page's
     {{ repo_url }}/{REPOURL} marker is computed independently from the
-    local git remote (see macros.py's _get_repo_url()) - in practice they
-    usually match, but they're not the same mechanism. Confirms that here."""
+    local git remote (see zendoc.zensical_macros._get_repo_url()) - in
+    practice they usually match, but they're not the same mechanism.
+    Confirms that here."""
     configured = zensical_config["project"]["repo_url"]
-    computed = macros._get_repo_url()
-    assert computed, "macros._get_repo_url() returned nothing - no git remote configured?"
+    computed = _get_repo_url()
+    assert computed, "zendoc.zensical_macros._get_repo_url() returned nothing - no git remote configured?"
     assert computed.rstrip("/") == configured.rstrip("/")
 
 
@@ -381,39 +383,27 @@ def _css_rule_value(css_text, selector, property_name, occurrence=0):
     return matches[occurrence].strip() if len(matches) > occurrence else None
 
 
-def _default_kwarg(source_text, key):
-    """Returns the string literal default passed to a `.get('key', 'DEFAULT')`
-    call in source_text - used to compare macros.py's and build_pdf.py's
-    independently hand-written fallback literals for the same
-    project.extra.* setting name, for when it's left unset in zensical.toml."""
-    pattern = re.compile(re.escape(f"'{key}'") + r",\s*'([^']*)'")
-    match = pattern.search(source_text)
-    return match.group(1) if match else None
-
-
 def test_reference_acronym_glossary_spacing_matches_between_website_and_pdf():
     """.reference/.acronym/.glossary entries get tight paragraph spacing on
     both outputs (see "References and bibliography"), driven by
     project.extra.reference_spacing_european/reference_indent_global/
-    reference_spacing_global in zensical.toml (issue #66) - read
-    independently by macros.py's _reference_style_values() (website) and
-    zendoc.pdf.css.build_css() (PDF - see zendoc-extension#96), each with
-    its own hardcoded fallback literal for when a setting is left unset.
-    Nothing keeps those two fallback literals in sync if one changes
-    without the other - this test does - plus confirms build_css()'s
-    generated CSS actually plugs each value into the right selector (not,
-    say, the wrong variable copy-pasted into the acronym/glossary block)."""
-    macros_source = _read(MACROS_PATH)
+    reference_spacing_global in zensical.toml (issue #66). Both the website
+    (via zendoc.zensical_macros) and the PDF (via zendoc.pdf.css.build_css())
+    now derive these from the same zendoc.settings.reference_style_values() -
+    see zendoc-extension#96 - so this checks that shared function's own
+    defaults, plus confirms build_css()'s generated CSS actually plugs each
+    value into the right selector (not, say, the wrong variable
+    copy-pasted into the acronym/glossary block)."""
+    _, spacing_european, indent_global, spacing_global = reference_style_values({})
     pdf_defaults = inspect.signature(build_css).parameters
 
-    for key, expected_default in (
-        ("reference_spacing_european", "-0.8em"),
-        ("reference_indent_global", "1.27cm"),
-        ("reference_spacing_global", "2em"),
+    for key, expected_default, shared_default in (
+        ("reference_spacing_european", "-0.8em", spacing_european),
+        ("reference_indent_global", "1.27cm", indent_global),
+        ("reference_spacing_global", "2em", spacing_global),
     ):
-        website_default = _default_kwarg(macros_source, key)
         pdf_default = pdf_defaults[key].default
-        assert website_default == expected_default, f"macros.py's {key!r} default is {website_default!r}, expected {expected_default!r}"
+        assert shared_default == expected_default, f"zendoc.settings' {key!r} default is {shared_default!r}, expected {expected_default!r}"
         assert pdf_default == expected_default, f"zendoc.pdf.css.build_css()'s {key!r} default is {pdf_default!r}, expected {expected_default!r}"
 
     # The generated CSS itself: each selector's margin-top/indent should

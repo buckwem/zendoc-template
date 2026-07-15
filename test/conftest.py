@@ -16,7 +16,10 @@ from pathlib import Path
 import fitz
 import pytest
 import toml
+import zensical.config as zensical_config_module
 from bs4 import BeautifulSoup
+from zendoc.settings import flatten_nav
+from zendoc.zensical_macros import _compute_site_word_count, _front_matter_flag
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PDF_PATH = REPO_ROOT / "docs" / "site_documentation.pdf"
@@ -27,14 +30,13 @@ ZENSICAL_TOML_PATH = REPO_ROOT / "zensical.toml"
 def _import_repo_module(name):
     """Imports a top-level module (macros.py) from the repo root by file
     path, rather than relying on sys.path - the test suite reuses its own
-    helpers (e.g. to enumerate nav pages or check an is_appendix/
-    exclude_from_word_count flag) instead of re-implementing the same TOML/
-    front-matter parsing a second time, since re-parsing it independently
-    would just be testing the test suite's own parser, not catching a real
-    regression in the production code. build_pdf.py's own pipeline logic
-    now lives in zendoc.pdf instead (see zendoc-extension#96) - tests that
-    need it (e.g. test_customisation.py's icon/CSS checks) import that
-    package directly rather than importing build_pdf.py as a module."""
+    helpers (e.g. is_surrey detection) instead of re-implementing the same
+    logic a second time, since re-implementing it independently would just
+    be testing the test suite's own copy, not catching a real regression in
+    the production code. Most of macros.py's own former logic (word count,
+    repo URL, numbering/reference-style macros) now lives in
+    zendoc.zensical_macros instead (see zendoc-extension#96) - tests that
+    need it import that package directly."""
     spec = importlib.util.spec_from_file_location(name, REPO_ROOT / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
     sys.path.insert(0, str(REPO_ROOT))
@@ -55,13 +57,27 @@ def zensical_config():
 
 
 @pytest.fixture(scope="session")
-def nav_pages(macros, zensical_config):
+def resolved_zensical_config():
+    """zensical.toml, parsed and resolved through Zensical's own loader
+    (`zensical.config.parse_config()`) rather than a raw `toml.load()` -
+    `nav` here is Zensical's own already-resolved nav tree (each item
+    carrying `url`/`is_index`/`children`), the same shape
+    `zendoc.zensical_macros`/`zendoc.pdf.config` work with. Used where a
+    test needs that resolved shape specifically (nav walking, or calling
+    into `zendoc.zensical_macros`'s own functions directly) - most other
+    tests use the `zensical_config` fixture's raw structure instead."""
+    if not ZENSICAL_TOML_PATH.exists():
+        pytest.fail("zensical.toml not found at repo root")
+    return zensical_config_module.parse_config(str(ZENSICAL_TOML_PATH))
+
+
+@pytest.fixture(scope="session")
+def nav_pages(resolved_zensical_config):
     """List of every nav markdown file, docs_dir-relative, in nav order -
     e.g. "section1.md", "starthere/customise.md" - the same order both
-    build_pdf.py and macros.py walk to compute chapter numbers."""
-    project = zensical_config.get("project", {})
-    nav = project.get("nav") or zensical_config.get("nav") or []
-    return macros._extract_nav_md_files(nav)
+    build_pdf.py and zendoc.zensical_macros walk to compute chapter
+    numbers."""
+    return [page["url"] for page in flatten_nav(resolved_zensical_config.get("nav") or [])]
 
 
 @pytest.fixture(scope="session")
@@ -69,6 +85,60 @@ def docs_dir(zensical_config):
     project = zensical_config.get("project", {})
     docs_dir_name = project.get("docs_dir") or zensical_config.get("docs_dir") or "docs"
     return REPO_ROOT / docs_dir_name
+
+
+@pytest.fixture(scope="session")
+def website_word_count(resolved_zensical_config):
+    """The real `{{ word_count }}` value zendoc.zensical_macros computes
+    for this project's own website build - see
+    test_word_count.py."""
+    return _compute_site_word_count(resolved_zensical_config)
+
+
+def page_is_appendix(path):
+    """True if path's YAML front matter sets is_appendix: true - see
+    "Appendixes" in customise.md. Mirrors the same check
+    zendoc.zensical_macros/zendoc.pdf use for numbering."""
+    return _front_matter_flag(str(path), "is_appendix")
+
+
+def page_excluded_from_word_count(path):
+    """True if path's YAML front matter sets exclude_from_word_count: true
+    - see "Word count" in customise.md. Mirrors the same check
+    zendoc.zensical_macros uses for the website's own word count."""
+    return _front_matter_flag(str(path), "exclude_from_word_count")
+
+
+def count_top_level_headings(path):
+    """Counts top-level (single #) ATX headings in a markdown file, skipping
+    fenced code blocks, HTML comments (e.g. the copyright header at the top
+    of each page), and headings tagged {.unnumbered} (e.g. the hidden
+    cover-page title). Test-only verification helper (see test_numbering.py/
+    test_fences.py) - not needed by production code, which gets its
+    numbering from zendoc.headings' own prescan() instead."""
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return 0
+    count = 0
+    in_fence = False
+    in_comment = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not in_comment and (stripped.startswith("```") or stripped.startswith("~~~")):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        if not in_comment and "<!--" in stripped:
+            in_comment = True
+        if in_comment:
+            if "-->" in stripped:
+                in_comment = False
+            continue
+        if re.match(r"^#\s+\S", line) and ".unnumbered" not in line:
+            count += 1
+    return count
 
 
 @pytest.fixture(scope="session")

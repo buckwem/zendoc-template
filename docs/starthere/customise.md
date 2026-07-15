@@ -677,8 +677,8 @@ Now that you've customised the website, the document structure, the cover page, 
         * :material-file-document-outline: `additionaltooling.md` — Optional extra tooling (GitLab/GitHub, GitLens, and spell-checking VS Code extensions, commit signing, a GUI Git client, image optimisation, and Vale).
         * :material-file-document-outline: `shcommands.md` — Reference for shell commands used in the documentation.
         * :material-file-document-outline: `testing.md` — How to run and extend the test suite in `test/`, for anyone contributing to the template itself.
-* :material-file-code-outline: `build_pdf.py` — Builds the single-file PDF version of your document.
-* :material-file-code-outline: `macros.py` — Zensical macro hooks (Surrey detection, word count, repository link, heading numbering).
+* :material-file-code-outline: `build_pdf.py` — Builds the single-file PDF version of your document, via the [zendoc](https://github.com/buckwem/zendoc-extension) package's `zendoc.pdf`.
+* :material-file-code-outline: `macros.py` — This template's own Zensical macro hooks (Surrey detection, the `nav_snippet()` documentation helper). Word count, repository link, and heading/reference-style numbering come from `zendoc.zensical_macros` instead - see `zensical.toml`'s `modules = ["zendoc.zensical_macros"]`.
 * :material-folder: **tools/** — Node.js tooling used only by `build_pdf.py`, not the website.
     * :material-folder: **mermaid/** — `mermaid-cli`, for rendering ` ```mermaid ` diagrams to images in the PDF.
     * :material-folder: **mathjax/** — `mathjax-full`, for rendering `$...$`/`$$...$$` maths to images in the PDF.

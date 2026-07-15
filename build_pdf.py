@@ -29,53 +29,20 @@ from zensical.markdown.render import render as zensical_render
 from zendoc.pdf import Page, PdfBuildError, build_pdf
 from zendoc.pdf.icons import build_icon_registry, discover_icon_dirs
 from zendoc.pdf.mermaid import render_mermaid_diagram
-
-
-def _flatten_nav(nav_items):
-    """Walks Zensical's own already-resolved nav tree (parse_config()'s
-    nav, not zensical.toml's raw structure) into an ordered list of real
-    pages only - a nav group heading (url is None, only children)
-    contributes just its descendants, not an entry of its own."""
-    pages = []
-    for item in nav_items:
-        if item.get('url'):
-            pages.append(item)
-        pages.extend(_flatten_nav(item.get('children') or []))
-    return pages
+from zendoc.settings import flatten_nav, heading_numbering_enabled, reference_style_values
+from zendoc.wordcount import compute_word_count
+from zendoc.zensical_macros import _get_repo_url as get_git_detected_repo_url
 
 
 def _strip_front_matter(text):
     """Removes a leading YAML front matter block, matching what
     zensical.markdown.render.render() already does internally before
-    conversion - used here so compute_pdf_word_count() never counts a
-    page's own front matter keys as prose."""
+    conversion - used here so compute_word_count() never counts a page's
+    own front matter keys as prose."""
     if not text.startswith('---'):
         return text
     parts = text.split('---', 2)
     return parts[2] if len(parts) >= 3 else text
-
-
-def compute_pdf_word_count(texts):
-    """Rough prose word count across the given already-front-matter-
-    stripped markdown source texts: strips fenced/HTML code blocks
-    (including a ```mermaid fence - a diagram's own source was never
-    "content"), inline code, HTML comments/tags, and markdown link/image/
-    emphasis syntax before splitting on whitespace. Used to fill in the
-    cover page's {WORDCOUNT} marker (see index.md); excludes the cover page
-    itself and any page flagged exclude_from_word_count (see "Word count"
-    in customise.md)."""
-    total_words = 0
-    for text in texts:
-        text = re.sub(r'<!--.*?-->', ' ', text, flags=re.DOTALL)
-        text = re.sub(r'```.*?```', ' ', text, flags=re.DOTALL)
-        text = re.sub(r'~~~.*?~~~', ' ', text, flags=re.DOTALL)
-        text = re.sub(r'`[^`]*`', ' ', text)
-        text = re.sub(r'<[^>]+>', ' ', text)
-        text = re.sub(r'!\[[^\]]*\]\([^)]*\)', ' ', text)
-        text = re.sub(r'\[([^\]]*)\]\([^)]*\)', r'\1', text)
-        text = re.sub(r'[#*_~>|]', ' ', text)
-        total_words += len(text.split())
-    return total_words
 
 
 def get_latest_release_tag(repo_url):
@@ -186,7 +153,7 @@ def main():
 
     config = zensical_config.parse_config('zensical.toml')
 
-    nav_pages = _flatten_nav(config.get('nav') or [])
+    nav_pages = flatten_nav(config.get('nav') or [])
     if not nav_pages:
         print("❌ Error: No 'nav' section found in zensical.toml.")
         sys.exit(1)
@@ -210,6 +177,9 @@ def main():
     # still needs unescaped (it's substituted into HTML, not CSS).
     copyright_css_text = _css_escape_content_string(copyright_text)
     site_name_css_text = _css_escape_content_string(site_name_text)
+    reference_style, reference_spacing_european, reference_indent_global, reference_spacing_global = (
+        reference_style_values(extra)
+    )
 
     icon_registry = build_icon_registry(discover_icon_dirs(docs_dir))
 
@@ -274,16 +244,23 @@ def main():
                 for path, (raw_text, excluded) in page_source_text.items()
                 if path != cover.docs_rel_path and not excluded
             ]
-            word_count = compute_pdf_word_count(counted_texts)
+            word_count = compute_word_count(counted_texts)
             cover_html = cover_html.replace('{WORDCOUNT}', f'{word_count:,}')
+        if '{REPOURL}' in cover_html or '{RELEASE}' in cover_html:
+            # Computed from the local git remote (like the website's own
+            # {{ repo_url }} - see zendoc.zensical_macros._get_repo_url()),
+            # not zensical.toml's configured repo_url: in practice they
+            # usually match, but they're not the same mechanism (see
+            # customise.md's "Repository link" note).
+            git_repo_url = get_git_detected_repo_url()
         if '{REPOURL}' in cover_html:
-            cover_html = cover_html.replace('{REPOURL}', repo_url)
+            cover_html = cover_html.replace('{REPOURL}', git_repo_url)
         if '{RELEASE}' in cover_html:
             # Unlike {WORDCOUNT}/{REPOURL}, which are always locally
             # computable, most forks of this template will never have a
             # published release, so an empty result drops the whole line
             # rather than leaving a bare "Release: " label behind.
-            release_tag = get_latest_release_tag(repo_url)
+            release_tag = get_latest_release_tag(git_repo_url)
             if release_tag:
                 cover_html = cover_html.replace('{RELEASE}', release_tag)
             else:
@@ -322,11 +299,11 @@ def main():
             header_footer_font_size=extra.get('pdf_header_footer_font_size') or "10pt",
             header_footer_color=extra.get('pdf_header_footer_color') or "#555555",
             header_footer_divider_color=extra.get('pdf_header_footer_divider_color') or "#e2e8f0",
-            reference_style_global=str(extra.get('reference_style') or 'european').strip().lower() == 'global',
-            reference_spacing_european=extra.get('reference_spacing_european') or "-0.8em",
-            reference_indent_global=extra.get('reference_indent_global') or "1.27cm",
-            reference_spacing_global=extra.get('reference_spacing_global') or "2em",
-            heading_numbering_enabled=bool(extra.get('heading_numbering', True)),
+            reference_style_global=reference_style == 'global',
+            reference_spacing_european=reference_spacing_european,
+            reference_indent_global=reference_indent_global,
+            reference_spacing_global=reference_spacing_global,
+            heading_numbering_enabled=heading_numbering_enabled(extra),
             mathjax_available=mathjax_available,
             math_dir=math_dir,
             tex2svg_script=tex2svg_script,

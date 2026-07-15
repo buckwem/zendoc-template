@@ -514,6 +514,7 @@ types = [
 
 [project.markdown_extensions.zensical.extensions.macros]
 module_name = "macros"
+modules = ["zendoc.zensical_macros"]
 on_error_fail = true
 
 [project.plugins.mkdocstrings.handlers.python]

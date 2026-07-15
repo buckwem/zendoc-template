@@ -16,66 +16,6 @@ import urllib.parse
 import markdown
 from bs4 import BeautifulSoup
 
-# In-process cache so the same emoji is never fetched/read twice within a single build
-_TWEMOJI_SVG_CACHE = {}
-
-def resolve_twemoji_svg(unicode_str, icon_registry):
-    """Resolves a genuine (non-icon-set) emoji's Unicode sequence to twemoji SVG data.
-
-    Checks the already-discovered icon registry and an on-disk cache under
-    ./.icons/twemoji first (fully offline once populated), then falls back to
-    fetching the matching asset from the twemoji CDN and caching it locally so
-    future builds no longer need network access for that emoji.
-    """
-    codepoints_full = "-".join(f"{ord(ch):x}" for ch in unicode_str)
-    codepoints_stripped = "-".join(f"{ord(ch):x}" for ch in unicode_str if ch != '️')
-    candidates = list(dict.fromkeys(c for c in [codepoints_full, codepoints_stripped] if c))
-
-    for cp in candidates:
-        if cp in _TWEMOJI_SVG_CACHE:
-            return _TWEMOJI_SVG_CACHE[cp]
-
-        abs_path = icon_registry.get(f"twemoji-{cp}") or icon_registry.get(cp)
-        if abs_path and os.path.exists(abs_path):
-            with open(abs_path, 'r', encoding='utf-8') as f:
-                svg_data = f.read()
-            _TWEMOJI_SVG_CACHE[cp] = svg_data
-            return svg_data
-
-    cache_dir = os.path.join(os.getcwd(), ".icons", "twemoji")
-    for cp in candidates:
-        cache_path = os.path.join(cache_dir, f"{cp}.svg")
-        if os.path.exists(cache_path):
-            with open(cache_path, 'r', encoding='utf-8') as f:
-                svg_data = f.read()
-            icon_registry[f"twemoji-{cp}"] = cache_path
-            icon_registry.setdefault(cp, cache_path)
-            _TWEMOJI_SVG_CACHE[cp] = svg_data
-            return svg_data
-
-    for cp in candidates:
-        url = f"https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/{cp}.svg"
-        try:
-            with urllib.request.urlopen(url, timeout=5) as resp:
-                svg_data = resp.read().decode('utf-8')
-        except Exception:
-            continue
-
-        try:
-            os.makedirs(cache_dir, exist_ok=True)
-            cache_path = os.path.join(cache_dir, f"{cp}.svg")
-            with open(cache_path, 'w', encoding='utf-8') as f:
-                f.write(svg_data)
-            icon_registry[f"twemoji-{cp}"] = cache_path
-            icon_registry.setdefault(cp, cache_path)
-        except Exception:
-            pass
-
-        _TWEMOJI_SVG_CACHE[cp] = svg_data
-        return svg_data
-
-    return None
-
 def extract_md_files(nav_element):
     """Recursively walks the Zensical navigation tree to extract .md files in order."""
     files = []
@@ -197,82 +137,6 @@ def page_is_appendix(path):
     continuing the document's normal numeric sequence. Mirrors the same
     check in macros.py, used there for the website's own numbering."""
     return page_front_matter_flag(path, 'is_appendix')
-
-def parse_caption_modifier(modifier):
-    """Parses the optional "| ..." modifier after a caption block's type
-    name - pymdownx.blocks.caption's own header syntax for overriding
-    position, number, id, and classes on a single caption (see "Captions"
-    in customise.md), e.g. "| < 5 #custom-id.some-class". Returns
-    (prepend, manual_number, custom_id, extra_classes):
-    - prepend: True/False if "<"/">" is present, else None (caller decides
-      the default - this template never sets a project-wide prepend: true,
-      so the extension's own default is append).
-    - manual_number: int if a bare integer token is present, else None.
-    - custom_id / extra_classes: from a "#id.class1.class2"-style token,
-      mirroring the CSS-selector shorthand the extension itself accepts."""
-    prepend = None
-    manual_number = None
-    custom_id = None
-    extra_classes = []
-    if not modifier:
-        return prepend, manual_number, custom_id, extra_classes
-    for token in modifier.split():
-        if token == '<':
-            prepend = True
-        elif token == '>':
-            prepend = False
-        elif token.isdigit():
-            manual_number = int(token)
-        elif token.startswith('#') or token.startswith('.'):
-            id_match = re.search(r'#([\w-]+)', token)
-            if id_match:
-                custom_id = id_match.group(1)
-            extra_classes.extend(re.findall(r'\.([\w-]+)', token))
-    return prepend, manual_number, custom_id, extra_classes
-
-def image_attrs_to_html(attrs):
-    """Converts a Pandoc-style image attribute block (the "{ width="40%"
-    .screenshot }" in "![alt](src){ width="40%" .screenshot }") into an HTML
-    attribute string for a hand-written <img> tag - needed because
-    zensical_caption_replacer() below builds its <figure>/<img>/<figcaption>
-    markup directly as raw HTML rather than letting Pandoc's own markdown
-    reader process the image, so Pandoc's own attribute handling (see issue
-    #55) never sees this block unless it's redone here. Mirrors Pandoc's own
-    behaviour: a width/height value that has a unit (e.g. "40%", "2cm")
-    becomes an inline CSS style (Pandoc emits `style="width:40%"` for
-    `{width="40%"}`); a bare integer becomes the legacy width/height HTML
-    attribute (pixels). A ".class" token (e.g. ".screenshot" - see "Captions"
-    in customise.md) becomes the <img>'s own class attribute - distinct from
-    the <figure>'s own class (zendoc-figure-caption etc. - see
-    zensical_caption_replacer() below), since the framed-screenshot CSS
-    targets "img.screenshot" specifically. A "#id" token becomes the <img>'s
-    id. Any other key becomes a plain HTML attribute."""
-    if not attrs:
-        return ''
-    style_parts = []
-    html_parts = []
-    classes = []
-    for token in re.findall(r'[\w-]+="[^"]*"|[\w-]+=\S+|\.[\w-]+|#[\w-]+', attrs):
-        if token.startswith('.'):
-            classes.append(token[1:])
-            continue
-        if token.startswith('#'):
-            html_parts.append(f'id="{token[1:]}"')
-            continue
-        key, _, value = token.partition('=')
-        value = value.strip('"\'')
-        if key in ('width', 'height'):
-            if re.match(r'^\d+$', value):
-                html_parts.append(f'{key}="{value}"')
-            else:
-                style_parts.append(f'{key}:{value}')
-        else:
-            html_parts.append(f'{key}="{value}"')
-    if classes:
-        html_parts.append(f'class="{" ".join(classes)}"')
-    style_attr = f' style="{"; ".join(style_parts)}"' if style_parts else ''
-    html_attr = (' ' + ' '.join(html_parts)) if html_parts else ''
-    return f'{html_attr}{style_attr}'
 
 def compute_pdf_word_count(markdown_paths):
     """Rough prose word count across the given already-preprocessed files:
@@ -417,65 +281,6 @@ def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
         flags=re.MULTILINE | re.DOTALL
     )
 
-def convert_reference_attr_list_paragraphs(content):
-    """Converts docs/references.md's, docs/acronyms.md's, and docs/glossary.md's
-    `paragraph\n{: #id .class }` entries - Python-Markdown's attr_list syntax,
-    understood natively by the website -
-    into `<p id="id" class="class" markdown="1">paragraph</p>` blocks instead,
-    since Pandoc (used for the PDF) has no idea what a standalone `{: ... }`
-    line means and would otherwise leave it sitting in the output as literal,
-    visible text. This lets those pages themselves stay as plain attr_list
-    Markdown; the rewrite only happens in memory, for the PDF build. Only
-    matches a `{: ... }` line that directly follows one or more non-blank
-    lines with no blank line in between (i.e. attached to that paragraph),
-    and only touches lines containing a `#id` - attr_list lines without one
-    (not used in these files, but a reasonable safety net) are left alone."""
-    pattern = re.compile(r'^((?:.+\n)+?)\{:\s*([^}]+?)\s*\}[ \t]*$', re.MULTILINE)
-
-    def replacer(match):
-        paragraph, attrs = match.group(1).rstrip('\n'), match.group(2)
-        id_match = re.search(r'#([\w-]+)', attrs)
-        if not id_match:
-            return match.group(0)
-        classes = re.findall(r'\.([\w-]+)', attrs)
-        class_attr = f' class="{" ".join(classes)}"' if classes else ''
-        return f'<p id="{id_match.group(1)}"{class_attr} markdown="1">{paragraph}</p>'
-
-    return pattern.sub(replacer, content)
-
-def convert_text_alignment_attr_list_paragraphs(content):
-    """Converts a paragraph followed by a bare `{: .text-center }` (or any of
-    the other five text-alignment/text-alignment-italic utility classes
-    defined in extra.css) into `<p class="...">paragraph</p>`, since Pandoc
-    (used for the PDF) has no idea what a standalone `{: ... }` line means and
-    would otherwise leave it sitting in the output as literal, visible text
-    (see issue #58). Unlike convert_reference_attr_list_paragraphs (id-based,
-    References/Acronyms/Glossary only), this runs on every page - deliberately
-    scoped to just these six known utility classes, and skipping anything with
-    an `#id` or an unrecognised class, so it can't collide with attr_list used
-    for other purposes (references, images, tables, code fences) elsewhere in
-    this file. Run through apply_outside_fences() so a documentation example
-    showing this exact syntax inside a fenced code block (e.g. a future
-    "Text alignment" section in customise.md, following the same pattern as
-    its existing References/Acronyms/Captions examples) is left as literal
-    text rather than being converted into a live, rendered paragraph."""
-    utility_classes = {
-        'text-center', 'text-right', 'text-justify',
-        'text-center-italic', 'text-right-italic', 'text-justify-italic',
-    }
-    pattern = re.compile(r'^((?:.+\n)+?)\{:\s*([^}]+?)\s*\}[ \t]*$', re.MULTILINE)
-
-    def replacer(match):
-        paragraph, attrs = match.group(1).rstrip('\n'), match.group(2)
-        if '#' in attrs:
-            return match.group(0)
-        classes = re.findall(r'\.([\w-]+)', attrs)
-        if not classes or not set(classes) <= utility_classes:
-            return match.group(0)
-        return f'<p class="{" ".join(classes)}" markdown="1">{paragraph}</p>'
-
-    return apply_outside_fences(content, lambda segment: pattern.sub(replacer, segment))
-
 def build_page_anchor_map(md_files):
     """Maps each nav markdown file (relative to docs_dir, e.g.
     "starthere/installtooling.md") to a deterministic anchor id (e.g.
@@ -525,1240 +330,12 @@ def build_virtual_page_map(md_files):
         virtual_map[_virtual_page_path(key)] = anchor_map[key]
     return virtual_map
 
-def build_citation_map(md_files, docs_dir):
-    """Scans every nav markdown file for {: #id ... data-cite-text="..." }
-    attr_list attributes - zendoc.citations' own citation-definition syntax
-    (https://buckwem.github.io/zendoc-extension/extensions/citations/),
-    understood natively by the live website - building a map of citation id
-    to its short display text. Used by resolve_citations() below to
-    translate \\cite{id} into a Pandoc-compatible link before Pandoc ever
-    sees it: Pandoc has no idea what \\cite{...} means (it's zendoc.citations'
-    own Python-Markdown syntax, resolved by code that never runs inside
-    Pandoc) and would otherwise leave it sitting in the PDF as literal,
-    visible text, the same problem convert_reference_attr_list_paragraphs()
-    solves for attr_list itself. Skips fenced code blocks (via
-    _split_fenced_blocks(), defined below but resolved at call time, not
-    definition time), so a documentation page showing this exact attr_list
-    syntax as a literal example - e.g. customise.md's "References and
-    bibliography" section - isn't mistaken for a real definition."""
-    citation_map = {}
-    attr_pattern = re.compile(r'\{:\s*([^}]+?)\s*\}')
-    for rel_path in md_files:
-        full_path = os.path.join(docs_dir, rel_path)
-        try:
-            with open(full_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        except OSError:
-            continue
-        for is_fenced, segment in _split_fenced_blocks(content):
-            if is_fenced:
-                continue
-            for attr_match in attr_pattern.finditer(segment):
-                attrs = attr_match.group(1)
-                id_match = re.search(r'#([\w-]+)', attrs)
-                text_match = re.search(r'data-cite-text="([^"]*)"', attrs)
-                if id_match and text_match:
-                    citation_map[id_match.group(1)] = text_match.group(1)
-    return citation_map
-
-def build_glossary_map(md_files, docs_dir):
-    """Scans every nav markdown file for {: #id ... data-term="..." }
-    attr_list attributes - zendoc.glossary's own term-definition syntax
-    (https://buckwem.github.io/zendoc-extension/extensions/glossary/),
-    understood natively by the live website - building a map of term id to
-    its display text. Used by resolve_gls() below to translate \\gls{id}
-    into a Pandoc-compatible link before Pandoc ever sees it: Pandoc has no
-    idea what \\gls{...} means (it's zendoc.glossary's own Python-Markdown
-    syntax, resolved by code that never runs inside Pandoc) and would
-    otherwise leave it sitting in the PDF as literal, visible text - the
-    same problem build_citation_map() solves for \\cite{...}. Skips fenced
-    code blocks (via _split_fenced_blocks(), defined below but resolved at
-    call time, not definition time), so a documentation page showing this
-    exact attr_list syntax as a literal example - e.g. customise.md's
-    "Acronyms and abbreviations"/"Glossary" sections - isn't mistaken for a
-    real definition."""
-    glossary_map = {}
-    attr_pattern = re.compile(r'\{:\s*([^}]+?)\s*\}')
-    for rel_path in md_files:
-        full_path = os.path.join(docs_dir, rel_path)
-        try:
-            with open(full_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        except OSError:
-            continue
-        for is_fenced, segment in _split_fenced_blocks(content):
-            if is_fenced:
-                continue
-            for attr_match in attr_pattern.finditer(segment):
-                attrs = attr_match.group(1)
-                id_match = re.search(r'#([\w-]+)', attrs)
-                term_match = re.search(r'data-term="([^"]*)"', attrs)
-                if id_match and term_match:
-                    glossary_map[id_match.group(1)] = term_match.group(1)
-    return glossary_map
-
-def _walk_outside_fences(content, line_handler):
-    """Shared fence-aware line-by-line walk: calls line_handler(line) for every
-    line outside a fenced code block *and* outside an HTML comment (leaving
-    both untouched), and stops calling it once line_handler returns a truthy
-    "stop" signal. The HTML-comment skip matters because every page's
-    copyright header is a `<!-- ... -->` block, and about half of them write
-    the copyright/SPDX lines inside it with a leading "# " (mimicking a
-    Markdown heading) - without skipping comments, tag_first_heading() below
-    would mistake that line for the page's real title. Used by
-    tag_first_heading() and mirrors the fence-tracking already used elsewhere
-    in this file (e.g. _dashes_to_asterisks_outside_fences)."""
-    lines = content.split('\n')
-    in_fence, fence_char, fence_len = False, None, 0
-    in_comment = False
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if in_fence:
-            close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
-            if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
-                in_fence = False
-            continue
-        if in_comment:
-            if '-->' in line:
-                in_comment = False
-            continue
-        fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
-        if fence_match:
-            in_fence = True
-            fence_char = fence_match.group(1)[0]
-            fence_len = len(fence_match.group(1))
-            continue
-        comment_start = line.find('<!--')
-        if comment_start != -1:
-            if '-->' not in line[comment_start:]:
-                in_comment = True
-            continue
-        result = line_handler(i, line)
-        if result is not None:
-            lines[i] = result
-            break
-    return '\n'.join(lines)
-
-def _split_fenced_blocks(text):
-    """Splits text into a list of (is_fenced, segment) tuples, alternating
-    between non-fenced and fenced (```/~~~) content, using the same fence
-    detection as the rest of this file. Used by apply_outside_fences()."""
-    lines = text.split('\n')
-    segments = []
-    current = []
-    in_fence, fence_char, fence_len = False, None, 0
-    for line in lines:
-        stripped = line.strip()
-        if not in_fence:
-            fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
-            if fence_match:
-                if current:
-                    segments.append((False, '\n'.join(current)))
-                current = [line]
-                in_fence = True
-                fence_char = fence_match.group(1)[0]
-                fence_len = len(fence_match.group(1))
-            else:
-                current.append(line)
-        else:
-            current.append(line)
-            close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
-            if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
-                in_fence = False
-                segments.append((True, '\n'.join(current)))
-                current = []
-    if current:
-        segments.append((in_fence, '\n'.join(current)))
-    return segments
-
-def apply_outside_fences(content, transform):
-    """Applies transform(text) -> text only to the portions of content that
-    are outside fenced code blocks, leaving fenced content completely
-    untouched. Needed for regex-based rewrites (e.g. the caption block
-    translation below) that would otherwise also match - and corrupt -
-    example syntax shown as literal text inside a fenced code block in the
-    docs (see docs/starthere/customise.md's "Captions" section, which shows
-    the caption syntax itself as an example). Segments are rejoined with "\n"
-    (not "") - _split_fenced_blocks() strips every newline via text.split(),
-    and each segment's own text only accounts for the newlines *within* it,
-    so the newline originally separating one segment from the next has to be
-    reinserted here, exactly once per boundary, regardless of whether
-    transform() changes a non-fenced segment's own line count."""
-    return '\n'.join(
-        segment if is_fenced else transform(segment)
-        for is_fenced, segment in _split_fenced_blocks(content)
-    )
-
-def tag_first_heading(content, anchor, extra_class=None):
-    """Gives a page's first top-level heading an explicit #anchor id (unless
-    it already has one), so other pages can link to it by that id once
-    everything is concatenated into a single PDF document. See
-    build_page_anchor_map() / issue #16. If the heading already has a
-    trailing {...} attribute block (e.g. the cover page's {.hidden
-    .unnumbered .unlisted}), the id is inserted into that same block rather
-    than appended as a second, separate {...} block - Pandoc only recognises
-    one attribute block per heading, and a second one is left sitting in the
-    output as literal, visible text instead of being parsed as an id.
-
-    If extra_class is given (e.g. "appendix" - see page_is_appendix() /
-    issue #24), it's added to the same block as a .class, giving the Lua
-    numbering filter's Header() function something to detect on the raw
-    Pandoc AST node - preprocess_markdown() itself has no reach into that
-    filter, so this attribute is the only way to carry the flag through."""
-    suffix = f'#{anchor}' + (f' .{extra_class}' if extra_class else '')
-    def handler(_i, line):
-        if not re.match(r'^#\s+\S', line):
-            return None
-        brace_match = re.search(r'\{([^}]*)\}\s*$', line)
-        if brace_match:
-            if '#' in brace_match.group(1):
-                return line  # already has an explicit id - leave it alone
-            end = brace_match.end(1)
-            return f'{line[:end]} {suffix}{line[end:]}'
-        return f'{line.rstrip()} {{{suffix}}}'
-    return _walk_outside_fences(content, handler)
-
-def rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map):
-    """Rewrites relative .md links - e.g. [Install tooling](installtooling.md)
-    or [Skoulikari, 2023](references.md#skou2023) - into in-document anchor
-    links (#page-anchor or the existing #fragment) that resolve correctly once
-    every page has been concatenated into one PDF (see build_page_anchor_map()
-    / issue #16). A fragment on the original link (an id that already exists
-    somewhere in the document, whether Pandoc's own auto-generated heading id
-    or one we assign explicitly, e.g. via convert_reference_attr_list_paragraphs)
-    is kept as-is; only the now-meaningless "target.md" file prefix is
-    dropped. Skips fenced code blocks, so example link syntax shown as
-    literal text in the docs (e.g. in zensicalbasics.md) survives unchanged."""
-    current_dir = os.path.dirname(current_docs_rel_path)
-    link_pattern = re.compile(r'\[([^\]]*)\]\(([^)\s]+?\.md)(#[\w-]+)?\)')
-
-    def replace_link(match):
-        text, target, frag = match.group(1), match.group(2), match.group(3)
-        if target.startswith(('http://', 'https://', 'mailto:')):
-            return match.group(0)
-        if frag:
-            return f'[{text}]({frag})'
-        resolved = os.path.normpath(os.path.join(current_dir, target)).replace('\\', '/')
-        anchor = page_anchor_map.get(resolved)
-        if anchor is None:
-            return match.group(0)
-        return f'[{text}](#{anchor})'
-
-    lines = content.split('\n')
-    in_fence, fence_char, fence_len = False, None, 0
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if not in_fence:
-            fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
-            if fence_match:
-                in_fence = True
-                fence_char = fence_match.group(1)[0]
-                fence_len = len(fence_match.group(1))
-            else:
-                lines[i] = link_pattern.sub(replace_link, line)
-        else:
-            close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
-            if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
-                in_fence = False
-    return '\n'.join(lines)
-
-def rewrite_repo_file_links(content, current_docs_rel_path, docs_dir, repo_url):
-    """Rewrites relative links to non-Markdown repo files - e.g.
-    [extra.css](../stylesheets/extra.css) - into the file's canonical
-    GitHub/GitLab "blob" URL instead (see issue #19). Unlike the .md links
-    rewrite_internal_md_links() handles, these targets aren't part of the
-    concatenated PDF at all, so there's no in-document anchor to point at;
-    left as a plain relative path, Pandoc/WeasyPrint resolve it against the
-    build machine's own filesystem instead, producing a link that's
-    meaningless (and reveals a local file path) to anyone else reading the
-    PDF. Falls back to dropping the link and keeping just its text if
-    repo_url is empty or its host isn't recognised, rather than risk
-    guessing the wrong URL scheme. Skips fenced code blocks (so example link
-    syntax shown as literal text survives unchanged), image embeds (already
-    resolved to real embedded images by WeasyPrint, not links), and links
-    that are external (http(s)/mailto), fragment-only (#id), site-root
-    (leading /), or already handled by rewrite_internal_md_links (.md,
-    optionally with a #fragment)."""
-    repo_url_lower = repo_url.lower()
-    if 'github.com' in repo_url_lower:
-        blob_prefix = f'{repo_url}/blob/main/'
-    elif 'gitlab' in repo_url_lower:
-        blob_prefix = f'{repo_url}/-/blob/main/'
-    else:
-        blob_prefix = None
-
-    current_dir = os.path.dirname(current_docs_rel_path)
-    link_pattern = re.compile(r'(?<!!)\[([^\]]*)\]\(([^)\s]+)\)')
-
-    def replace_link(match):
-        text, target = match.group(1), match.group(2)
-        if target.startswith(('http://', 'https://', 'mailto:', '#', '/')):
-            return match.group(0)
-        if target.endswith('.md') or '.md#' in target:
-            return match.group(0)
-        if blob_prefix is None:
-            return text
-        repo_rel_path = os.path.normpath(os.path.join(docs_dir, current_dir, target)).replace('\\', '/')
-        return f'[{text}]({blob_prefix}{repo_rel_path})'
-
-    return apply_outside_fences(content, lambda text: link_pattern.sub(replace_link, text))
-
-def resolve_citations(content, citation_map):
-    """Converts \\cite{id} / \\cite{id1,id2,...} (zendoc.citations' own
-    Python-Markdown syntax - see build_citation_map()) into a
-    Pandoc-compatible bracketed, semicolon-joined list of links, e.g.
-    \\cite{skou2023} -> [Skoulikari, 2023](#skou2023) - mirroring the shape
-    of the live website's own zendoc.citations rendering closely enough for
-    the PDF. Uses a plain in-document anchor (#id) rather than a
-    page-relative link: paragraph ids are already unique across the whole
-    concatenated PDF document once convert_reference_attr_list_paragraphs()
-    has run, so no per-page anchor prefixing is needed here, unlike
-    rewrite_internal_md_links()'s heading anchors. A key with no matching
-    definition (a typo, or one only defined on a page not yet scanned into
-    citation_map - shouldn't happen, since build_citation_map() scans every
-    nav page up front, but kept as a safety net) falls back to "?", mirroring
-    zendoc.citations' own default `unresolved` marker. Protects both fenced
-    code blocks and inline code spans (e.g. `\\cite{id}` shown as a syntax
-    reference in customise.md's "References and bibliography" section),
-    mirroring mark_replacer()/insert_replacer()'s own three-way-alternation
-    pattern rather than apply_outside_fences(), which only protects fenced
-    blocks, not inline spans."""
-    def replacer(match):
-        if match.group(1) or match.group(2):
-            return match.group(0)
-        keys = [k.strip() for k in match.group(3).split(',') if k.strip()]
-        entries = [f'[{citation_map.get(key, "?")}](#{key})' for key in keys]
-        return '[' + '; '.join(entries) + ']'
-
-    return re.sub(r'(```[\s\S]*?```)|(`[^`\n]*`)|\\cite\{([^}]+)\}', replacer, content)
-
-def resolve_gls(content, glossary_map):
-    """Converts \\gls{id} (zendoc.glossary's own Python-Markdown syntax -
-    see build_glossary_map()) into a Pandoc-compatible link, e.g.
-    \\gls{css} -> [CSS](#css) - inserting the term's own registered text,
-    linked, in place of the \\gls{...} token. Uses a plain in-document
-    anchor (#id) rather than a page-relative link: paragraph ids are
-    already unique across the whole concatenated PDF document once
-    convert_reference_attr_list_paragraphs() has run, so no per-page anchor
-    prefixing is needed here, unlike rewrite_internal_md_links()'s heading
-    anchors. Unlike \\cite{...}, \\gls{...} only ever takes a single id -
-    there's no multi-id/bracketed form. An id with no matching definition
-    falls back to "?", mirroring zendoc.glossary's own default `unresolved`
-    marker. Protects both fenced code blocks and inline code spans (e.g.
-    `\\gls{id}` shown as a syntax reference in customise.md's "Acronyms and
-    abbreviations"/"Glossary" sections), mirroring mark_replacer()/
-    insert_replacer()'s own three-way-alternation pattern rather than
-    apply_outside_fences(), which only protects fenced blocks, not inline
-    spans."""
-    def replacer(match):
-        if match.group(1) or match.group(2):
-            return match.group(0)
-        term_id = match.group(3)
-        term = glossary_map.get(term_id, '?')
-        return f'[{term}](#{term_id})'
-
-    return re.sub(r'(```[\s\S]*?```)|(`[^`\n]*`)|\\gls\{([^}\s]+)\}', replacer, content)
-
-def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_registry, placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, citation_map, glossary_map, nav_snippet_text='', is_index=False, chapter_id=None, caption_state=None):
-    """Parses template conditionals, applies global asset filtering, and converts raw shortcodes
-    to alphanumeric tokens while ignoring those nested inside code block environments.
-
-    chapter_id is this page's own chapter number ("7") or appendix letter
-    ("A") - computed once per page in main(), before any page is
-    preprocessed, by replicating macros.py's own nav-walk (see
-    _page_is_appendix()/_count_top_level_headings() there) - the same
-    number the website computes via heading_counter_reset() and the Lua
-    filter computes via its own h1 counter, needed here because figure/table
-    captions (see "Captions" in customise.md) are numbered "Figure
-    <chapter>.<n>" during this preprocessing pass, before pages are
-    concatenated and the Lua filter's counter exists. caption_state is a
-    shared dict threaded across every page's preprocess_markdown() call,
-    collecting id="..." values that requested a prepended (top) position so
-    main() can emit a targeted caption-side CSS rule for exactly those,
-    once every page has been preprocessed - see "prepend_table_ids" below.
-    """
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-
-    content = content.lstrip('\ufeff')
-
-    if content.strip().startswith('---'):
-        parts = content.split('---', 2)
-        if len(parts) >= 3:
-            content = parts[2]
-
-    # Fixes issue #16: give this page a linkable anchor, and rewrite any
-    # links to *other* pages so they point at that anchor instead of a
-    # "target.md" file path that means nothing once every page is
-    # concatenated into one PDF document. See build_page_anchor_map().
-    docs_dir = config.get('docs_dir', 'docs')
-    current_docs_rel_path = os.path.normpath(os.path.relpath(file_path, docs_dir)).replace('\\', '/')
-    own_anchor = page_anchor_map.get(current_docs_rel_path)
-    if own_anchor:
-        extra_class = 'appendix' if page_is_appendix(file_path) else None
-        content = tag_first_heading(content, own_anchor, extra_class=extra_class)
-    content = rewrite_internal_md_links(content, current_docs_rel_path, page_anchor_map)
-    content = rewrite_repo_file_links(content, current_docs_rel_path, docs_dir, calculated_vars.get('repo_url', ''))
-    content = resolve_citations(content, citation_map)
-    content = resolve_gls(content, glossary_map)
-
-    content = render_mermaid_diagrams(content, temp_build_dir, mermaid_state)
-
-    content = re.sub(r'^.*user-select.*$\n?', '', content, flags=re.MULTILINE | re.IGNORECASE)
-
-    # Strips the website-only heading_counter_reset(page) Jinja macro call (injects a
-    # CSS counter-reset <style> block for the live site); the PDF numbers headings
-    # separately via the Lua filter's Header() function, so this has no PDF equivalent
-    # and would otherwise leak through as literal text since Pandoc doesn't render Jinja.
-    content = re.sub(r'^[ \t]*\{\{\s*heading_counter_reset\([^)]*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
-
-    # Strips the website-only reference_style()/acronym_style()/glossary_style()
-    # Jinja macro calls (each injects a CSS <style> block on their respective
-    # page for the live site); the PDF gets the equivalent CSS added directly
-    # to the compiled stylesheet instead (see reference_style_global/
-    # reference_spacing_european etc. above and reference_style_css/
-    # acronym_style_css/glossary_style_css below), since Pandoc doesn't render
-    # Jinja and would otherwise leak these through as literal text.
-    content = re.sub(r'^[ \t]*\{\{\s*reference_style\(\s*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
-    content = re.sub(r'^[ \t]*\{\{\s*acronym_style\(\s*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
-    content = re.sub(r'^[ \t]*\{\{\s*glossary_style\(\s*\)\s*\}\}[ \t]*\n?', '', content, flags=re.MULTILINE)
-
-    # Replaces the website-only nav_snippet() Jinja macro call with the same
-    # extracted nav = [...] text it would render on the website (Pandoc
-    # doesn't render Jinja, so the literal "{{ nav_snippet() }}" would
-    # otherwise leak through as-is into the PDF).
-    content = re.sub(r'\{\{\s*nav_snippet\(\s*\)\s*\}\}', lambda _: nav_snippet_text, content)
-
-    # References, acronyms, and glossary pages only: rewrite attr_list
-    # `{: #id .class }` entries into Pandoc-compatible raw HTML (see
-    # convert_reference_attr_list_paragraphs).
-    if os.path.basename(file_path) in ('references.md', 'acronyms.md', 'glossary.md'):
-        content = convert_reference_attr_list_paragraphs(content)
-
-    # Every page: rewrite the six text-alignment utility classes' attr_list
-    # `{: .text-center }` entries into Pandoc-compatible raw HTML (see
-    # convert_text_alignment_attr_list_paragraphs).
-    content = convert_text_alignment_attr_list_paragraphs(content)
-
-    # AUTOMATED VIDEO EMBEDDING INTERCEPTOR ENGINE
-    def video_iframe_replacer(match):
-        indent = match.group(1) or ""
-        iframe_tag = match.group(2)
-        
-        src_match = re.search(r'src=["\']([^"\']+)["\']', iframe_tag, re.IGNORECASE)
-        title_match = re.search(r'title=["\']([^"\']+)["\']', iframe_tag, re.IGNORECASE)
-        
-        if not src_match:
-            return match.group(0)
-            
-        video_url = src_match.group(1)
-        if "youtube.com/embed/" in video_url:
-            video_url = video_url.replace("youtube.com/embed/", "youtube.com/watch?v=").split('?')[0]
-            
-        video_title = title_match.group(1).strip() if title_match else "Video Tutorial"
-        
-        return (
-            f"\n\n{indent}!!! info \"{video_title}\"\n"
-            f"{indent}    **[Watch Video]({video_url})**\n\n"
-        )
-
-    content = re.sub(
-        r'^([ \t]*)(?:<div[^>]*>[\s\r\n]*)?(<iframe[^>]+>.*?<\/iframe>)(?:[\s\r\n]*<\/div>)?',
-        video_iframe_replacer,
-        content,
-        flags=re.MULTILINE | re.IGNORECASE | re.DOTALL
-    )
-
-    # AUTOMATED ZENSICAL CAPTION BLOCK TRANSLATION ENGINE
-    # Handles both the plain, unnumbered "caption" type (unchanged from
-    # before - no id, no prefix) and the numbered "figure-caption" type
-    # (see "Captions" in customise.md): auto-numbered "Figure <chapter>.<n>"
-    # using this page's own chapter_id plus a per-page counter mirroring
-    # pymdownx.blocks.caption's own website-side counter, a manual number
-    # override (honoured if given, and the auto-counter picks up from
-    # there), and a custom #id/.class in place of the auto-generated id -
-    # see parse_caption_modifier(). figure-caption always appends (image,
-    # then caption) to match this template's own usage; a "| <"/"| >"
-    # modifier is still parsed for completeness but isn't expected to be
-    # used with figures in this template's own docs.
-    figure_counter = 0
-    def zensical_caption_replacer(match):
-        nonlocal figure_counter
-        indent = match.group(1)
-        alt_text = match.group(2)
-        img_url = match.group(3)
-        image_attrs = match.group(4)
-        caption_type = match.group(5)
-        modifier = match.group(6)
-        caption_body = match.group(7).strip()
-
-        prepend, manual_number, custom_id, extra_classes = parse_caption_modifier(modifier)
-        classes = list(extra_classes)
-        figure_id = custom_id
-
-        if caption_type == 'figure-caption':
-            figure_counter = max(figure_counter, manual_number) if manual_number else figure_counter + 1
-            this_number = manual_number if manual_number is not None else figure_counter
-            number_text = f"{chapter_id}.{this_number}." if chapter_id else f"{this_number}."
-            prefix_html = f'<span class="caption-prefix">Figure {number_text}</span> '
-            if figure_id is None:
-                figure_id = f"figure-{(chapter_id or 'x').lower()}-{this_number}"
-            classes.insert(0, 'zendoc-figure-caption')
-        else:
-            prefix_html = ''
-
-        class_attr = f' class="{" ".join(classes)}"' if classes else ''
-        id_attr = f' id="{figure_id}"' if figure_id else ''
-
-        img_html = f"{indent}  <img src=\"{img_url}\" alt=\"{alt_text}\"{image_attrs_to_html(image_attrs)} />\n"
-        figcaption_html = f"{indent}  <figcaption class=\"text-center-italic\" style=\"margin-top: 8px;\">{prefix_html}{caption_body}</figcaption>\n"
-        body = (figcaption_html + img_html) if prepend else (img_html + figcaption_html)
-
-        return (
-            f"\n\n{indent}<figure{id_attr}{class_attr}>\n"
-            f"{body}"
-            f"{indent}</figure>\n\n"
-        )
-
-    content = apply_outside_fences(content, lambda text: re.sub(
-        r'^([ \t]*)!\[([^\]]*)\]\(([^)]*)\)(?:\{([^}]*)\})?[ \t]*\n(?:[ \t]*\n)*\1///\s*(figure-caption|caption)(?:[ \t]*\|[ \t]*([^\n]*))?[ \t]*\n(.*?)\n\1///',
-        zensical_caption_replacer,
-        text,
-        flags=re.MULTILINE | re.DOTALL
-    ))
-
-    # AUTOMATED ZENSICAL TABLE CAPTION TRANSLATION ENGINE
-    # Converts a caption block following a table into Pandoc's native table-caption
-    # syntax ("Table: ..." immediately after the table {#id .class}), which Pandoc
-    # renders as a real <caption> bound inside the <table> element - keeping it
-    # structurally attached to the table so it can't be orphaned from it across a
-    # page break. Caption must come AFTER the table: pymdownx.blocks.caption (used
-    # on the live site) attaches a caption block to whichever sibling precedes it,
-    # so a caption placed before the table would wrongly attach to the paragraph
-    # above instead.
-    #
-    # Numbering/id/class work exactly like figure-caption above, sharing the same
-    # chapter_id and parse_caption_modifier() logic, but with a separate counter
-    # (tables and figures are numbered independently). Position is different: Pandoc's
-    # native table-caption syntax always places the caption line *after* the table in
-    # the source, so genuinely moving it before the table isn't possible without
-    # hand-rolling table markup Pandoc would otherwise parse for us - "prepend" here
-    # instead means a real, per-table caption-side: top CSS override (added once every
-    # page has been preprocessed - see caption_state/prepend_table_ids in main()),
-    # visually equivalent to a true prepend without the risk of a hand-written
-    # Markdown-table-to-HTML conversion. The plain "caption" type keeps this template's
-    # original default of always showing at the top, for backward compatibility.
-    table_counter = 0
-    anon_table_counter = 0
-    def table_caption_replacer(match):
-        nonlocal table_counter, anon_table_counter
-        table_lines = match.group(1)
-        caption_type = match.group(3)
-        modifier = match.group(4)
-        caption_body = match.group(5).strip()
-
-        prepend, manual_number, custom_id, extra_classes = parse_caption_modifier(modifier)
-        attrs = []
-
-        if caption_type == 'table-caption':
-            table_counter = max(table_counter, manual_number) if manual_number else table_counter + 1
-            this_number = manual_number if manual_number is not None else table_counter
-            number_text = f"{chapter_id}.{this_number}." if chapter_id else f"{this_number}."
-            caption_text = f"Table {number_text} {caption_body}"
-            table_id = custom_id or f"table-{(chapter_id or 'x').lower()}-{this_number}"
-            wants_top = prepend is True
-        else:
-            caption_text = caption_body
-            # A plain caption doesn't get a numbered id, but still needs a
-            # unique one so the top-position CSS override below (which is
-            # id-targeted, not a blanket rule - see the note above) can
-            # still apply to it for backward compatibility.
-            anon_table_counter += 1
-            table_id = custom_id or f"table-{(chapter_id or 'x').lower()}-caption-{anon_table_counter}"
-            wants_top = prepend is not False  # unset defaults to this template's original top placement
-
-        if table_id:
-            attrs.append(f'#{table_id}')
-        attrs.extend(f'.{c}' for c in extra_classes)
-
-        if wants_top and table_id and caption_state is not None:
-            caption_state.setdefault('prepend_table_ids', set()).add(table_id)
-
-        attr_block = f" {{{' '.join(attrs)}}}" if attrs else ''
-        return f"{table_lines}\nTable: {caption_text}{attr_block}\n\n"
-
-    content = apply_outside_fences(content, lambda text: re.sub(
-        r'((?:^[ \t]*\|[^\n]*\n)+)(?:[ \t]*\n)*^([ \t]*)///\s*(table-caption|caption)(?:[ \t]*\|[ \t]*([^\n]*))?[ \t]*\n(.*?)\n\2///[ \t]*\n?',
-        table_caption_replacer,
-        text,
-        flags=re.MULTILINE | re.DOTALL
-    ))
-
-    # GLOBAL LOCAL ASSET BASE64 ENCODING ENGINE
-    def to_base64_data_uri(img_src, base_dir):
-        if img_src.startswith('data:'):
-            return img_src
-            
-        path_part = img_src.split('#')[0]
-        if path_part.startswith('file://'):
-            path_part = path_part[7:]
-            
-        img_path = os.path.abspath(os.path.join(base_dir, path_part))
-        if not os.path.exists(img_path):
-            img_path = os.path.abspath(path_part)
-            
-        if os.path.exists(img_path) and os.path.isfile(img_path):
-            try:
-                ext = os.path.splitext(img_path)[1].lower().strip('.')
-                mime_type = f"image/{ext}"
-                if ext == "svg": mime_type = "image/svg+xml"
-                elif ext == "jpg": mime_type = "image/jpeg"
-                with open(img_path, 'rb') as f:
-                    b64_content = base64.b64encode(f.read()).decode('utf-8')
-                return f"data:{mime_type};base64,{b64_content}"
-            except Exception:
-                pass
-        return img_src
-
-    # Helper function to allocate safe alphanumeric tokens
-    def register_icon_token(abs_svg_path, raw_svg_data=None):
-        try:
-            if raw_svg_data:
-                b64_payload = base64.b64encode(raw_svg_data.encode('utf-8')).decode('utf-8')
-            else:
-                if not abs_svg_path or not os.path.exists(abs_svg_path): return None
-                with open(abs_svg_path, 'rb') as f:
-                    b64_payload = base64.b64encode(f.read()).decode('utf-8')
-                    
-            for key, val in placeholder_map.items():
-                if val == b64_payload: return key
-                
-            token_key = f"ZICALICONPAD{len(placeholder_map):04d}"
-            placeholder_map[token_key] = b64_payload
-            return token_key
-        except Exception:
-            return None
-
-    # Resolves an admonition type (note, warning, tip, ...) to an inline icon
-    # token, using the same icon set configured for the website's admonitions
-    # in project.theme.icon.admonition (zensical.toml) - see
-    # https://zensical.org/docs/authoring/admonitions/#supported-types
-    admonition_icon_shortcodes = {}
-    project_cfg = config.get('project')
-    if isinstance(project_cfg, dict):
-        theme_cfg = project_cfg.get('theme')
-        if isinstance(theme_cfg, dict):
-            icon_cfg = theme_cfg.get('icon')
-            if isinstance(icon_cfg, dict):
-                adm_icon_cfg = icon_cfg.get('admonition')
-                if isinstance(adm_icon_cfg, dict):
-                    admonition_icon_shortcodes = adm_icon_cfg
-
-    # Mirrors the border-left-color set per admonition type in the .admonition.<type>
-    # CSS rules below, so the icon matches the coloured bar rather than rendering
-    # in its raw (black) fill.
-    admonition_accent_colors = {
-        "note": "#448aff", "abstract": "#00b0ff", "info": "#00b8d4", "tip": "#00bfa5",
-        "success": "#00c853", "question": "#64dd17", "warning": "#ff9100", "failure": "#ff5252",
-        "danger": "#ff1744", "bug": "#ec407a", "example": "#651fff", "quote": "#9e9e9e",
-    }
-
-    def resolve_admonition_icon_token(adm_type):
-        shortcode = admonition_icon_shortcodes.get(adm_type)
-        if not shortcode:
-            return None
-        key = shortcode.strip('/').lower().replace('/', '-')
-        abs_path = icon_registry.get(key)
-        if not abs_path:
-            return None
-        accent_color = admonition_accent_colors.get(adm_type)
-        if not accent_color:
-            return register_icon_token(abs_path)
-        try:
-            with open(abs_path, 'r', encoding='utf-8') as f:
-                svg_data = f.read()
-            # "currentColor" resolves against the CSS `color` property, not `fill` -
-            # setting fill="..." on the <svg> root has no effect on a descendant
-            # path's fill="currentColor", so replace it directly instead.
-            svg_data = re.sub(r'currentColor', accent_color, svg_data, flags=re.IGNORECASE)
-            return register_icon_token(None, raw_svg_data=svg_data)
-        except Exception:
-            return register_icon_token(abs_path)
-
-    # AUTOMATED SIMPLE ICONS HTML EMBED INTERCEPTOR ENGINE
-    def simple_icons_html_replacer(match):
-        full_tag = match.group(0)
-        color_slug = match.group(1).strip('/')
-        alt_match = re.search(r'alt=["\']([^"\']+)["\']', full_tag, re.IGNORECASE)
-        
-        if not alt_match:
-            return full_tag
-            
-        icon_name = alt_match.group(1).lower().replace(' icon', '').replace(' ', '-').strip()
-        abs_path = icon_registry.get(f"simple-{icon_name}") or icon_registry.get(icon_name)
-        
-        if abs_path:
-            try:
-                with open(abs_path, 'r', encoding='utf-8') as svg_file:
-                    svg_data = svg_file.read()
-                if color_slug:
-                    svg_data = re.sub(r'<svg\s+', f'<svg fill="{color_slug}" ', svg_data, flags=re.IGNORECASE)
-                token = register_icon_token(None, raw_svg_data=svg_data)
-                if token: return token
-            except Exception:
-                pass
-        return full_tag
-
-    content = re.sub(
-        r'<img[^>]+src=["\']https?://simpleicons\.org([^"\']*)["\'][^>]*>',
-        simple_icons_html_replacer,
-        content,
-        flags=re.IGNORECASE
-    )
-
-    # Encode standard markdown image links directly into the body
-    def md_img_replacer(match):
-        alt, src = match.group(1), match.group(2)
-        return f"![{alt}]({to_base64_data_uri(src, os.path.dirname(file_path))})"
-    # Fence-aware (see apply_outside_fences): otherwise an example showing
-    # ![...](...)  syntax as literal text inside a fenced code block (e.g.
-    # docs/starthere/customise.md's "Captions" section) gets "helpfully"
-    # resolved to a real file and inlined as a base64 data URI instead.
-    content = apply_outside_fences(content, lambda text: re.sub(
-        r'!\[([^\]]*)\]\(((?!data:)[^)]+)\)', md_img_replacer, text
-    ))
-
-    # Encode all inline standard HTML image references directly into the body
-    def html_img_replacer(match):
-        full_tag = match.group(0)
-        src = match.group(1)
-        if src.startswith('data:') or 'simpleicons.org' in src:
-            return full_tag
-        return full_tag.replace(src, to_base64_data_uri(src, os.path.dirname(file_path)))
-    content = re.sub(r'<img[^>]+src=["\']([^"\']+)["\']', html_img_replacer, content, flags=re.IGNORECASE)
-
-    # Pandoc's markdown reader treats a standalone "---" line as a Setext H2
-    # underline (turning the preceding paragraph into a heading) rather than a
-    # thematic break, so rewrite it to the unambiguous "***" form - but only
-    # outside fenced code blocks, so literal "---" shown as example syntax
-    # (e.g. YAML frontmatter delimiters, horizontal rule examples) survives intact.
-    def _dashes_to_asterisks_outside_fences(text):
-        lines = text.split('\n')
-        in_fence, fence_char, fence_len = False, None, 0
-        for i, line in enumerate(lines):
-            stripped = line.strip()
-            if not in_fence:
-                fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
-                if fence_match:
-                    in_fence = True
-                    fence_char = fence_match.group(1)[0]
-                    fence_len = len(fence_match.group(1))
-                elif re.match(r'^\s*---\s*$', line):
-                    lines[i] = '***'
-            else:
-                close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
-                if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
-                    in_fence = False
-        return '\n'.join(lines)
-
-    content = _dashes_to_asterisks_outside_fences(content)
-
-    # AUTOMATED ATTR_LIST TO BRACKETED-SPAN TRANSLATION ENGINE
-    # Python-Markdown's inline attr_list syntax (**text**{: .class}) isn't understood by
-    # Pandoc; rewrite it to Pandoc's native bracketed-span syntax ([**text**]{.class}).
-    def attr_list_span_replacer(match):
-        if match.group(1) or match.group(2): return match.group(0)
-        inline_text = match.group(3)
-        attrs = match.group(4).strip()
-        return f"[{inline_text}]{{{attrs}}}"
-
-    content = re.sub(
-        r'(```[\s\S]*?```)|(`[^`\n]*`)|(\*\*[^*\n]+\*\*|\*[^*\n]+\*)\{:\s*([^}]+)\}',
-        attr_list_span_replacer,
-        content
-    )
-
-    # PYMDOWNX.MARK / PYMDOWNX.CARET (INSERT) / PYMDOWNX.KEYS TO RAW HTML
-    # Pandoc's markdown reader has no native support for ==mark== or
-    # ++keys++, so both leak through as literal text; ^^insert^^ silently
-    # collides with Pandoc's own single-caret superscript syntax and produces
-    # empty <sup></sup> tags instead of an underline (issue #72). Rewrite all
-    # three to raw HTML - which Pandoc's reader passes through untouched -
-    # before Pandoc ever sees them, the same way html_img_replacer() above
-    # does for <img> tags.
-    def mark_replacer(match):
-        if match.group(1) or match.group(2): return match.group(0)
-        return f"<mark>{match.group(3)}</mark>"
-
-    content = re.sub(
-        r'(```[\s\S]*?```)|(`[^`\n]*`)|==(?!\s)([^\n]+?)(?<!\s)==',
-        mark_replacer,
-        content
-    )
-
-    def insert_replacer(match):
-        if match.group(1) or match.group(2): return match.group(0)
-        return f"<ins>{match.group(3)}</ins>"
-
-    content = re.sub(
-        r'(```[\s\S]*?```)|(`[^`\n]*`)|\^\^(?!\s)([^\n]+?)(?<!\s)\^\^',
-        insert_replacer,
-        content
-    )
-
-    # pymdownx.keys' own key-alias database (184 entries mapping shorthand
-    # like "pg-up" to "Page Up", plus the CSS classes for each key) isn't
-    # worth reimplementing by hand - reuse it directly via a dedicated
-    # Markdown instance rather than hand-rolling the lookup table.
-    _keys_md = markdown.Markdown(extensions=['pymdownx.keys'])
-
-    def keys_replacer(match):
-        if match.group(1) or match.group(2): return match.group(0)
-        _keys_md.reset()
-        html = _keys_md.convert(match.group(0))
-        return html[len('<p>'):-len('</p>')] if html.startswith('<p>') else html
-
-    content = re.sub(
-        r'(```[\s\S]*?```)|(`[^`\n]*`)|\+{2}([\w\-]+(?:\+[\w\-]+)*?)\+{2}',
-        keys_replacer,
-        content
-    )
-
-    content = re.sub(r'\{\s*target=[^}]*\}', '', content, flags=re.IGNORECASE)
-    content = re.sub(r'^(#{1,6})\s+Footnotes\s*$', r'\1 Footnotes {#custom-footnotes-heading}', content, flags=re.MULTILINE | re.IGNORECASE)
-
-    if re.search(r'<style>.*?\.md-typeset\s+h1\s*\{\s*display:\s*none;?\s*\}.*?</style>', content, flags=re.DOTALL | re.IGNORECASE):
-        def hide_matching_h1(match):
-            line = match.group(0)
-            if '{.' in line: return line.replace('{.', '{.hidden .unnumbered .unlisted .')
-            elif '{' in line: return line.replace('{', '{.hidden .unnumbered .unlisted}')
-            return f"{line} {{.hidden .unnumbered .unlisted}}"
-        content = re.sub(r'^#\s+.*$', hide_matching_h1, content, flags=re.MULTILINE)
-
-    # 🎯 FIX: Syntax-aware shortcut lookup engine skips code elements via alternate capture tracking
-    def icon_replacer(match):
-        if match.group(1) or match.group(2):
-            return match.group(0)
-            
-        shortcode = match.group(3).lower().strip()
-        abs_path = icon_registry.get(shortcode) or icon_registry.get(shortcode.replace('_', '-'))
-        
-        if not abs_path:
-            if shortcode.startswith("material-"):
-                alt_shortcode = shortcode.replace("material-", "mdi-", 1)
-                abs_path = icon_registry.get(alt_shortcode) or icon_registry.get(alt_shortcode.replace('_', '-'))
-            elif shortcode.startswith("mdi-"):
-                alt_shortcode = shortcode.replace("mdi-", "material-", 1)
-                abs_path = icon_registry.get(alt_shortcode) or icon_registry.get(alt_shortcode.replace('_', '-'))
-        
-        if not abs_path:
-            pure_name = shortcode
-            for prefix in ["material-", "mdi-", "fontawesome-", "lucide-", "octicons-", "simple-", "fa-solid-", "fa-regular-", "fa-brands-", "fa-"]:
-                if shortcode.startswith(prefix):
-                    pure_name = shortcode[len(prefix):]
-                    break
-            if not abs_path and "-" in shortcode:
-                pure_name = shortcode.split("-", 1)[1]
-            abs_path = icon_registry.get(pure_name) or icon_registry.get(pure_name.replace('_', '-'))
-        
-        if not abs_path:
-            for suffix in ["-24", "-16", "-12"]:
-                abs_path = icon_registry.get(f"{shortcode}{suffix}") or icon_registry.get(f"{pure_name}{suffix}")
-                if abs_path: break
-
-        if abs_path:
-            token = register_icon_token(abs_path)
-            if token: return token
-            
-        try:
-            import emoji
-            emojized = emoji.emojize(f":{shortcode}:", language='alias')
-            if emojized != f":{shortcode}:":
-                svg_data = resolve_twemoji_svg(emojized, icon_registry)
-                if svg_data:
-                    token = register_icon_token(None, raw_svg_data=svg_data)
-                    if token: return token
-                return emojized
-        except Exception:
-            pass
-        return match.group(0)
-
-    # Single-pass parsing configuration protecting inline code `...` and fenced blocks ```...```
-    # Character class includes +/- so Gemoji-style shortcodes like :+1: and :-1: are matched too
-    code_protected_shortcode_pattern = r'(```[\s\S]*?```)|(`[^`\n]*`)|:([a-zA-Z0-9_+-]+):'
-    content = re.sub(code_protected_shortcode_pattern, icon_replacer, content)
-
-    # AUTOMATED NATIVE LUCIDE HTML TAG INTERCEPTOR ENGINE
-    def lucide_html_replacer(match):
-        if match.group(1): return match.group(0)
-        icon_name = match.group(2).lower().strip()
-        abs_url = icon_registry.get(f"lucide-{icon_name}") or icon_registry.get(icon_name)
-        if abs_url:
-            token = register_icon_token(abs_url)
-            if token: return token
-        return match.group(0)
-
-    content = re.sub(r'(```[\s\S]*?```|`[^`\n]*`)|<i[^>]+data-lucide=["\']([^"\']+)["\'][^>]*>.*?</i>', lucide_html_replacer, content, flags=re.IGNORECASE | re.DOTALL)
-
-    # AUTOMATED FONTAWESOME HTML CODES INTERCEPTOR ENGINE
-    def fontawesome_html_replacer(match):
-        if not match.group(2): return match.group(0)
-        style_class = match.group(2).lower().replace('fa-', '')
-        icon_name = match.group(3).lower().strip()
-        abs_url = icon_registry.get(f"fontawesome-{style_class}-{icon_name}") or icon_registry.get(f"fa-{style_class}-{icon_name}") or icon_registry.get(icon_name)
-        if abs_url:
-            token = register_icon_token(abs_url)
-            if token: return token
-        return match.group(0)
-
-    content = re.sub(r'(```.*?```|`[^`]+`)|<i[^>]+class=["\'][^"\']*(fa-solid|fa-regular|fa-brands|fas|far|fab)\s+fa-([a-zA-Z0-9_-]+)[^"\']*["\'][^>]*>.*?</i>', fontawesome_html_replacer, content, flags=re.IGNORECASE | re.DOTALL)
-
-    # AUTOMATED GITHUB OCTICONS HTML INTERCEPTOR ENGINE
-    def octicons_html_replacer(match):
-        if not match.group(2): return match.group(0)
-        icon_name = match.group(2).lower().strip()
-        abs_url = icon_registry.get(f"octicons-{icon_name}") or icon_registry.get(icon_name)
-        if not abs_url:
-            for suffix in ["-24", "-16"]:
-                abs_url = icon_registry.get(f"octicons-{icon_name}{suffix}") or icon_registry.get(f"{icon_name}{suffix}")
-                if abs_url: break
-        if abs_url:
-            token = register_icon_token(abs_url)
-            if token: return token
-        return match.group(0)
-
-    content = re.sub(r'(```.*?```|`[^`]+`)|<span[^>]+class=["\'][^"\']*octicon-([a-zA-Z0-9_-]+)[^"\']*["\'][^>]*>.*?</span>', octicons_html_replacer, content, flags=re.IGNORECASE | re.DOTALL)
-
-    content = re.sub(r'<script[^>]*src=["\']([^"\']*lucide[^"\']*)["\'][^>]*>.*?</script>', '', content, flags=re.IGNORECASE | re.DOTALL)
-    content = re.sub(r'<script[^>]*>.*?lucide\.createIcons.*?</script>', '', content, flags=re.IGNORECASE | re.DOTALL)
-
-    # AUTOMATED COMMAND PROMPT INJECTOR ENGINE
-    def shell_prompt_replacer(match):
-        indent = match.group(1)
-        lang = match.group(2)
-        code_body = match.group(3)
-        
-        if lang.lower() in ['bash', 'sh', 'shell', 'zsh', 'console', 'cmd', 'powershell', 'terminal']:
-            lines = code_body.splitlines()
-            updated_lines = []
-            in_continuation = False
-            for line in lines:
-                stripped = line.strip()
-                if stripped:
-                    if not in_continuation and not stripped.startswith('$') and not stripped.startswith('#'):
-                        l_indent = len(line) - len(line.lstrip())
-                        updated_lines.append(line[:l_indent] + '$ ' + line[l_indent:])
-                    else:
-                        updated_lines.append(line)
-                    in_continuation = stripped.endswith('\\')
-                else:
-                    updated_lines.append(line)
-                    in_continuation = False
-            return f"{indent}```{lang}\n" + "\n".join(updated_lines) + f"\n{indent}```"
-        return match.group(0)
-
-    content = re.sub(r'^([ \t]*)```([a-zA-Z0-9_-]*)\s*\n(.*?)\n\1```', shell_prompt_replacer, content, flags=re.MULTILINE | re.DOTALL)
-
-    # AUTOMATED SUPERFENCES ATTRIBUTE-LIST TRANSLATION ENGINE
-    # pymdownx.superfences allows extended fence info strings like ```python hl_lines="2"
-    # title="Code blocks"`, but Pandoc's markdown reader only recognises a bare language
-    # name straight after the fence - anything trailing it isn't a valid info string, so
-    # Pandoc gives up on the whole fence and falls back to a plain paragraph (fence
-    # markers and attributes rendered as literal text). Rewrite it to Pandoc's own
-    # attribute-list fence syntax (```{.python hl_lines="2" title="Code blocks"}`) so it's
-    # parsed as a real, syntax-highlighted code block.
-    def superfences_attr_replacer(match):
-        indent, lang, attrs = match.group(1), match.group(2), match.group(3).strip()
-        return f'{indent}```{{.{lang} {attrs}}}'
-
-    content = re.sub(
-        r'^([ \t]*)```[ \t]*([a-zA-Z][\w+-]*)[ \t]+(\S.*)$',
-        superfences_attr_replacer,
-        content,
-        flags=re.MULTILINE
-    )
-
-    # THE IMAGE FILTER: Process light and dark mode asset rows line by line
-    processed_lines = []
-    for line in content.splitlines():
-        if '#only-dark' in line: continue  
-        if '#only-light' in line: line = line.replace('#only-light', '')  
-        processed_lines.append(line)
-    content = '\n'.join(processed_lines)
-
-    project_vars = config.get('project', {})
-    extra_vars = config.get('extra', {})
-    vars_dict = {}
-    if isinstance(project_vars, dict): vars_dict.update(project_vars)
-    if isinstance(extra_vars, dict): vars_dict.update(extra_vars)
-    if isinstance(project_vars, dict):
-        proj_extra = project_vars.get('extra', {})
-        if isinstance(proj_extra, dict): vars_dict.update(proj_extra)
-    vars_dict.update(calculated_vars)
-    
-    docs_dir = config.get('docs_dir', 'docs')
-
-    # Evaluate Template Conditional Rules
-    lines = content.splitlines()
-    filtered_lines = []
-    state_stack = []
-    in_raw = False
-
-    for line in lines:
-        # {% raw %}...{% endraw %} marks literal example syntax (e.g. showing
-        # `{% if is_surrey %}` or `{{ word_count }}` in documentation) that must
-        # NOT be treated as a real directive below - the same protection Jinja's
-        # own raw block gives on the live website. Must run before the if/else/
-        # endif matching, since that would otherwise happily "execute" an
-        # example directive shown inside a code fence.
-        has_raw_open = bool(re.search(r'\{%-?\s*raw\s*-?%\}', line))
-        has_raw_close = bool(re.search(r'\{%-?\s*endraw\s*-?%\}', line))
-        if in_raw or has_raw_open:
-            clean_line = re.sub(r'\{%-?\s*raw\s*-?%\}', '', line)
-            clean_line = re.sub(r'\{%-?\s*endraw\s*-?%\}', '', clean_line)
-            if all(is_active for _, is_active in state_stack):
-                filtered_lines.append(clean_line)
-            # A block opened on this line stays protected on subsequent lines
-            # until a (possibly later) line closes it; already being in_raw
-            # only ends once this line's close is seen.
-            in_raw = not has_raw_close
-            continue
-
-        if re.search(r'[{(]%\s*if\s+(\w+)\s*%', line):
-            match = re.search(r'if\s+(\w+)', line)
-            var_name = match.group(1)
-            raw_val = vars_dict.get(var_name, False)
-            condition_active = raw_val.lower() in ('true', '1', 'yes', 'on') if isinstance(raw_val, str) else bool(raw_val)
-            state_stack.append(('if', condition_active))
-            continue
-        elif re.search(r'[{(]%\s*else\s*%', line):
-            if state_stack and state_stack[-1][0] == 'if':
-                state_stack[-1] = ('else', not state_stack[-1][1])
-            continue
-        elif re.search(r'[{(]%\s*endif\s*%', line):
-            if state_stack: state_stack.pop()
-            continue
-        if not all(is_active for _, is_active in state_stack): continue
-        filtered_lines.append(line)
-
-    content = '\n'.join(filtered_lines)
-
-    if is_index:
-        content = re.sub(r'[<]![-\s]*.*?[- \s]*[>]', '', content, flags=re.DOTALL)
-        content = re.sub(r'\[:material-file-pdf-box: PDF\].*$', '', content, flags=re.MULTILINE)
-        def tag_unnumbered(match):
-            line = match.group(0)
-            if '{.' in line: return line.replace('{.', '{.hidden .unnumbered .unlisted .')
-            elif '{' in line: return line.replace('{', '{.hidden .unnumbered .unlisted}')
-            return f"{line} {{.hidden .unnumbered .unlisted}}"
-        content = re.sub(r'^#{1,6}\s+.*$', tag_unnumbered, content, flags=re.MULTILINE)
-        content = f'<div class="cover-page">\n{content}\n</div>\n'
-
-    # INDENTATION PASSTHROUGH STATE MACHINE
-    final_lines = content.splitlines()
-    new_lines = []
-    in_tab, in_admonition, in_gridcard, in_card_item = False, False, False, False
-    gridcard_base_indent, tab_indent_level, adm_indent_level = 0, 0, 0
-    adm_output_prefix = ''
-    gridcard_output_prefix = ''
-    gridcard_block_start = 0
-
-    for line in final_lines:
-        stripped = line.lstrip()
-        current_indent = len(line) - len(stripped)
-        if stripped == "":
-            new_lines.append("")
-            continue
-
-        if not in_gridcard:
-            grid_div_match = re.search(r'<div[^>]*class=["\']([^"\']*(?:grid\s+cards|cards\s+grid)[^"\']*)["\'][^>]*>', stripped, re.IGNORECASE)
-            if grid_div_match:
-                in_gridcard = True
-                gridcard_base_indent = current_indent
-                # Same rule as admonitions/tabs (see the matching comment further
-                # below): Pandoc only treats this ::: fence as *continuing* the
-                # enclosing list item (keeping items 1/2/3 in one <ol>) if it's
-                # indented to the item's content column - the state machine below
-                # builds the card's content already de-indented flat against the
-                # card, so the whole block gets this prefix re-applied afterwards
-                # rather than threading it through every intermediate line.
-                gridcard_output_prefix = '   ' if gridcard_base_indent > 0 else ''
-                gridcard_block_start = len(new_lines)
-                style_match = re.search(r'style=["\']([^"\']*)["\']', line, re.IGNORECASE)
-                style_attr = f' style="{style_match.group(1)}"' if style_match else ''
-                new_lines.append(f"\n::: {{.gridcard-matrix{style_attr}}}\n")
-                continue
-
-        if in_gridcard:
-            if stripped.startswith('</div>'):
-                # Close whatever's still open inside the card, innermost first
-                # (a tab or admonition can still be open here, since the card
-                # markup often ends right after their content with no dedented
-                # line in between to trigger their own natural close below).
-                # Without this, their in_tab/in_admonition state leaks past
-                # the card, wrongly closing the next thing that happens to
-                # dedent far enough outside it and leaving a stray, unmatched
-                # ::: behind as literal text.
-                if in_admonition:
-                    new_lines.append(f"\n{adm_output_prefix}:::\n")
-                    in_admonition = False
-                if in_tab:
-                    new_lines.append("\n:::\n")
-                    in_tab = False
-                if in_card_item: new_lines.append("\n:::\n")
-                in_gridcard, in_card_item = False, False
-                new_lines.append("\n:::\n")
-                if gridcard_output_prefix:
-                    for idx in range(gridcard_block_start, len(new_lines)):
-                        new_lines[idx] = "\n".join(
-                            (gridcard_output_prefix + sub) if sub.strip() else sub
-                            for sub in new_lines[idx].split("\n")
-                        )
-                continue
-            card_strip_count = gridcard_base_indent + 4
-            relative_line = line[card_strip_count:] if line.startswith(' ' * card_strip_count) else line.lstrip()
-            rel_stripped = relative_line.lstrip()
-            if rel_stripped.startswith('-') and not rel_stripped.startswith('***'):
-                if in_card_item: new_lines.append("\n:::\n")
-                in_card_item = True
-                new_lines.append("\n::: {.gridcard-item}\n")
-                title_text = re.sub(r'^-\s+', '', rel_stripped)
-                title_text = re.sub(r'\{\s*[^}]*\}', '', title_text)
-                title_text = title_text.strip()
-                new_lines.append(f'::: {{.gridcard-title}}\n{title_text}\n:::\n')
-                continue
-            line, stripped = relative_line, rel_stripped
-            current_indent = len(line) - len(stripped)
-
-        if in_tab and not stripped.startswith('==='):
-            if current_indent <= tab_indent_level:
-                if in_admonition:
-                    new_lines.append("\n:::\n")
-                    in_admonition = False
-                new_lines.append("\n:::\n")
-                in_tab = False
-
-        if in_admonition and not in_tab and not stripped.startswith(('!!!', '???')):
-            if current_indent < adm_indent_level + 4:
-                in_admonition = False
-                new_lines.append(f"\n{adm_output_prefix}:::\n")
-
-        if stripped.startswith('==='):
-            if in_tab:
-                if in_admonition:
-                    new_lines.append("\n:::\n")
-                new_lines.append("\n:::\n")
-            match = re.search(r'^===\s*["\'\u201c\u2018]?(.*?)["\'\u201d\u2019]?\s*$', stripped)
-            tab_title = match.group(1).strip() if match else "Tab"
-            tab_indent_level = current_indent
-            in_tab, in_admonition = True, False
-            new_lines.append(f'\n::: {{.tabbox title="{tab_title}"}}')
-            continue
-
-        if not in_tab and stripped.startswith(('!!!', '???')):
-            if in_admonition: new_lines.append(f"\n{adm_output_prefix}:::\n")
-            parts = stripped.split(maxsplit=2)
-            adm_type = parts[1].lower() if len(parts) > 1 else "note"
-            adm_title = parts[2].strip('"\'') if len(parts) > 2 else adm_type.capitalize()
-            adm_indent_level = current_indent
-            # Nesting an admonition inside a list item matters for two reasons: (1)
-            # visually, it should render indented under that item, matching the live
-            # site; (2) numerically, Pandoc only treats content as *continuing* the
-            # list (keeping items 1/2/3 in one <ol>) if it's indented to the item's
-            # content column - otherwise it starts a new <ol start="2">, which
-            # WeasyPrint then ignores, rendering every split-off list as "1.". Pandoc
-            # only recognises a ::: fence as nested content at exactly that column
-            # (3 spaces, matching a single-digit "N. " marker) - going deeper, e.g.
-            # to match this doc's own 4-space code-fence indent convention, makes
-            # Pandoc treat the ::: fence as literal paragraph text instead.
-            adm_output_prefix = '   ' if adm_indent_level > 0 else ''
-            adm_icon_token = resolve_admonition_icon_token(adm_type)
-            adm_title_text = f"{adm_icon_token} {adm_title}" if adm_icon_token else adm_title
-            new_lines.append(f"\n{adm_output_prefix}::: {{.admonition .{adm_type}}}")
-            new_lines.append(f"{adm_output_prefix}::: {{.admonition-title}}\n{adm_output_prefix}{adm_title_text}\n{adm_output_prefix}:::\n")
-            in_admonition = True
-            continue
-
-        if in_tab:
-            strip_count = tab_indent_level + 4
-            content_line = line[strip_count:] if len(line) >= strip_count and line.startswith(' ' * strip_count) else line.lstrip()
-            content_stripped = content_line.lstrip()
-            if content_stripped.startswith(('!!!', '???')):
-                if in_admonition: new_lines.append(f"\n{adm_output_prefix}:::\n")
-                parts = content_stripped.split(maxsplit=2)
-                adm_type = parts[1].lower() if len(parts) > 1 else "note"
-                adm_title = parts[2].strip('"\'') if len(parts) > 2 else adm_type.capitalize()
-                # See the matching comment above: Pandoc requires this ::: fence at
-                # exactly a 3-space indent to be recognised as nested list-item
-                # content (rather than as flattened column-0 or this doc's own
-                # 4-space code-fence convention, both of which break either the
-                # list numbering or the fence recognition itself).
-                adm_indent_level = len(content_line) - len(content_stripped)
-                adm_output_prefix = '   ' if adm_indent_level > 0 else ''
-                adm_icon_token = resolve_admonition_icon_token(adm_type)
-                adm_title_text = f"{adm_icon_token} {adm_title}" if adm_icon_token else adm_title
-                new_lines.append(f"\n{adm_output_prefix}::: {{.admonition .{adm_type}}}")
-                new_lines.append(f"{adm_output_prefix}::: {{.admonition-title}}\n{adm_output_prefix}{adm_title_text}\n{adm_output_prefix}:::\n")
-                in_admonition = True
-                continue
-            if in_admonition:
-                content_indent = len(content_line) - len(content_stripped)
-                if content_indent < adm_indent_level + 4 and not content_stripped.startswith(('!!!', '???')):
-                    in_admonition = False
-                    new_lines.append(f"\n{adm_output_prefix}:::\n")
-                if in_admonition:
-                    new_lines.append(adm_output_prefix + (content_line[adm_indent_level + 4:] if content_line.startswith(' ' * (adm_indent_level + 4)) else content_stripped))
-                else:
-                    new_lines.append(content_line)
-            else:
-                new_lines.append(content_line)
-        elif in_admonition:
-            new_lines.append(adm_output_prefix + (line[adm_indent_level + 4:] if line.startswith(' ' * (adm_indent_level + 4)) else stripped))
-        else:
-            new_lines.append(line)
-
-    if in_tab: new_lines.append("\n:::\n")
-    if in_admonition: new_lines.append("\n:::\n")
-
-    # FENCED CODE BLOCK LAZY-CONTINUATION GUARD
-    # Pandoc's markdown reader only lets a fenced code block interrupt an
-    # immediately preceding text line (list item text, tab/admonition content, etc.)
-    # when the fence has zero indentation. Any indented fence - unavoidable for code
-    # nested inside list items, tabs, or admonitions - gets swallowed as a lazy
-    # continuation of the prior line when there's no blank line before it, so it
-    # renders as inline text instead of a code block. Force a separating blank line
-    # before every indented fence opener that doesn't already have one.
-    guarded_lines = []
-    in_fence, fence_char, fence_len = False, None, 0
-    for line in new_lines:
-        stripped = line.strip()
-        if not in_fence:
-            fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
-            if fence_match:
-                indent = len(line) - len(line.lstrip())
-                if indent > 0 and guarded_lines and guarded_lines[-1].strip() != "":
-                    guarded_lines.append("")
-                in_fence = True
-                fence_char = fence_match.group(1)[0]
-                fence_len = len(fence_match.group(1))
-        else:
-            close_match = re.match(r'^(`{3,}|~{3,})\s*$', stripped)
-            if close_match and close_match.group(1)[0] == fence_char and len(close_match.group(1)) >= fence_len:
-                in_fence = False
-        guarded_lines.append(line)
-    new_lines = guarded_lines
-
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(new_lines))
-
 def to_base64_data_uri(img_src, base_dir):
     """Resolves a (possibly relative) image src to an absolute path under
     base_dir and returns it as a base64 data: URI, so the standalone
     compiled document doesn't depend on relative file paths resolving
-    correctly from wherever Pandoc happens to run. Module-level so both
-    preprocess_markdown()'s own nested copy (unchanged, still used by its
-    markdown-syntax-based pipeline) and render_page_html() (see
-    zendoc-template#92's HTML-based pipeline) can use the identical logic."""
+    correctly from wherever Pandoc happens to run - used by render_page_html()
+    (see zendoc-template#92)."""
     if img_src.startswith('data:'):
         return img_src
 
@@ -1783,7 +360,50 @@ def to_base64_data_uri(img_src, base_dir):
             pass
     return img_src
 
-def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid_state, is_index=False, repo_url=''):
+# Mirrors the border-left-color set per admonition type in the
+# .admonition.<type> CSS rules in main()'s compiled stylesheet, so the icon
+# matches the coloured bar rather than rendering in its raw (black) fill.
+ADMONITION_ACCENT_COLORS = {
+    "note": "#448aff", "abstract": "#00b0ff", "info": "#00b8d4", "tip": "#00bfa5",
+    "success": "#00c853", "question": "#64dd17", "warning": "#ff9100", "failure": "#ff5252",
+    "danger": "#ff1744", "bug": "#ec407a", "example": "#651fff", "quote": "#9e9e9e",
+}
+
+def admonition_icon_svg(adm_type, config, icon_registry):
+    """Resolves an admonition type (note, warning, tip, ...) to its
+    accent-coloured icon SVG markup, using the same icon set configured for
+    the website's admonitions in project.theme.icon.admonition (zensical.toml)
+    - see https://zensical.org/docs/authoring/admonitions/#supported-types.
+    Zensical's own admonition HTML has no icon in it at all (confirmed
+    directly - the icon is a website-only CSS mask-image/background trick
+    referencing a theme asset that doesn't exist in the standalone PDF), so
+    render_page_html() inserts one explicitly instead - see zendoc-template#92.
+    Returns None if nothing is configured or the icon file can't be found."""
+    project_cfg = config.get('project')
+    theme_cfg = project_cfg.get('theme') if isinstance(project_cfg, dict) else None
+    icon_cfg = theme_cfg.get('icon') if isinstance(theme_cfg, dict) else None
+    adm_icon_cfg = icon_cfg.get('admonition') if isinstance(icon_cfg, dict) else None
+    shortcode = adm_icon_cfg.get(adm_type) if isinstance(adm_icon_cfg, dict) else None
+    if not shortcode:
+        return None
+    key = shortcode.strip('/').lower().replace('/', '-')
+    abs_path = icon_registry.get(key)
+    if not abs_path:
+        return None
+    try:
+        with open(abs_path, 'r', encoding='utf-8') as f:
+            svg_data = f.read()
+    except OSError:
+        return None
+    accent_color = ADMONITION_ACCENT_COLORS.get(adm_type)
+    if accent_color:
+        # "currentColor" resolves against the CSS `color` property, not
+        # `fill` - setting fill="..." on the <svg> root has no effect on a
+        # descendant path's fill="currentColor", so replace it directly.
+        svg_data = re.sub(r'currentColor', accent_color, svg_data, flags=re.IGNORECASE)
+    return svg_data
+
+def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid_state, is_index=False, repo_url='', icon_registry=None):
     """New render pipeline (see zendoc-template#92): renders this page
     through Zensical's own zensical.markdown.render.render() - the exact
     same zendoc/pymdownx extensions, real Jinja macro/variable substitution,
@@ -1904,6 +524,94 @@ def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid
         p.string = label.get_text()
         label.replace_with(p)
 
+    # Admonition icons: Zensical's own admonition HTML has no icon markup at
+    # all - the website draws it via a CSS trick referencing a theme asset
+    # URL that doesn't exist in the standalone PDF (confirmed directly - a
+    # built admonition's title paragraph is just its plain text, nothing
+    # else). Insert the configured, accent-coloured icon explicitly instead
+    # - see admonition_icon_svg().
+    if icon_registry:
+        for div in soup.select('div.admonition'):
+            classes = div.get('class', [])
+            adm_type = next((c for c in classes if c != 'admonition'), None)
+            title_p = div.find('p', class_='admonition-title')
+            if adm_type and title_p is not None:
+                svg_markup = admonition_icon_svg(adm_type, config, icon_registry)
+                if svg_markup:
+                    # A raw inline <svg> confirmed not to survive Pandoc's
+                    # HTML-to-HTML round trip through to WeasyPrint at all
+                    # (tested directly, in isolation, outside this pipeline)
+                    # - a base64 data: URI <img>, the same encoding
+                    # to_base64_data_uri() already uses for regular images,
+                    # renders reliably instead.
+                    b64 = base64.b64encode(svg_markup.encode('utf-8')).decode('utf-8')
+                    # Reuses the compiled stylesheet's existing img.twemoji
+                    # rule (1.1em, sized for an inline icon) rather than a
+                    # bare width/height attribute - the generic "img {
+                    # max-width: 100% !important }" rule elsewhere in the
+                    # same stylesheet otherwise overrides a plain attribute,
+                    # scaling the icon up to fill the whole admonition width.
+                    icon_img = soup.new_tag(
+                        'img',
+                        src=f'data:image/svg+xml;base64,{b64}',
+                        **{'class': 'twemoji'},
+                    )
+                    title_p.insert(0, ' ')
+                    title_p.insert(0, icon_img)
+
+    # Any other inline icon/emoji shortcode (pymdownx.emoji renders these as
+    # a raw inline <svg> inside a <span class="twemoji ...">, e.g. a grid
+    # card's own ":material-clock-fast:" title icon) - confirmed, the same
+    # way as admonition icons above, that a raw inline <svg> doesn't survive
+    # Pandoc's HTML-to-HTML round trip through to WeasyPrint at all (tested
+    # directly, in isolation). Converts every remaining <svg> anywhere on
+    # the page to a base64 data: URI <img>, reusing the same img.twemoji
+    # sizing rule.
+    for svg in soup.find_all('svg'):
+        b64 = base64.b64encode(str(svg).encode('utf-8')).decode('utf-8')
+        icon_img = soup.new_tag(
+            'img',
+            src=f'data:image/svg+xml;base64,{b64}',
+            **{'class': 'twemoji'},
+        )
+        svg.replace_with(icon_img)
+
+    # Footnotes: Zensical's own markdown pipeline (python-markdown's
+    # footnote extension) renders these as a <sup id="fnref:N"><a
+    # class="footnote-ref">N</a></sup> at the reference point, with every
+    # footnote's own text collected into one <div class="footnote"><ol>
+    # <li id="fn:N"><p>...</p></li></ol></div> at the *end* of the page -
+    # never a Pandoc-native Note element (that only exists when Pandoc's
+    # own *markdown* reader parses "[^1]" syntax directly; feeding Pandoc
+    # pre-rendered HTML here means it just sees an ordinary <div>/<ol>/
+    # <sup>, not a Note). The Lua filter's Note() function (and the
+    # .pdf-footnote float: footnote mechanism it feeds) was written for
+    # that native-Note case and silently never fires here - confirmed
+    # directly against the built PDF: a footnote's own text rendered
+    # wherever the <div class="footnote"> happened to fall in normal
+    # document flow, often several pages after its own reference, at
+    # regular body-text size rather than float:footnote's smaller
+    # bottom-of-page placement. Moves each footnote's text inline at its
+    # own reference point instead, in the same <span class="pdf-footnote">
+    # shape Note() used to produce, so float: footnote can anchor it to
+    # the correct page.
+    footnote_div = soup.find('div', class_='footnote')
+    if footnote_div is not None:
+        for li in footnote_div.select('li[id^="fn:"]'):
+            ref = soup.find('sup', id=f'fnref:{li["id"][3:]}')
+            if ref is None:
+                continue
+            backref = li.find('a', class_='footnote-backref')
+            if backref is not None:
+                backref.decompose()
+            span = soup.new_tag('span', **{'class': 'pdf-footnote'})
+            for p in li.find_all('p', recursive=False):
+                p.unwrap()
+            for child in list(li.contents):
+                span.append(child)
+            ref.replace_with(span)
+        footnote_div.decompose()
+
     # Mermaid diagrams: WeasyPrint has no JS engine to run Mermaid.js
     # client-side - pre-render each <pre class="mermaid">'s source to a
     # static SVG via the same mermaid-cli install render_mermaid_diagrams()
@@ -1988,6 +696,54 @@ def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid
             continue
         repo_rel_path = os.path.normpath(os.path.join(docs_dir, current_dir, href)).replace('\\', '/')
         a['href'] = f'{blob_prefix}{repo_rel_path}'
+
+    # Prepend-position figure-caption/table-caption ("/// figure-caption | <"
+    # or "/// table-caption | <" - see "Captions" in customise.md): Pandoc's
+    # Figure AST node stores Caption and content as two separate,
+    # independently-typed fields rather than as ordered children reflecting
+    # the original DOM position, and Pandoc's own HTML writer always
+    # re-emits a Figure's <figcaption> *after* its content when serializing
+    # back to HTML for WeasyPrint - confirmed directly (isolated test: a
+    # <figcaption> placed first in the source HTML still comes out last in
+    # Pandoc's own HTML writer output), discarding "prepend" positioning
+    # entirely regardless of input order. A Div's children, unlike a
+    # Figure's, ARE emitted in original document order - so retag any
+    # figure whose <figcaption> comes first to a <div> (preserving id/
+    # class) and unwrap the <figcaption> itself (also confirmed: Pandoc's
+    # HTML reader treats a bare <figcaption> not inside a <figure> as
+    # ordinary flow content), leaving the caption as this element's first
+    # child block. The Lua filter's Div() handler applies the same
+    # "Figure "/"Table " + chapter-prefix numbering to this case that its
+    # Figure() handler applies to the (unaffected) default append-position
+    # case.
+    for figure in soup.find_all('figure', class_=['zendoc-figure-caption', 'zendoc-table-caption']):
+        first_child = figure.find(True, recursive=False)
+        if first_child is not None and first_child.name == 'figcaption':
+            figure.name = 'div'
+            first_child.unwrap()
+
+    # Pandoc's native Para AST node has no attribute field at all (unlike
+    # Div/Header/CodeBlock/Table/Figure, which all carry one) - confirmed
+    # directly: a <p id="..." class="...">, once read by Pandoc's HTML
+    # reader, comes out the other end as a bare Para with both the id *and*
+    # the class silently gone. This is exactly the shape every attr_list
+    # citation/acronym/glossary definition takes ({: #id .reference
+    # data-cite-text="..." } on a plain paragraph - see "References and
+    # bibliography" in customise.md), and the cover page's own title lines
+    # ({: .title-ctr-b4 } etc.) - both would otherwise silently lose their
+    # id/styling with no error at all. Retagging as a <div> (which Pandoc's
+    # reader does preserve attributes on) fixes both at once.
+    for p in soup.find_all('p'):
+        classes = p.get('class') or []
+        # zendoc-tab-label (see above) deliberately stays a <p>: the Lua
+        # filter's tabbed-set Div() handler reads it as a Plain/Para whose
+        # .content is a plain inline list, matching Pandoc's own Para AST
+        # node - retagging it to a Div here too would change its .content
+        # to a list of blocks instead, breaking that handler.
+        if 'zendoc-tab-label' in classes:
+            continue
+        if p.get('id') or classes:
+            p.name = 'div'
 
     # Cover page: every heading here (there's usually just one, hidden) is
     # decorative, not a real chapter - unnumbered/unlisted/hidden from the
@@ -2133,6 +889,13 @@ def main():
     copyright_text = project_section.get('copyright') or config.get('copyright') or "Copyright 2026"
     site_name_text = project_section.get('site_name') or config.get('site_name') or ""
 
+    # Only still needed for admonition icons (see admonition_icon_svg()) -
+    # everything else that used to need the icon registry (inline icon
+    # shortcodes, emoji) now arrives pre-embedded as real inline <svg> markup
+    # straight from render(), with no lookup required.
+    icon_dirs = discover_icon_dirs(config)
+    icon_registry = build_icon_registry(icon_dirs)
+
     temp_build_dir = "pdf_build_workspace"
     os.makedirs(temp_build_dir, exist_ok=True)
 
@@ -2144,7 +907,7 @@ def main():
         safe_name = path.replace('/', '_').replace('\\', '_') + '.html'
         temp_out_path = os.path.join(temp_build_dir, safe_name)
         is_index = "index.md" in os.path.basename(path).lower()
-        html = render_page_html(path, config, page_anchor_map, temp_build_dir, mermaid_state, is_index=is_index, repo_url=calculated_vars.get('repo_url', ''))
+        html = render_page_html(path, config, page_anchor_map, temp_build_dir, mermaid_state, is_index=is_index, repo_url=calculated_vars.get('repo_url', ''), icon_registry=icon_registry)
         with open(temp_out_path, 'w', encoding='utf-8') as f:
             f.write(html)
         processed_paths.append(temp_out_path)
@@ -2274,6 +1037,36 @@ def main():
             "    end\n"
             "    return tabs\n"
             "  end\n"
+            "  -- Prepend-position figure-caption/table-caption (see\n"
+            "  -- render_page_html(), zendoc-template#93): pymdownx.blocks.caption's\n"
+            "  -- own HTML places a prepended figcaption physically first in the\n"
+            "  -- DOM, but Pandoc's Figure AST node stores Caption and content as\n"
+            "  -- two separate fields regardless of original order, and Pandoc's\n"
+            "  -- own HTML writer always re-emits the caption *after* the content\n"
+            "  -- when serializing Figure back to HTML - discarding the \"prepend\"\n"
+            "  -- positioning entirely (confirmed directly, isolated test).\n"
+            "  -- render_page_html() works around this by retagging any prepend-\n"
+            "  -- position figure/table caption to a <div> before Pandoc parses it\n"
+            "  -- (a Div's children ARE emitted in original document order),\n"
+            "  -- leaving the caption as this Div's first child block - same\n"
+            "  -- \"Figure \"/\"Table \" + chapter-prefix numbering as the Figure()\n"
+            "  -- handler below, applied to el.content[1] instead of\n"
+            "  -- el.caption.long[1].\n"
+            "  if el.classes:includes('zendoc-figure-caption') or el.classes:includes('zendoc-table-caption') then\n"
+            "    local word = el.classes:includes('zendoc-figure-caption') and 'Figure ' or 'Table '\n"
+            "    local label = in_appendix and to_letter(appendix_index) or tostring(h1)\n"
+            "    local block = el.content[1]\n"
+            "    if block and (block.t == 'Para' or block.t == 'Plain') then\n"
+            "      for i, inline in ipairs(block.content) do\n"
+            "        if inline.t == 'Span' and inline.classes:includes('caption-prefix') then\n"
+            "          table.insert(inline.content, 1, pandoc.Str(label .. '.'))\n"
+            "          table.insert(block.content, i, pandoc.Str(word))\n"
+            "          break\n"
+            "        end\n"
+            "      end\n"
+            "    end\n"
+            "    return el\n"
+            "  end\n"
             "  -- pymdownx.arithmatex's generic-mode display math\n"
             "  -- (<div class=\"arithmatex\">\\[...\\]</div> - see\n"
             "  -- zendoc-template#92): Pandoc's HTML reader has no native Math\n"
@@ -2373,11 +1166,6 @@ def main():
             "    end\n"
             "  end\n"
             "  return block\n"
-            "end\n\n"
-            "function Note(el)\n"
-            "  local html = pandoc.write(pandoc.Pandoc(el.content), 'html')\n"
-            "  html = html:gsub('^%s*<p>', ''):gsub('</p>%s*$', '')\n"
-            "  return pandoc.RawInline('html', '<span class=\"pdf-footnote\">' .. html .. '</span>')\n"
             "end\n\n"
             "function Math(el)\n"
             "  if not mathjax_available then return nil end\n"
@@ -2562,6 +1350,43 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
 }
 h1 { break-before: page !important; }
 .cover-page h1 { break-before: auto !important; }
+/* print.css's own "h1..h6 { page-break-after: avoid }" keeps a heading from
+   being the last thing on a page - reasonable for h1/h2 (a chapter/section
+   title followed by a short intro), but confirmed directly (isolated A/B
+   rebuild) to backfire for h3-h6 whenever the heading's own following
+   content is large (its own intro paragraph, an "Install X" sub-heading,
+   then a whole grid-card of per-OS tabs): WeasyPrint couldn't satisfy
+   "heading can't be alone at the bottom of the page" without pulling in
+   far more content than intended, so it pushed the *entire* heading (with
+   nothing before it moved) onto a fresh page instead - even with hundreds
+   of points of genuinely blank space left on the previous page (e.g.
+   "12.3 Installing a GUI Git client" / "12.3.1 Installing GitHub Desktop"
+   /"12.3.2 Installing GitKraken", "7.2.2 Generate and configure ssh keys
+   for Git"). h1/h2 keep the "avoid" behaviour (via print.css); h3-h6
+   override back to "auto" here. */
+h3, h4, h5, h6 { page-break-after: auto !important; break-after: auto !important; }
+/* A plain <p> had no break-inside/orphans/widows protection at all.
+   Making every <p> unsplittable (page-break-inside: avoid) over-corrected:
+   a short paragraph immediately after a heading became atomic with that
+   heading too (since the heading's own "stay with next" requirement, from
+   h1/h2's avoid-after or a title's own avoid-after elsewhere, needs the
+   *whole* next block to fit when that block can't split), and if the
+   combined size didn't fit the remaining page, the whole pair got pushed
+   to a fresh page - a blank-gap regression, confirmed directly for "8.2
+   Synchronise your updates" (startediting.md). orphans/widows alone (no
+   avoid) fixes that, but only if the threshold is low enough to actually
+   allow a split: orphans: 3 / widows: 3 (6 combined) is taller than many
+   real intro paragraphs here - "7.2.2 Generate and configure ssh keys for
+   Git"'s own paragraph (installtooling.md) is only 2 lines, so no split
+   was legal at all, and the whole paragraph moved away from its heading,
+   orphaning it alone at the bottom of the previous page. orphans: 1 /
+   widows: 2 (3 combined) is short enough to let even a 2-3 line paragraph
+   split if it must, while still avoiding an ugly single-line widow for
+   longer ones. */
+p {
+    orphans: 1;
+    widows: 2;
+}
 /* Feeds @top-right above: skips the Table of Contents' own "Table of
    Contents" h1 (and the hidden cover-page h1) via .unnumbered, the same
    class the numbering Lua filter already uses to identify non-chapter
@@ -2588,26 +1413,43 @@ table tr {
 thead {
     display: table-header-group;
 }
-/* Bound inside <table> itself, so it can never be separated from the start
-   of the table across a page break (unlike a plain preceding paragraph).
-   caption-side itself isn't set here - it's added per-table, only for
-   captions that actually asked to be shown at the top (see
-   table_caption_replacer()/prepend_table_ids below) - Pandoc's own
-   default (bottom) applies to any table caption that didn't. */
-table caption {
+/* pymdownx.blocks.caption always wraps its caption text in a <p> - inside
+   a native <figcaption> for the default append-position case (still a
+   <figure> - see the "figure {}"/"figure.zendoc-table-caption" rules
+   below), or as the first child <p> once prepend-position unwraps the
+   <figcaption> into a <div> (see render_page_html(), zendoc-template#93).
+   This used to be "table caption {}", which only ever matches a literal
+   <table><caption> - something pymdownx.blocks.caption never produces -
+   dead code left over from the old regex pipeline's own hand-built
+   markup; confirmed captions were rendering unitalicised because of it. */
+figcaption p,
+div.zendoc-table-caption > p:first-child,
+div.zendoc-figure-caption > p:first-child {
     text-align: center !important;
     font-style: italic !important;
     margin-bottom: 8px !important;
     page-break-after: avoid !important;
     break-after: avoid-page !important;
 }
-table th { background-color: rgba(0, 0, 0, 0.1) !important; font-weight: bold !important; }
+table th { background-color: rgba(0, 0, 0, 0.1) !important; font-weight: bold !important; text-align: center !important; }
+/* text-align/font-size set explicitly here, not left to inherit - a
+   table-caption's own wrapping div (div.zendoc-table-caption above, or
+   the pre-existing "figure {}" rule for an append-position table caption)
+   sets text-align: center to keep its caption text centered, which every
+   cell's content otherwise silently inherits too (confirmed directly:
+   table body text was rendering center-aligned with no explicit rule
+   anywhere overriding it). font-size is reduced from the inherited body
+   size, matching how a dense grid of short cells reads better smaller -
+   same reasoning as .tabbox-header/.admonition-title's own explicit
+   smaller sizes above. */
 table th, table td {
     padding: 8px 12px !important;
     border-top: 0.25pt solid #555555 !important;
     border-bottom: 0.25pt solid #555555 !important;
     border-left: none !important; border-right: none !important;
+    font-size: 10pt !important;
 }
+table td { text-align: left !important; }
 table tr:first-child th, table tr:first-child td { border-top: none !important; }
 table tr:last-child td { border-bottom: none !important; }
 
@@ -2619,12 +1461,26 @@ blockquote {
     padding: 12px 16px !important; margin: 1em 0 !important;
 }
 /* Renders footnotes at the bottom of the page they're referenced on (like a
-   printed book), instead of Pandoc's default of collecting every footnote in
-   the whole document into one section at the very end of the PDF. The Lua
-   filter replaces each Note with this inline span at its reference point. */
+   printed book). Zensical's own markdown pipeline renders a footnote as a
+   <sup id="fnref:N"> at the reference point plus a <div class="footnote">
+   collecting every footnote's own text at the *end* of the page - never a
+   Pandoc-native Note element (that only exists when Pandoc's own markdown
+   reader parses "[^1]" syntax directly, not when it's handed pre-rendered
+   HTML). render_page_html() moves each footnote's text inline into a
+   <span class="pdf-footnote"> at its own reference point instead, so
+   float: footnote can anchor it to the correct page - confirmed directly
+   that without this, the footnote's div rendered wherever it fell in
+   normal document flow, often several pages after its own reference. */
 .pdf-footnote {
     float: footnote !important;
     font-size: 9pt !important;
+    /* KNOWN LIMITATION: WeasyPrint 69's float: footnote renders the
+       footnote-area text in a fixed, narrow column (confirmed directly -
+       neither an explicit percentage nor absolute-point width override
+       changes it), instead of the page's full content width, so a
+       footnote often wraps to 2-3 short lines rather than one. Correct
+       page and font-size are unaffected. Tracked upstream rather than
+       worked around here, since no CSS-side override changes it. */
 }
 /* extra.css hides .pdf-only (the cover page's word-count/repo-link markers)
    on the live website; override that back to visible here, since they're
@@ -2689,7 +1545,15 @@ blockquote {
 }
 .admonition-title {
     font-weight: bold !important; margin-bottom: 8px !important; font-size: 10.5pt !important;
-    color: #000000 !important; page-break-after: avoid !important; break-after: avoid !important;
+    color: #000000 !important;
+    /* auto, not avoid: same WeasyPrint quirk as h3-h6's own page-break-after
+       (see the h3,h4,h5,h6 rule above) - confirmed directly against the
+       built PDF ("The Four Space Rule" admonition, zensicalbasics.md): even
+       though .admonition itself already uses page-break-inside: auto, the
+       title's own avoid-after still forced the *entire* admonition onto a
+       fresh page rather than letting it start on the current one, leaving
+       a large blank gap behind - despite the admonition's own body being
+       only 2-3 short lines, easily small enough to have fit. */
 }
 
 .admonition.note     { border-left-color: #448aff !important; background-color: rgba(68, 138, 255, 0.05) !important; }
@@ -2719,12 +1583,66 @@ blockquote {
     display: block !important; color: #111111 !important; page-break-after: avoid !important; break-after: avoid !important;
 }
 .gridcard-title p { font-weight: bold !important; font-size: 13pt !important; color: #111111 !important; margin: 0 !important; display: inline !important; }
+/* Zensical's own native grid-card HTML (<div class="grid cards" markdown>
+   wrapping a bullet list - see "Grid cards" in zensicalbasics.md) is a
+   plain <div class="grid cards ..."><ul><li>...</li></ul></div>, not the
+   .gridcard-matrix/-item/-title structure above (that was hand-built by
+   the old regex pipeline's own ::: {.gridcard-matrix} fenced-div
+   convention, retired in zendoc-template#92 along with everything else
+   that only existed to translate Zensical/pymdownx markdown syntax Pandoc
+   itself doesn't understand - card layout has no such translation problem,
+   Pandoc reads the real <div>/<ul>/<li> as-is). Same visual treatment as
+   .gridcard-item/-title above, targeting the real structure directly: each
+   <li> is a card, and the card's leading paragraph (its "__bold title__")
+   is styled as the title.
+   WeasyPrint's CSS Grid support is too limited to trust for an actual
+   side-by-side multi-column layout, so every card - one-column or not -
+   renders as one full-width box per row, stacked. */
+div.grid.cards > ul {
+    list-style: none !important; margin: 1.5em 0 !important; padding: 0 !important;
+}
+div.grid.cards > ul > li {
+    background-color: #f4f8ff !important; border: none !important;
+    padding: 16px !important; margin-bottom: 1em !important; border-radius: 4px !important;
+    /* auto, not avoid: unlike the old .gridcard-item convention this
+       replaces, a real Zensical grid card commonly wraps a whole tabbed-set
+       (e.g. installtooling.md's per-OS install instructions, all three OS
+       tabs stacked since WeasyPrint can't do interactive tabs) - often
+       taller than a full page. "avoid" forced the entire oversized card
+       onto a fresh page as one atomic unit (unable to actually fit there
+       either), leaving a large blank gap on the previous page - confirmed
+       directly against the built PDF. Same "auto" convention already used
+       for .tabbox-container/.admonition below, for the same reason. */
+    page-break-inside: auto !important; break-inside: auto !important; list-style: none !important;
+}
+div.grid.cards > ul > li > p:first-child {
+    font-weight: bold !important; font-size: 13pt !important; margin-bottom: 12px !important;
+    color: #111111 !important; page-break-after: avoid !important; break-after: avoid !important;
+}
 
 /* #dddddd is another 5% darker than #e9e9e9 (itself 5% darker than
    #f5f5f5, --md-code-bg-color - the website's shading for both inline
    code and code blocks; see docs/stylesheets/extra.css / the Zensical
    default theme), kept identical between inline code and code blocks here. */
 pre, code { font-family: "__MONO_FONT__", monospace !important; }
+/* text-align isn't otherwise set anywhere on pre/code, so a fenced code
+   block nested inside a centered ancestor (figure {}, div.zendoc-*-caption,
+   .gridcard-title, an admonition/tab that happens to be inside one of
+   those, etc.) would silently inherit centered text-align, ragging every
+   code line's left edge - same class of inheritance bug as the table
+   text-align fix above. Explicit left keeps code blocks left-aligned
+   regardless of ancestor context. */
+pre { text-align: left !important; }
+/* print.css's own "img, pre, blockquote, .tabbox-container { page-break-
+   inside: avoid }" is fine for img/blockquote (naturally short/atomic),
+   but the same WeasyPrint quirk already fixed for grid cards, table
+   captions, and admonitions above also hits a large fenced code block -
+   confirmed directly against the built PDF: customise.md's own ~34-line
+   nav = [...] example (illustrating zensical.toml's own nav list) forced
+   itself entirely onto a fresh page rather than splitting, leaving a
+   large blank gap on the previous page. .tabbox-container already gets
+   this same auto override elsewhere in this stylesheet; pre didn't. */
+pre { page-break-inside: auto !important; break-inside: auto !important; }
 pre { padding: 10px !important; border-radius: 4px !important; margin: 1em 0 !important; white-space: pre-wrap !important; background-color: #dddddd !important; }
 code { padding: 2px 4px !important; border-radius: 3px !important; background-color: #dddddd !important; }
 /* Multi-line <code> inside <pre> is a single inline box split across hard line
@@ -2768,6 +1686,32 @@ img {
 figure {
     page-break-inside: avoid !important;
     break-inside: avoid-page !important;
+    text-align: center !important;
+}
+/* A prepend-position figure-caption is retagged from <figure> to <div> in
+   render_page_html() (see zendoc-template#93, and the Lua filter's Div()
+   handler above) so its caption keeps original document order through
+   Pandoc - same page-break/centering treatment as the "figure {}" rule
+   above (an image can't be split anyway, so keeping it atomic with its
+   caption is safe), which no longer matches once it's a <div>. */
+div.zendoc-figure-caption {
+    page-break-inside: avoid !important;
+    break-inside: avoid-page !important;
+    text-align: center !important;
+}
+/* Unlike a figure-caption, a table-caption's content (the table itself)
+   routinely runs longer than one page (see originality.md's AI-use
+   table) - inheriting "figure {}"'s page-break-inside: avoid (or copying
+   it verbatim to the div case above) forced the whole caption+table onto
+   a fresh page as one atomic unit, unable to actually fit there either,
+   leaving a large blank gap on the previous page (confirmed directly
+   against the built PDF). "auto" here overrides that for both the
+   default append-position case (still a native <figure>) and the
+   prepend-position case (retagged to a <div> above) - each row is still
+   individually protected from splitting by "table tr" below. */
+figure.zendoc-table-caption, div.zendoc-table-caption {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
     text-align: center !important;
 }
 /* Applied via "{ .screenshot }" on an image (see "Captions" in
@@ -2907,13 +1851,15 @@ p.glossary + p.glossary {{
 }}
 """
 
-    # NOTE (zendoc-template#92): the old pipeline's per-table "| <" prepend
-    # position tracking (caption_state/prepend_table_ids) doesn't apply to
-    # the new render_page_html() pipeline - pymdownx.blocks.caption's own
-    # HTML output already places a prepended figcaption/caption physically
-    # first in the DOM, rather than needing a CSS caption-side override
-    # keyed by id. Not yet verified that Pandoc's HTML writer preserves this
-    # positioning through to the PDF - tracked as a known follow-up.
+    # NOTE (zendoc-template#92/#93): the old pipeline's per-table "| <"
+    # prepend position tracking (caption_state/prepend_table_ids) doesn't
+    # apply to the new render_page_html() pipeline - pymdownx.blocks.caption's
+    # own HTML output already places a prepended figcaption/caption physically
+    # first in the DOM. Pandoc's own HTML writer does NOT preserve this
+    # positioning though (confirmed: its Figure AST node always re-emits the
+    # caption after the content, regardless of source order) - worked around
+    # in render_page_html() by retagging any prepend-position figure/table
+    # caption to a <div> before Pandoc parses it, which does preserve order.
     with open(temp_compiled_css, "w", encoding="utf-8") as f:
         f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css + "\n\n" + acronym_style_css + "\n\n" + glossary_style_css)
 

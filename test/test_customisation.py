@@ -27,12 +27,16 @@ template's own zensical.toml, so there's nothing configured to check
 against."""
 
 import hashlib
+import inspect
 import re
+
+from zendoc.pdf.build import build_pdf
+from zendoc.pdf.css import build_css
+from zendoc.pdf.icons import build_icon_registry, discover_icon_dirs
 
 from conftest import PDF_PATH, REPO_ROOT, soup_for
 
 EXTRA_CSS_PATH = REPO_ROOT / "docs" / "stylesheets" / "extra.css"
-BUILD_PDF_PATH = REPO_ROOT / "build_pdf.py"
 MACROS_PATH = REPO_ROOT / "macros.py"
 
 
@@ -220,11 +224,13 @@ def test_pdf_uses_the_documented_default_fonts_when_unset(zensical_config):
     """[project.theme.font] is commented out in this template's own
     zensical.toml, so both outputs should fall back to the documented
     defaults (customise.md's "Fonts" section: Inter / JetBrains Mono) -
-    build_pdf.py's own default, read directly rather than re-implemented
-    here (see main_font, mono_font = "Inter", "JetBrains Mono")."""
+    zendoc.pdf.build_pdf()'s own default, read directly via its signature
+    rather than reimplemented here (build_pdf.py no longer hardcodes these -
+    see zendoc-extension#96 - it only passes them through when configured)."""
     assert "font" not in zensical_config["project"]["theme"]
-    build_pdf_source = _read(BUILD_PDF_PATH)
-    assert 'main_font, mono_font = "Inter", "JetBrains Mono"' in build_pdf_source
+    defaults = inspect.signature(build_pdf).parameters
+    assert defaults["main_font"].default == "Inter"
+    assert defaults["mono_font"].default == "JetBrains Mono"
 
 
 def test_pdf_compiled_css_actually_uses_the_default_fonts(pdf_doc):
@@ -260,15 +266,16 @@ def test_website_also_uses_the_default_fonts(public_dir):
 # Icons
 # ---------------------------------------------------------------------------
 
-def test_configured_icon_names_resolve_to_real_files(build_pdf_module, zensical_config):
+def test_configured_icon_names_resolve_to_real_files(zensical_config):
     """theme.icon.* and theme.icon.admonition.* (see "Icons") name icons as
     "set/path" (e.g. "fontawesome/brands/github") - build_icon_registry()
-    is the same lookup build_pdf.py itself uses to resolve an icon shortcode
-    to a real .svg file; a typo here would silently 404/break on the
-    website and leak as missing content in the PDF."""
-    config = {"docs_dir": zensical_config["project"].get("docs_dir", "docs")}
-    icon_dirs = build_pdf_module.discover_icon_dirs(config)
-    registry = build_pdf_module.build_icon_registry(icon_dirs)
+    is the same lookup build_pdf.py itself uses (via zendoc.pdf.icons - see
+    zendoc-extension#96) to resolve an icon shortcode to a real .svg file;
+    a typo here would silently 404/break on the website and leak as
+    missing content in the PDF."""
+    docs_dir_name = zensical_config["project"].get("docs_dir", "docs")
+    icon_dirs = discover_icon_dirs(docs_dir_name)
+    registry = build_icon_registry(icon_dirs)
 
     theme_icon = zensical_config["project"]["theme"]["icon"]
     names = [v for k, v in theme_icon.items() if k != "admonition" and isinstance(v, str)]
@@ -390,14 +397,14 @@ def test_reference_acronym_glossary_spacing_matches_between_website_and_pdf():
     project.extra.reference_spacing_european/reference_indent_global/
     reference_spacing_global in zensical.toml (issue #66) - read
     independently by macros.py's _reference_style_values() (website) and
-    build_pdf.py's main() (PDF), each with its own hardcoded fallback
-    literal for when a setting is left unset. Nothing keeps those two
-    fallback literals in sync if one changes without the other - this test
-    does - plus confirms build_pdf.py's generated CSS actually plugs each
-    value into the right selector (not, say, the wrong variable copy-pasted
-    into the acronym/glossary block)."""
+    zendoc.pdf.css.build_css() (PDF - see zendoc-extension#96), each with
+    its own hardcoded fallback literal for when a setting is left unset.
+    Nothing keeps those two fallback literals in sync if one changes
+    without the other - this test does - plus confirms build_css()'s
+    generated CSS actually plugs each value into the right selector (not,
+    say, the wrong variable copy-pasted into the acronym/glossary block)."""
     macros_source = _read(MACROS_PATH)
-    build_pdf_source = _read(BUILD_PDF_PATH)
+    pdf_defaults = inspect.signature(build_css).parameters
 
     for key, expected_default in (
         ("reference_spacing_european", "-0.8em"),
@@ -405,21 +412,31 @@ def test_reference_acronym_glossary_spacing_matches_between_website_and_pdf():
         ("reference_spacing_global", "2em"),
     ):
         website_default = _default_kwarg(macros_source, key)
-        pdf_default = _default_kwarg(build_pdf_source, key)
+        pdf_default = pdf_defaults[key].default
         assert website_default == expected_default, f"macros.py's {key!r} default is {website_default!r}, expected {expected_default!r}"
-        assert pdf_default == expected_default, f"build_pdf.py's {key!r} default is {pdf_default!r}, expected {expected_default!r}"
+        assert pdf_default == expected_default, f"zendoc.pdf.css.build_css()'s {key!r} default is {pdf_default!r}, expected {expected_default!r}"
 
     # The generated CSS itself: each selector's margin-top/indent should
-    # reference the matching Python f-string placeholder, not a stray
-    # hardcoded literal or the wrong variable.
-    assert "margin-top: {reference_spacing_european} !important;" in build_pdf_source
-    assert "padding-left: {reference_indent_global} !important;" in build_pdf_source
-    assert "text-indent: -{reference_indent_global} !important;" in build_pdf_source
-    assert "margin-top: {reference_spacing_global} !important;" in build_pdf_source
-    assert build_pdf_source.count("margin-top: {reference_spacing_european} !important;") == 3, (
-        "Expected exactly 3 uses (reference/acronym/glossary, european/default branch) - "
-        "one may have been left on a stray hardcoded value instead"
+    # actually reflect the given values, in both the default "european"
+    # branch and the "global" branch, not a stray hardcoded literal or the
+    # wrong variable copy-pasted into the acronym/glossary block.
+    css_kwargs = dict(
+        main_font="Inter", mono_font="JetBrains Mono", copyright_text="", site_name="",
+        reference_spacing_european="-0.8em", reference_indent_global="1.27cm", reference_spacing_global="2em",
     )
+    european_css = build_css(reference_style_global=False, **css_kwargs)
+    assert european_css.count("margin-top: -0.8em !important;") == 3, (
+        "Expected exactly 3 uses (reference/acronym/glossary, european/default branch) - "
+        "one may have drifted onto a stray hardcoded value instead"
+    )
+
+    global_css = build_css(reference_style_global=True, **css_kwargs)
+    assert "padding-left: 1.27cm !important;" in global_css
+    assert "text-indent: -1.27cm !important;" in global_css
+    assert "margin-top: 2em !important;" in global_css
+    # Acronym/glossary always keep the tight "european" spacing, regardless
+    # of reference_style_global - only the reference block itself switches.
+    assert global_css.count("margin-top: -0.8em !important;") == 2
 
 
 # ---------------------------------------------------------------------------
@@ -562,14 +579,14 @@ def test_pdf_page_size_and_margins_match_configured_defaults(pdf_doc, zensical_c
 def test_screenshot_class_styling_matches_between_website_and_pdf():
     """.screenshot's border/border-radius/box-shadow (see "Screenshots") are
     duplicated - extra.css for the website, a plain selector in
-    build_pdf.py for the PDF (same "no .md-typeset wrapper in Pandoc's
-    HTML" reason as the reference/acronym/glossary spacing above) - checks
-    the two stay in sync."""
+    zendoc.pdf.css.build_css() for the PDF (see zendoc-extension#96; same
+    "no .md-typeset wrapper in Pandoc's HTML" reason as the reference/
+    acronym/glossary spacing above) - checks the two stay in sync."""
     extra_css = _read(EXTRA_CSS_PATH)
-    build_pdf_source = _read(BUILD_PDF_PATH)
+    pdf_css = build_css(main_font="Inter", mono_font="JetBrains Mono", copyright_text="", site_name="")
     for prop in ("border", "border-radius", "box-shadow"):
         website_value = _css_rule_value(extra_css, ".md-typeset img.screenshot", prop)
-        pdf_value = _css_rule_value(build_pdf_source, "img.screenshot", prop)
+        pdf_value = _css_rule_value(pdf_css, "img.screenshot", prop)
         assert website_value is not None, f"No website .screenshot rule found for {prop}"
         assert pdf_value is not None, f"No PDF .screenshot rule found for {prop}"
         assert website_value == pdf_value, (

@@ -25,13 +25,16 @@ ZENSICAL_TOML_PATH = REPO_ROOT / "zensical.toml"
 
 
 def _import_repo_module(name):
-    """Imports a top-level module (macros.py, build_pdf.py) from the repo
-    root by file path, rather than relying on sys.path - the test suite
-    reuses these modules' own helpers (e.g. to enumerate nav pages or check
-    an is_appendix/exclude_from_word_count flag) instead of re-implementing
-    the same TOML/front-matter parsing a second time, since re-parsing it
-    independently would just be testing the test suite's own parser, not
-    catching a real regression in the production code."""
+    """Imports a top-level module (macros.py) from the repo root by file
+    path, rather than relying on sys.path - the test suite reuses its own
+    helpers (e.g. to enumerate nav pages or check an is_appendix/
+    exclude_from_word_count flag) instead of re-implementing the same TOML/
+    front-matter parsing a second time, since re-parsing it independently
+    would just be testing the test suite's own parser, not catching a real
+    regression in the production code. build_pdf.py's own pipeline logic
+    now lives in zendoc.pdf instead (see zendoc-extension#96) - tests that
+    need it (e.g. test_customisation.py's icon/CSS checks) import that
+    package directly rather than importing build_pdf.py as a module."""
     spec = importlib.util.spec_from_file_location(name, REPO_ROOT / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
     sys.path.insert(0, str(REPO_ROOT))
@@ -42,11 +45,6 @@ def _import_repo_module(name):
 @pytest.fixture(scope="session")
 def macros():
     return _import_repo_module("macros")
-
-
-@pytest.fixture(scope="session")
-def build_pdf_module():
-    return _import_repo_module("build_pdf")
 
 
 @pytest.fixture(scope="session")

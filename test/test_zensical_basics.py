@@ -606,11 +606,13 @@ def test_mark_insert_and_keys_render_styled_not_leaked(pdf_full_text, pdf_doc):
     single-caret superscript syntax and produce an empty, invisible
     <sup></sup> instead (a second, separate bug caught while fixing this
     one - the underline never actually rendered, despite an earlier,
-    incorrect assumption that it did). build_pdf.py's preprocess_markdown()
-    now rewrites all three to raw HTML - which Pandoc passes through
-    untouched - before Pandoc ever parses them; confirmed here against the
-    actual built PDF page text, and separately by rendering the page to an
-    image and visually checking the highlight/underline/kbd-box styling."""
+    incorrect assumption that it did). build_pdf.py now renders the page
+    through the real pymdownx.mark/pymdownx.caret/pymdownx.keys extensions
+    (see render_page_html()) and hands Pandoc the resulting real HTML, which
+    it passes through untouched, rather than hand-translating the markdown
+    syntax itself; confirmed here against the actual built PDF page text,
+    and separately by rendering the page to an image and visually checking
+    the highlight/underline/kbd-box styling."""
     start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
     chapter_text = "".join(pdf_full_text[start:end])
 

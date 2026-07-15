@@ -921,3 +921,35 @@ def test_real_admonition_does_not_force_a_blank_page_gap_before_it(pdf_doc):
         f"paragraph (page {preceding_page}), found it on page {admonition_page} instead - "
         f"possible page-break regression"
     )
+
+
+def test_real_large_code_block_does_not_force_a_blank_page_gap_before_it(pdf_doc):
+    """Regression test: print.css's own "img, pre, blockquote,
+    .tabbox-container { page-break-inside: avoid }" is fine for img/
+    blockquote (naturally short/atomic) and is already overridden back to
+    auto for .tabbox-container elsewhere in this stylesheet - but pre
+    wasn't, so a large fenced code block hit the same WeasyPrint quirk
+    already fixed for grid cards/table captions/admonitions/headings
+    above. Confirmed directly against the built PDF: customise.md's own
+    ~34-line "nav = [...]" example (illustrating zensical.toml's own nav
+    list, rendered live via the {{ nav_snippet() }} macro) forced itself
+    entirely onto a fresh page rather than splitting, leaving a large
+    blank gap on the previous page. Checks the paragraph introducing the
+    example ("...matches what's actually configured:") lands on the same
+    page as the start of the code block."""
+    preceding_page = code_page = None
+    for i, page in enumerate(pdf_doc):
+        text = page.get_text()
+        if "matches what's actually configured" in text:
+            preceding_page = i
+        if "nav = [" in text:
+            code_page = i
+        if preceding_page is not None and code_page is not None:
+            break
+    assert preceding_page is not None, "Expected to find the paragraph introducing the nav example in the PDF"
+    assert code_page is not None, "Expected to find the 'nav = [' code example in the PDF"
+    assert preceding_page == code_page, (
+        f"Expected the 'nav = [...]' code example on the same page as its introducing "
+        f"paragraph (page {preceding_page}), found it on page {code_page} instead - "
+        f"possible page-break regression"
+    )

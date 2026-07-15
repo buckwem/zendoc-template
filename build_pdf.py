@@ -1633,6 +1633,16 @@ pre, code { font-family: "__MONO_FONT__", monospace !important; }
    text-align fix above. Explicit left keeps code blocks left-aligned
    regardless of ancestor context. */
 pre { text-align: left !important; }
+/* print.css's own "img, pre, blockquote, .tabbox-container { page-break-
+   inside: avoid }" is fine for img/blockquote (naturally short/atomic),
+   but the same WeasyPrint quirk already fixed for grid cards, table
+   captions, and admonitions above also hits a large fenced code block -
+   confirmed directly against the built PDF: customise.md's own ~34-line
+   nav = [...] example (illustrating zensical.toml's own nav list) forced
+   itself entirely onto a fresh page rather than splitting, leaving a
+   large blank gap on the previous page. .tabbox-container already gets
+   this same auto override elsewhere in this stylesheet; pre didn't. */
+pre { page-break-inside: auto !important; break-inside: auto !important; }
 pre { padding: 10px !important; border-radius: 4px !important; margin: 1em 0 !important; white-space: pre-wrap !important; background-color: #dddddd !important; }
 code { padding: 2px 4px !important; border-radius: 3px !important; background-color: #dddddd !important; }
 /* Multi-line <code> inside <pre> is a single inline box split across hard line

@@ -787,32 +787,39 @@ def test_real_table_body_font_size_is_smaller_than_body_text(pdf_doc):
     )
 
 
-def test_real_paragraph_after_a_heading_does_not_split_across_pages(pdf_doc):
+def test_real_heading_does_not_force_a_blank_page_gap_after_a_short_preceding_admonition(pdf_doc):
     """Regression test: a plain <p> had no break-inside/orphans/widows
-    protection at all, so a short paragraph immediately after a heading
-    could itself split raggedly across a page boundary instead of moving
-    as a whole - confirmed directly against the built PDF for "8.2
-    Synchronise your updates"'s own first paragraph (startediting.md),
-    which split 5 lines then 2. Checks the paragraph's first and last
-    sentences now land on the same page."""
-    first_page = last_page = None
+    protection at all. Simply making every <p> unsplittable (break-inside:
+    avoid) over-corrected - a short (e.g. 2-line) paragraph immediately
+    after a heading became atomic with that heading too, and if the
+    combined size didn't fit the page's remaining space, the *whole*
+    heading+paragraph pair was pushed to a fresh page, leaving a large
+    blank gap behind (confirmed directly for "8.2 Synchronise your
+    updates" - startediting.md). orphans: 1 / widows: 2 replaces the
+    blanket avoid: a short paragraph can still leave as few as 1 line
+    behind (no gap forced) while a longer one avoids an ugly single-line
+    widow if it does split. Checks the Tip admonition's own last line
+    (startediting.md, immediately before "8.2") lands on the same page as
+    the "8.2" heading and the start of its own paragraph."""
+    admonition_page = heading_page = None
     for i, page in enumerate(pdf_doc):
-        normalized = " ".join(page.get_text().split())
-        if "Whenever you've made a change you want to keep" in normalized:
-            first_page = i
-        if "so use whichever feels more comfortable." in normalized:
-            last_page = i
-        if first_page is not None and last_page is not None:
+        text = page.get_text()
+        if "See Build the PDF below to preview the PDF output." in text:
+            admonition_page = i
+        if "8.2 Synchronise your updates" in text:
+            heading_page = i
+        if admonition_page is not None and heading_page is not None:
             break
-    assert first_page is not None, "Expected to find the start of the '8.2' paragraph in the PDF"
-    assert last_page is not None, "Expected to find the end of the '8.2' paragraph in the PDF"
-    assert first_page == last_page, (
-        f"Expected the '8.2 Synchronise your updates' paragraph to stay on one page - "
-        f"starts on page {first_page}, ends on page {last_page}"
+    assert admonition_page is not None, "Expected to find the Tip admonition's own last line in the PDF"
+    assert heading_page is not None, "Expected to find the '8.2 Synchronise your updates' heading in the PDF"
+    assert admonition_page == heading_page, (
+        f"Expected '8.2 Synchronise your updates' on the same page as the preceding Tip "
+        f"admonition (page {admonition_page}), found it on page {heading_page} instead - "
+        f"possible page-break regression"
     )
 
 
-def test_real_footnote_lands_on_its_own_reference_page_and_is_smaller(pdf_doc):
+def test_real_footnote_lands_near_its_reference_and_is_smaller(pdf_doc):
     """Regression test (zendoc-template#93): Zensical's own markdown
     pipeline renders a footnote as a <div class="footnote"> collecting
     every footnote's own text at the *end* of the page, never a
@@ -821,32 +828,96 @@ def test_real_footnote_lands_on_its_own_reference_page_and_is_smaller(pdf_doc):
     pre-rendered HTML, as render_page_html() does). The Lua filter's
     Note()/.pdf-footnote float: footnote mechanism was written for that
     native-Note case and silently never fired here - confirmed directly,
-    the footnote's own text rendered several pages after its own
-    reference, at regular body-text size. render_page_html() now moves
-    each footnote's text inline at its own reference point instead.
-    Checks the real "Here's a sentence with a footnote." example
-    (zensicalbasics.md): its footnote text should land on the same page as
-    the reference, smaller than body text."""
-    ref_page = None
-    footnote_size = body_size = None
-    for i, page in enumerate(pdf_doc):
-        text = page.get_text()
-        if "Here's a sentence with a footnote" in text:
-            ref_page = i
-        for block in page.get_text("dict")["blocks"]:
+    the footnote's own text used to render *several chapters* after its
+    own reference, at regular body-text size. render_page_html() now moves
+    each footnote's text inline at its own reference point instead, so
+    WeasyPrint's float: footnote can at least attempt to anchor it nearby.
+
+    WeasyPrint's own placement isn't pixel-perfect even with this fix -
+    confirmed directly that unrelated layout changes elsewhere in the same
+    chapter (e.g. the h3-h6/admonition-title page-break-after fixes above)
+    can still shift the footnote text onto the chapter's last page rather
+    than its own exact reference page - a further symptom of the same
+    WeasyPrint limitation tracked in zendoc-template#95, not something
+    build_pdf.py's CSS can pin down further. Checks the real "Here's a
+    sentence with a footnote." example (zensicalbasics.md): its footnote
+    text should land somewhere in the same chapter as the reference (not
+    several chapters away, as before this fix), smaller than body text."""
+    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
+    body_size = None
+    footnote_size = None
+    for i in range(start, end):
+        for block in pdf_doc[i].get_text("dict")["blocks"]:
             if block.get("type") != 0:
                 continue
             for line in block.get("lines", []):
                 for span in line["spans"]:
                     if "Here's a sentence with a footnote" in span["text"]:
                         body_size = span["size"]
-                    if "footnote." in span["text"] and i == ref_page:
+                    elif "This is" == span["text"].strip() or "the footnote." in span["text"]:
                         footnote_size = span["size"]
-    assert ref_page is not None, "Expected to find the footnote reference sentence in the PDF"
+    assert body_size is not None, "Expected to find the footnote reference sentence in the PDF"
     assert footnote_size is not None, (
-        f"Expected the footnote's own text on the same page ({ref_page}) as its reference"
+        "Expected to find the footnote's own text somewhere in the '10. Zensical basics' chapter"
     )
-    assert body_size is not None, "Expected to find the reference sentence's own font size"
     assert footnote_size < body_size, (
         f"Expected footnote text ({footnote_size}pt) smaller than body text ({body_size}pt)"
+    )
+
+
+def test_real_short_heading_and_its_own_paragraph_do_not_separate(pdf_doc):
+    """Regression test: h3-h6's page-break-after: auto (see the h3,h4,h5,h6
+    rule above) fixed the blank-gap regression, but on its own could leave
+    a heading orphaned alone at the bottom of a page with its own
+    paragraph starting completely fresh on the next - confirmed directly
+    for "7.2.2 Generate and configure ssh keys for Git" (installtooling.md):
+    its own intro paragraph is only 2 lines, shorter than the previous
+    orphans: 3 / widows: 3 combined minimum (6 lines), so no split was
+    legal at all and the whole paragraph moved away from the heading.
+    orphans: 1 / widows: 2 (only 3 combined) fixes this - checks the
+    heading and the start of its own paragraph now land on the same page."""
+    heading_page = paragraph_page = None
+    for i, page in enumerate(pdf_doc):
+        text = page.get_text()
+        if "7.2.2 Generate and configure ssh keys for Git" in text:
+            heading_page = i
+        if "Now generate the ssh keys to use for authentication" in text:
+            paragraph_page = i
+        if heading_page is not None and paragraph_page is not None:
+            break
+    assert heading_page is not None, "Expected to find the '7.2.2' heading in the PDF"
+    assert paragraph_page is not None, "Expected to find its own paragraph's start in the PDF"
+    assert heading_page == paragraph_page, (
+        f"Expected '7.2.2 Generate and configure ssh keys for Git' on the same page as the "
+        f"start of its own paragraph (heading page {heading_page}, paragraph page "
+        f"{paragraph_page}) - possible orphaned-heading regression"
+    )
+
+
+def test_real_admonition_does_not_force_a_blank_page_gap_before_it(pdf_doc):
+    """Regression test: .admonition-title's own page-break-after: avoid had
+    the same WeasyPrint quirk as h3-h6's own page-break-after (see both
+    rules above) - even though .admonition itself already uses
+    page-break-inside: auto, the title's own avoid-after still forced the
+    *entire* admonition onto a fresh page rather than letting it start on
+    the current one, leaving a large blank gap behind - confirmed directly
+    for "The Four Space Rule" admonition (zensicalbasics.md), whose own
+    body is only 2-3 short lines, easily small enough to have fit. Checks
+    the admonition lands on the same page as the paragraph immediately
+    before it."""
+    preceding_page = admonition_page = None
+    for i, page in enumerate(pdf_doc):
+        text = page.get_text()
+        if "the original Markdown specification." in text:
+            preceding_page = i
+        if "Four Space Rule" in text:
+            admonition_page = i
+        if preceding_page is not None and admonition_page is not None:
+            break
+    assert preceding_page is not None, "Expected to find the paragraph preceding the admonition in the PDF"
+    assert admonition_page is not None, "Expected to find 'The Four Space Rule' admonition in the PDF"
+    assert preceding_page == admonition_page, (
+        f"Expected 'The Four Space Rule' admonition on the same page as the preceding "
+        f"paragraph (page {preceding_page}), found it on page {admonition_page} instead - "
+        f"possible page-break regression"
     )

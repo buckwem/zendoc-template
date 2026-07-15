@@ -1365,20 +1365,27 @@ h1 { break-before: page !important; }
    for Git"). h1/h2 keep the "avoid" behaviour (via print.css); h3-h6
    override back to "auto" here. */
 h3, h4, h5, h6 { page-break-after: auto !important; break-after: auto !important; }
-/* Separately, a plain <p> had no break-inside/orphans/widows protection at
-   all, so a short paragraph immediately after a heading could itself split
-   raggedly across the page boundary instead of moving as a whole (e.g.
-   "8.2 Synchronise your updates"'s own first paragraph, 5 lines then 2,
-   confirmed directly against the built PDF). break-inside: avoid keeps a
-   normal (short) paragraph whole, moving it as one unit rather than
-   splitting it; orphans/widows: 3 is the fallback for the rare paragraph
-   too long to fit on any single page, where a split still has to happen
-   somewhere. */
+/* A plain <p> had no break-inside/orphans/widows protection at all.
+   Making every <p> unsplittable (page-break-inside: avoid) over-corrected:
+   a short paragraph immediately after a heading became atomic with that
+   heading too (since the heading's own "stay with next" requirement, from
+   h1/h2's avoid-after or a title's own avoid-after elsewhere, needs the
+   *whole* next block to fit when that block can't split), and if the
+   combined size didn't fit the remaining page, the whole pair got pushed
+   to a fresh page - a blank-gap regression, confirmed directly for "8.2
+   Synchronise your updates" (startediting.md). orphans/widows alone (no
+   avoid) fixes that, but only if the threshold is low enough to actually
+   allow a split: orphans: 3 / widows: 3 (6 combined) is taller than many
+   real intro paragraphs here - "7.2.2 Generate and configure ssh keys for
+   Git"'s own paragraph (installtooling.md) is only 2 lines, so no split
+   was legal at all, and the whole paragraph moved away from its heading,
+   orphaning it alone at the bottom of the previous page. orphans: 1 /
+   widows: 2 (3 combined) is short enough to let even a 2-3 line paragraph
+   split if it must, while still avoiding an ugly single-line widow for
+   longer ones. */
 p {
-    orphans: 3;
-    widows: 3;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
+    orphans: 1;
+    widows: 2;
 }
 /* Feeds @top-right above: skips the Table of Contents' own "Table of
    Contents" h1 (and the hidden cover-page h1) via .unnumbered, the same
@@ -1538,7 +1545,15 @@ blockquote {
 }
 .admonition-title {
     font-weight: bold !important; margin-bottom: 8px !important; font-size: 10.5pt !important;
-    color: #000000 !important; page-break-after: avoid !important; break-after: avoid !important;
+    color: #000000 !important;
+    /* auto, not avoid: same WeasyPrint quirk as h3-h6's own page-break-after
+       (see the h3,h4,h5,h6 rule above) - confirmed directly against the
+       built PDF ("The Four Space Rule" admonition, zensicalbasics.md): even
+       though .admonition itself already uses page-break-inside: auto, the
+       title's own avoid-after still forced the *entire* admonition onto a
+       fresh page rather than letting it start on the current one, leaving
+       a large blank gap behind - despite the admonition's own body being
+       only 2-3 short lines, easily small enough to have fit. */
 }
 
 .admonition.note     { border-left-color: #448aff !important; background-color: rgba(68, 138, 255, 0.05) !important; }

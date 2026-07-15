@@ -1497,7 +1497,16 @@ div.grid.cards > ul {
 div.grid.cards > ul > li {
     background-color: #f4f8ff !important; border: none !important;
     padding: 16px !important; margin-bottom: 1em !important; border-radius: 4px !important;
-    page-break-inside: avoid; break-inside: avoid; list-style: none !important;
+    /* auto, not avoid: unlike the old .gridcard-item convention this
+       replaces, a real Zensical grid card commonly wraps a whole tabbed-set
+       (e.g. installtooling.md's per-OS install instructions, all three OS
+       tabs stacked since WeasyPrint can't do interactive tabs) - often
+       taller than a full page. "avoid" forced the entire oversized card
+       onto a fresh page as one atomic unit (unable to actually fit there
+       either), leaving a large blank gap on the previous page - confirmed
+       directly against the built PDF. Same "auto" convention already used
+       for .tabbox-container/.admonition below, for the same reason. */
+    page-break-inside: auto !important; break-inside: auto !important; list-style: none !important;
 }
 div.grid.cards > ul > li > p:first-child {
     font-weight: bold !important; font-size: 13pt !important; margin-bottom: 12px !important;
@@ -1554,14 +1563,30 @@ figure {
     break-inside: avoid-page !important;
     text-align: center !important;
 }
-/* A prepend-position figure-caption/table-caption is retagged from
-   <figure> to <div> in render_page_html() (see zendoc-template#93, and
-   the Lua filter's Div() handler above) so its caption keeps original
-   document order through Pandoc - same page-break/centering treatment as
-   the "figure {}" rule above, which no longer matches once it's a <div>. */
-div.zendoc-figure-caption, div.zendoc-table-caption {
+/* A prepend-position figure-caption is retagged from <figure> to <div> in
+   render_page_html() (see zendoc-template#93, and the Lua filter's Div()
+   handler above) so its caption keeps original document order through
+   Pandoc - same page-break/centering treatment as the "figure {}" rule
+   above (an image can't be split anyway, so keeping it atomic with its
+   caption is safe), which no longer matches once it's a <div>. */
+div.zendoc-figure-caption {
     page-break-inside: avoid !important;
     break-inside: avoid-page !important;
+    text-align: center !important;
+}
+/* Unlike a figure-caption, a table-caption's content (the table itself)
+   routinely runs longer than one page (see originality.md's AI-use
+   table) - inheriting "figure {}"'s page-break-inside: avoid (or copying
+   it verbatim to the div case above) forced the whole caption+table onto
+   a fresh page as one atomic unit, unable to actually fit there either,
+   leaving a large blank gap on the previous page (confirmed directly
+   against the built PDF). "auto" here overrides that for both the
+   default append-position case (still a native <figure>) and the
+   prepend-position case (retagged to a <div> above) - each row is still
+   individually protected from splitting by "table tr" below. */
+figure.zendoc-table-caption, div.zendoc-table-caption {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
     text-align: center !important;
 }
 /* Applied via "{ .screenshot }" on an image (see "Captions" in

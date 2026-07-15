@@ -478,7 +478,14 @@ def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid
             iframe.decompose()
             continue
         if 'youtube.com/embed/' in src:
-            video_url = src.replace('youtube.com/embed/', 'youtube.com/watch?v=').split('?')[0]
+            # Strip any pre-existing query string (e.g. "?rel=0") from the
+            # *embed* URL before adding the watch URL's own "?v=..." - doing
+            # this the other way around (replace first, split second, as an
+            # earlier version of this line did) strips the just-added
+            # "?v=..." too, silently dropping the video id from every
+            # single conversion, with or without a pre-existing query
+            # string on the source iframe.
+            video_url = src.split('?')[0].replace('youtube.com/embed/', 'youtube.com/watch?v=')
         else:
             video_url = src
         video_title = iframe.get('title', '').strip() or 'Video Tutorial'

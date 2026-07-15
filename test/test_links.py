@@ -44,6 +44,28 @@ def test_pdf_uri_links_are_not_local_filesystem_paths(pdf_doc):
     assert not offenders, f"PDF links pointing at a local filesystem path: {offenders}"
 
 
+def test_youtube_embed_link_keeps_its_video_id(pdf_doc):
+    """Regression test: render_page_html()'s iframe->"Watch Video"
+    admonition link builder used to strip the video id from *every*
+    conversion - "replace('embed/', 'watch?v=').split('?')[0]" removes the
+    just-added "?v=..." (not just any pre-existing query string on the
+    source iframe), leaving a bare "https://www.youtube.com/watch" with no
+    video specified, regardless of the real iframe src. Checks the real
+    embed in starthere.md resolves to a URL with an actual video id."""
+    offenders = []
+    for page_number, page in enumerate(pdf_doc):
+        for link in page.get_links():
+            uri = link.get("uri") or ""
+            if "youtube.com/watch" in uri and "v=" not in uri:
+                offenders.append((page_number, uri))
+    assert not offenders, f"YouTube watch link(s) missing their video id: {offenders}"
+    assert any(
+        "youtube.com/watch?v=" in (link.get("uri") or "")
+        for page in pdf_doc
+        for link in page.get_links()
+    ), "Expected to find at least one real YouTube watch link with a video id in the PDF"
+
+
 GOTO_INTERNAL = 4
 
 

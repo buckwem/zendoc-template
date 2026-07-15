@@ -219,7 +219,7 @@ Keep the numbers in each title sequential as you add, remove, or reorder chapter
 This template uses [`zendoc.citations`](https://buckwem.github.io/zendoc-extension/extensions/citations/) (from the [zendoc](https://github.com/buckwem/zendoc-extension) package, already installed and enabled in `zensical.toml` - see [zendoc-template#25](https://github.com/buckwem/zendoc-template/issues/25)) for citations: define a source once, cite it by key anywhere with `\cite{id}`.
 
 !!! info "How the PDF handles this"
-    `\cite{id}` is `zendoc.citations`' own Python-Markdown syntax - understood natively by the live website, but Pandoc (which builds the PDF) has no idea what it means, and would otherwise leave it sitting in the output as literal, visible text. This template translates it automatically (see `build_citation_map()`/`resolve_citations()` in `build_pdf.py`), so you can write the same `\cite{id}` syntax below and both outputs render correctly - no manual HTML or per-output link needed.
+    `build_pdf.py` renders every page through the same Zensical/zendoc pipeline the website uses (see `render_page_html()`), so `\cite{id}` resolves to the same linked citation in both outputs automatically - no separate PDF-side translation needed, and no manual HTML or per-output link either.
 
 1. Create a page for your sources (this template includes one at [`docs/references.md`](../references.md)). List each source as a paragraph, and give it a short, unique id plus a short display text using [attr_list](https://zensical.org/docs/authoring/formatting/#attribute-lists) syntax on the line directly below it (no heading needed - attr_list works on plain paragraphs too):
 
@@ -285,7 +285,7 @@ This template uses [`zendoc.citations`](https://buckwem.github.io/zendoc-extensi
 This template uses [`zendoc.glossary`](https://buckwem.github.io/zendoc-extension/extensions/glossary/) (from the same [zendoc](https://github.com/buckwem/zendoc-extension) package as citations above - see [zendoc-template#87](https://github.com/buckwem/zendoc-template/issues/87)) for acronyms: define a term once, insert it by id with `\gls{id}` - it expands to the term's own text, linked to its definition.
 
 !!! info "How the PDF handles this"
-    `\gls{id}` is `zendoc.glossary`'s own Python-Markdown syntax - understood natively by the live website, but Pandoc has no idea what it means, and would otherwise leave it sitting in the output as literal, visible text. This template translates it automatically (see `build_glossary_map()`/`resolve_gls()` in `build_pdf.py`), so you can write the same `\gls{id}` syntax below and both outputs render correctly.
+    Same as citations above - `build_pdf.py` renders this page through the real Zensical/zendoc pipeline, so `\gls{id}` resolves the same way in both outputs with no separate PDF-side translation.
 
 1. Create a page for your acronyms (this template includes one at [`docs/acronyms.md`](../acronyms.md)). List each acronym as a short paragraph, and give it an id plus a `data-term` attribute (the acronym's own text) using attr_list syntax on the line directly below it:
 
@@ -313,7 +313,7 @@ This template uses [`zendoc.glossary`](https://buckwem.github.io/zendoc-extensio
 You can build a glossary of key terms the same way, in its own page - this template includes one at `docs/glossary.md`, right after the acronyms page in `nav`. Acronym entries and glossary entries share the same `zendoc.glossary` registry - they're the same kind of thing, an id with a short display text - so a `\gls{id}` works identically whichever page defines it.
 
 !!! info "How the PDF handles this"
-    Same as acronyms above - `\gls{id}` is translated automatically for the PDF build.
+    Same as acronyms above - resolved automatically, no separate PDF-side translation.
 
 1. Create a page for your glossary (this template includes one at [`docs/glossary.md`](../glossary.md)). List each term as a short paragraph, and give it an id plus a `data-term` attribute using attr_list syntax, the same as an acronym entry:
 
@@ -476,7 +476,7 @@ Repo: {{ repo_url }}{% endraw %}
 
 ## Customise PDF generation
 
-PDF generation itself is a zendoc extension, in the same sense as the rest of this page: Zensical only builds the website, so `build_pdf.py` is this template's own build script, layered on top, that renders the same `docs/` content into a single-file PDF via [Pandoc](https://pandoc.org/) and [WeasyPrint](https://weasyprint.org/). It reuses `zensical.toml` settings wherever it can, so most website customisations (site name, copyright, fonts, and so on) apply to the PDF automatically - the sections below cover the handful of things that are PDF-specific.
+Zensical only builds the website, so `build_pdf.py` is this template's own build script, layered on top, that turns the same `docs/` content into a single-file PDF via [Pandoc](https://pandoc.org/) and [WeasyPrint](https://weasyprint.org/). It renders every page through the same Zensical/zendoc pipeline the website uses (`render_page_html()`), then hands Pandoc the resulting HTML directly - so `\cite{}`/`\gls{}`/`\ref{}`, admonitions, tabs, and captions all resolve exactly the same way in both outputs, with no separate PDF-side translation for any of them. It also reuses `zensical.toml` settings wherever it can, so most website customisations (site name, copyright, fonts, and so on) apply to the PDF automatically - the sections below cover the handful of things that are PDF-specific.
 
 For how to actually run it as part of your day-to-day writing - installing its dependencies, the `python build_pdf.py` command itself, and troubleshooting a failed build - see [Build the PDF](startediting.md#build-the-pdf) in *Start editing*; this section is about customising its output once it's already working.
 
@@ -540,7 +540,7 @@ The PDF also reuses your website's theme fonts (body copy, headings, and the hea
 The [attribute list](https://zensical.org/docs/authoring/formatting/#attribute-lists)-based `<figure>`/`<figcaption>` pattern in [Zensical basics](zensicalbasics.md#images) works for images, but this template also enables `pymdownx.blocks.caption`, a `/// caption ... ///` block that captions *either* an image *or* a table, auto-numbers itself, and - unlike the `<figure>` approach - works correctly in the PDF too.
 
 !!! info "How the PDF handles this"
-    Pandoc doesn't understand `pymdownx.blocks.caption` syntax at all - including its own auto-numbering, which is computed by the Python-Markdown extension the website runs and Pandoc never does. This template translates the block into something Pandoc understands for the PDF, and separately computes the same `<chapter>.<n>` numbers the website shows, so the same source works - and numbers the same way - in both outputs.
+    `build_pdf.py` renders this page through the real Zensical/pymdownx pipeline, so `pymdownx.blocks.caption`'s own per-page auto-number is already correct by the time Pandoc sees it - a Lua filter (`Figure()` in `build_pdf.py`) just prepends the current chapter number/appendix letter in front of it (e.g. "1." → "8.1."), matching the same `<chapter>.<n>` numbers the website shows via CSS.
 
 This template configures three caption types under `[project.markdown_extensions.pymdownx.blocks.caption]` in `zensical.toml`:
 

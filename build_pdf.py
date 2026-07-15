@@ -1345,13 +1345,18 @@ table tr {
 thead {
     display: table-header-group;
 }
-/* Bound inside <table> itself, so it can never be separated from the start
-   of the table across a page break (unlike a plain preceding paragraph).
-   caption-side itself isn't set here - it's added per-table, only for
-   captions that actually asked to be shown at the top (see
-   table_caption_replacer()/prepend_table_ids below) - Pandoc's own
-   default (bottom) applies to any table caption that didn't. */
-table caption {
+/* pymdownx.blocks.caption always wraps its caption text in a <p> - inside
+   a native <figcaption> for the default append-position case (still a
+   <figure> - see the "figure {}"/"figure.zendoc-table-caption" rules
+   below), or as the first child <p> once prepend-position unwraps the
+   <figcaption> into a <div> (see render_page_html(), zendoc-template#93).
+   This used to be "table caption {}", which only ever matches a literal
+   <table><caption> - something pymdownx.blocks.caption never produces -
+   dead code left over from the old regex pipeline's own hand-built
+   markup; confirmed captions were rendering unitalicised because of it. */
+figcaption p,
+div.zendoc-table-caption > p:first-child,
+div.zendoc-figure-caption > p:first-child {
     text-align: center !important;
     font-style: italic !important;
     margin-bottom: 8px !important;

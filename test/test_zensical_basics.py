@@ -576,7 +576,14 @@ def test_footnote_renders_with_backlink_not_leaked(pdf_full_text, pdf_doc):
     specifically."""
     start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
     chapter_text = "".join(pdf_full_text[start:end])
-    assert "This is the footnote." in chapter_text
+    # WeasyPrint's float: footnote renders the footnote area in a narrow
+    # fixed-width column (a known WeasyPrint limitation - see build_pdf.py's
+    # ".pdf-footnote" comment), so short footnote text often wraps onto 2-3
+    # lines instead of one - normalize whitespace rather than requiring it
+    # stay on one line, which would be asserting on a rendering detail this
+    # template's own CSS has no control over.
+    normalized = " ".join(chapter_text.split())
+    assert "This is the footnote." in normalized
     assert "footnote.[^1]" not in chapter_text
 
 
@@ -688,6 +695,16 @@ def test_real_grid_card_title_icon_renders_as_an_image_not_missing(pdf_doc):
 @pytest.mark.parametrize("parent_heading,child_heading", [
     ("7.1 Install Visual Studio Code", "7.1.1 Install Visual Studio Code"),
     ("7.2 Install Git with Visual Studio Code", "7.2.1 Install and configure Git"),
+    # These two pairs (additionaltooling.md) have a different root cause
+    # than the grid-card page-break-inside fix above: print.css's own
+    # "h1..h6 { page-break-after: avoid }" is fine for h1/h2 (a short intro
+    # follows), but for h3-h6 it couldn't be satisfied without pulling in
+    # far more content than intended whenever a large grid card immediately
+    # follows, so the *entire* heading (not just what follows it) got
+    # pushed onto a fresh page - confirmed directly via an A/B rebuild
+    # toggling "h3, h4, h5, h6 { page-break-after: auto }" on and off.
+    ("12.3 Installing a GUI Git client", "12.3.1 Installing GitHub Desktop"),
+    ("12.3.1 Installing GitHub Desktop", "12.3.2 Installing GitKraken"),
 ])
 def test_real_grid_card_does_not_force_a_blank_page_gap_before_its_heading(pdf_doc, parent_heading, child_heading):
     """Regression test (zendoc-template#93): a real grid card commonly wraps
@@ -767,4 +784,69 @@ def test_real_table_body_font_size_is_smaller_than_body_text(pdf_doc):
     assert paragraph_size is not None, "Expected to find the chapter's own intro paragraph in the PDF"
     assert table_size < paragraph_size, (
         f"Expected table body text ({table_size}pt) smaller than body text ({paragraph_size}pt)"
+    )
+
+
+def test_real_paragraph_after_a_heading_does_not_split_across_pages(pdf_doc):
+    """Regression test: a plain <p> had no break-inside/orphans/widows
+    protection at all, so a short paragraph immediately after a heading
+    could itself split raggedly across a page boundary instead of moving
+    as a whole - confirmed directly against the built PDF for "8.2
+    Synchronise your updates"'s own first paragraph (startediting.md),
+    which split 5 lines then 2. Checks the paragraph's first and last
+    sentences now land on the same page."""
+    first_page = last_page = None
+    for i, page in enumerate(pdf_doc):
+        normalized = " ".join(page.get_text().split())
+        if "Whenever you've made a change you want to keep" in normalized:
+            first_page = i
+        if "so use whichever feels more comfortable." in normalized:
+            last_page = i
+        if first_page is not None and last_page is not None:
+            break
+    assert first_page is not None, "Expected to find the start of the '8.2' paragraph in the PDF"
+    assert last_page is not None, "Expected to find the end of the '8.2' paragraph in the PDF"
+    assert first_page == last_page, (
+        f"Expected the '8.2 Synchronise your updates' paragraph to stay on one page - "
+        f"starts on page {first_page}, ends on page {last_page}"
+    )
+
+
+def test_real_footnote_lands_on_its_own_reference_page_and_is_smaller(pdf_doc):
+    """Regression test (zendoc-template#93): Zensical's own markdown
+    pipeline renders a footnote as a <div class="footnote"> collecting
+    every footnote's own text at the *end* of the page, never a
+    Pandoc-native Note element (that only exists when Pandoc's own
+    markdown reader parses "[^1]" syntax directly - not when it's handed
+    pre-rendered HTML, as render_page_html() does). The Lua filter's
+    Note()/.pdf-footnote float: footnote mechanism was written for that
+    native-Note case and silently never fired here - confirmed directly,
+    the footnote's own text rendered several pages after its own
+    reference, at regular body-text size. render_page_html() now moves
+    each footnote's text inline at its own reference point instead.
+    Checks the real "Here's a sentence with a footnote." example
+    (zensicalbasics.md): its footnote text should land on the same page as
+    the reference, smaller than body text."""
+    ref_page = None
+    footnote_size = body_size = None
+    for i, page in enumerate(pdf_doc):
+        text = page.get_text()
+        if "Here's a sentence with a footnote" in text:
+            ref_page = i
+        for block in page.get_text("dict")["blocks"]:
+            if block.get("type") != 0:
+                continue
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    if "Here's a sentence with a footnote" in span["text"]:
+                        body_size = span["size"]
+                    if "footnote." in span["text"] and i == ref_page:
+                        footnote_size = span["size"]
+    assert ref_page is not None, "Expected to find the footnote reference sentence in the PDF"
+    assert footnote_size is not None, (
+        f"Expected the footnote's own text on the same page ({ref_page}) as its reference"
+    )
+    assert body_size is not None, "Expected to find the reference sentence's own font size"
+    assert footnote_size < body_size, (
+        f"Expected footnote text ({footnote_size}pt) smaller than body text ({body_size}pt)"
     )

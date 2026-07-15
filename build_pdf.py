@@ -576,6 +576,42 @@ def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid
         )
         svg.replace_with(icon_img)
 
+    # Footnotes: Zensical's own markdown pipeline (python-markdown's
+    # footnote extension) renders these as a <sup id="fnref:N"><a
+    # class="footnote-ref">N</a></sup> at the reference point, with every
+    # footnote's own text collected into one <div class="footnote"><ol>
+    # <li id="fn:N"><p>...</p></li></ol></div> at the *end* of the page -
+    # never a Pandoc-native Note element (that only exists when Pandoc's
+    # own *markdown* reader parses "[^1]" syntax directly; feeding Pandoc
+    # pre-rendered HTML here means it just sees an ordinary <div>/<ol>/
+    # <sup>, not a Note). The Lua filter's Note() function (and the
+    # .pdf-footnote float: footnote mechanism it feeds) was written for
+    # that native-Note case and silently never fires here - confirmed
+    # directly against the built PDF: a footnote's own text rendered
+    # wherever the <div class="footnote"> happened to fall in normal
+    # document flow, often several pages after its own reference, at
+    # regular body-text size rather than float:footnote's smaller
+    # bottom-of-page placement. Moves each footnote's text inline at its
+    # own reference point instead, in the same <span class="pdf-footnote">
+    # shape Note() used to produce, so float: footnote can anchor it to
+    # the correct page.
+    footnote_div = soup.find('div', class_='footnote')
+    if footnote_div is not None:
+        for li in footnote_div.select('li[id^="fn:"]'):
+            ref = soup.find('sup', id=f'fnref:{li["id"][3:]}')
+            if ref is None:
+                continue
+            backref = li.find('a', class_='footnote-backref')
+            if backref is not None:
+                backref.decompose()
+            span = soup.new_tag('span', **{'class': 'pdf-footnote'})
+            for p in li.find_all('p', recursive=False):
+                p.unwrap()
+            for child in list(li.contents):
+                span.append(child)
+            ref.replace_with(span)
+        footnote_div.decompose()
+
     # Mermaid diagrams: WeasyPrint has no JS engine to run Mermaid.js
     # client-side - pre-render each <pre class="mermaid">'s source to a
     # static SVG via the same mermaid-cli install render_mermaid_diagrams()
@@ -1131,11 +1167,6 @@ def main():
             "  end\n"
             "  return block\n"
             "end\n\n"
-            "function Note(el)\n"
-            "  local html = pandoc.write(pandoc.Pandoc(el.content), 'html')\n"
-            "  html = html:gsub('^%s*<p>', ''):gsub('</p>%s*$', '')\n"
-            "  return pandoc.RawInline('html', '<span class=\"pdf-footnote\">' .. html .. '</span>')\n"
-            "end\n\n"
             "function Math(el)\n"
             "  if not mathjax_available then return nil end\n"
             "  math_counter = math_counter + 1\n"
@@ -1319,6 +1350,36 @@ header, nav, footer, .md-sidebar, .md-header, .md-footer, .md-search, #search {
 }
 h1 { break-before: page !important; }
 .cover-page h1 { break-before: auto !important; }
+/* print.css's own "h1..h6 { page-break-after: avoid }" keeps a heading from
+   being the last thing on a page - reasonable for h1/h2 (a chapter/section
+   title followed by a short intro), but confirmed directly (isolated A/B
+   rebuild) to backfire for h3-h6 whenever the heading's own following
+   content is large (its own intro paragraph, an "Install X" sub-heading,
+   then a whole grid-card of per-OS tabs): WeasyPrint couldn't satisfy
+   "heading can't be alone at the bottom of the page" without pulling in
+   far more content than intended, so it pushed the *entire* heading (with
+   nothing before it moved) onto a fresh page instead - even with hundreds
+   of points of genuinely blank space left on the previous page (e.g.
+   "12.3 Installing a GUI Git client" / "12.3.1 Installing GitHub Desktop"
+   /"12.3.2 Installing GitKraken", "7.2.2 Generate and configure ssh keys
+   for Git"). h1/h2 keep the "avoid" behaviour (via print.css); h3-h6
+   override back to "auto" here. */
+h3, h4, h5, h6 { page-break-after: auto !important; break-after: auto !important; }
+/* Separately, a plain <p> had no break-inside/orphans/widows protection at
+   all, so a short paragraph immediately after a heading could itself split
+   raggedly across the page boundary instead of moving as a whole (e.g.
+   "8.2 Synchronise your updates"'s own first paragraph, 5 lines then 2,
+   confirmed directly against the built PDF). break-inside: avoid keeps a
+   normal (short) paragraph whole, moving it as one unit rather than
+   splitting it; orphans/widows: 3 is the fallback for the rare paragraph
+   too long to fit on any single page, where a split still has to happen
+   somewhere. */
+p {
+    orphans: 3;
+    widows: 3;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
 /* Feeds @top-right above: skips the Table of Contents' own "Table of
    Contents" h1 (and the hidden cover-page h1) via .unnumbered, the same
    class the numbering Lua filter already uses to identify non-chapter
@@ -1393,12 +1454,26 @@ blockquote {
     padding: 12px 16px !important; margin: 1em 0 !important;
 }
 /* Renders footnotes at the bottom of the page they're referenced on (like a
-   printed book), instead of Pandoc's default of collecting every footnote in
-   the whole document into one section at the very end of the PDF. The Lua
-   filter replaces each Note with this inline span at its reference point. */
+   printed book). Zensical's own markdown pipeline renders a footnote as a
+   <sup id="fnref:N"> at the reference point plus a <div class="footnote">
+   collecting every footnote's own text at the *end* of the page - never a
+   Pandoc-native Note element (that only exists when Pandoc's own markdown
+   reader parses "[^1]" syntax directly, not when it's handed pre-rendered
+   HTML). render_page_html() moves each footnote's text inline into a
+   <span class="pdf-footnote"> at its own reference point instead, so
+   float: footnote can anchor it to the correct page - confirmed directly
+   that without this, the footnote's div rendered wherever it fell in
+   normal document flow, often several pages after its own reference. */
 .pdf-footnote {
     float: footnote !important;
     font-size: 9pt !important;
+    /* KNOWN LIMITATION: WeasyPrint 69's float: footnote renders the
+       footnote-area text in a fixed, narrow column (confirmed directly -
+       neither an explicit percentage nor absolute-point width override
+       changes it), instead of the page's full content width, so a
+       footnote often wraps to 2-3 short lines rather than one. Correct
+       page and font-size are unaffected. Tracked upstream rather than
+       worked around here, since no CSS-side override changes it. */
 }
 /* extra.css hides .pdf-only (the cover page's word-count/repo-link markers)
    on the live website; override that back to visible here, since they're

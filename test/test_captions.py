@@ -73,6 +73,69 @@ def test_real_figure_caption_image_is_horizontally_centered_under_its_caption(pd
     )
 
 
+def test_real_prepend_table_caption_appears_above_its_table(pdf_doc):
+    """Regression test (zendoc-template#93): pymdownx.blocks.caption's own
+    HTML places a "| <" (prepend) caption physically before its table in
+    the DOM, but Pandoc's Figure AST node stores Caption and content as two
+    separate fields regardless of source order, and Pandoc's own HTML
+    writer always re-emits the caption *after* the content when
+    serializing Figure back to HTML - discarding the prepend positioning
+    entirely (confirmed directly, isolated test: a <figcaption> placed
+    first in the source HTML still came out last in Pandoc's own HTML
+    writer output). render_page_html() works around this by retagging a
+    prepend-position caption to a <div> before Pandoc parses it (a Div's
+    children ARE emitted in original document order). Checks the real
+    "Statement on AI use example" table (originality.md, "/// table-caption
+    | <") - the caption should sit above the table's own header row in the
+    built PDF, not below it."""
+    caption_y = None
+    header_y = None
+    for page in pdf_doc:
+        for block in page.get_text("dict")["blocks"]:
+            if block.get("type") != 0:
+                continue
+            text = "".join(s["text"] for line in block.get("lines", []) for s in line["spans"])
+            if "Statement on AI use example" in text:
+                caption_y = block["bbox"][1]
+            if "Tool Used" in text and "Explain How Used" in text:
+                header_y = block["bbox"][1]
+        if caption_y is not None and header_y is not None:
+            break
+    assert caption_y is not None, "Expected to find the 'Statement on AI use example' table caption in the PDF"
+    assert header_y is not None, "Expected to find the table's own header row in the PDF"
+    assert caption_y < header_y, (
+        f"Expected the prepend-position caption (y={caption_y}) above its table's header row "
+        f"(y={header_y}) - found it below instead"
+    )
+
+
+_ITALIC_FLAG = 1 << 1
+
+
+def test_real_table_caption_is_italicised(pdf_doc):
+    """Regression test: the compiled stylesheet's caption-styling rule used
+    to be "table caption {}", which only ever matches a literal
+    <table><caption> element - something pymdownx.blocks.caption never
+    produces (a <figcaption> inside a <figure> for the default
+    append-position case, or a first-child <p> once render_page_html()
+    unwraps a prepend-position caption into a <div>) - dead code left over
+    from the old regex pipeline, silently never matching once that
+    pipeline was retired. Checks the real 'Basic navigation commands' table
+    caption (shcommands.md) for the italic font flag."""
+    for page in pdf_doc:
+        for block in page.get_text("dict")["blocks"]:
+            if block.get("type") != 0:
+                continue
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    if "Basic navigation commands" in span["text"]:
+                        assert span["flags"] & _ITALIC_FLAG, (
+                            f"Expected the table caption to be italicised, got flags={span['flags']}"
+                        )
+                        return
+    raise AssertionError("Expected to find the 'Basic navigation commands' table caption in the PDF")
+
+
 CAPTION_SYNTAX_LEAK = re.compile(r"^\s*(?:///|--/)\s*(figure-caption|table-caption|caption)\b", re.MULTILINE)
 
 

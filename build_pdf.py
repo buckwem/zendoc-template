@@ -14,6 +14,7 @@ import json
 import urllib.request
 import urllib.parse
 import markdown
+from bs4 import BeautifulSoup
 
 # In-process cache so the same emoji is never fetched/read twice within a single build
 _TWEMOJI_SVG_CACHE = {}
@@ -274,12 +275,20 @@ def image_attrs_to_html(attrs):
     return f'{html_attr}{style_attr}'
 
 def compute_pdf_word_count(markdown_paths):
-    """Rough prose word count across the given already-preprocessed markdown
-    files: strips fenced code, inline code, HTML tags/comments, and markdown
-    link/image/emphasis syntax before splitting on whitespace. Used to fill in
-    the cover page's {WORDCOUNT} marker (see index.md); excludes the cover
-    page itself and the auto-generated Table of Contents, since neither is
-    "content".
+    """Rough prose word count across the given already-preprocessed files:
+    strips fenced/HTML code blocks, inline code, HTML tags/comments, and
+    markdown link/image/emphasis syntax before splitting on whitespace. Used
+    to fill in the cover page's {WORDCOUNT} marker (see index.md); excludes
+    the cover page itself and the auto-generated Table of Contents, since
+    neither is "content".
+
+    Handles both the markdown-syntax fences preprocess_markdown() still
+    produces and the real <pre>/<code> blocks render_page_html() produces
+    (see zendoc-template#92) - the generic <[^>]+> tag strip below doesn't
+    remove a code block's own *text content*, only markdown's fence
+    delimiters do that, so an HTML code block needs its content dropped
+    explicitly first or its source code inflates the count as if it were
+    prose.
     """
     total_words = 0
     for path in markdown_paths:
@@ -289,9 +298,11 @@ def compute_pdf_word_count(markdown_paths):
         except OSError:
             continue
         text = re.sub(r'<!--.*?-->', ' ', text, flags=re.DOTALL)
+        text = re.sub(r'<pre[^>]*>.*?</pre>', ' ', text, flags=re.DOTALL | re.IGNORECASE)
         text = re.sub(r'```.*?```', ' ', text, flags=re.DOTALL)
         text = re.sub(r'~~~.*?~~~', ' ', text, flags=re.DOTALL)
         text = re.sub(r'`[^`]*`', ' ', text)
+        text = re.sub(r'<code[^>]*>.*?</code>', ' ', text, flags=re.DOTALL | re.IGNORECASE)
         text = re.sub(r'<[^>]+>', ' ', text)
         text = re.sub(r'!\[[^\]]*\]\([^)]*\)', ' ', text)
         text = re.sub(r'\[([^\]]*)\]\([^)]*\)', r'\1', text)
@@ -338,18 +349,17 @@ def get_latest_release_tag(repo_url):
     except Exception:
         return ""
 
-def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
-    """Pre-renders ```mermaid fenced code blocks (see
-    https://zensical.org/docs/authoring/diagrams/) to static SVGs via a local
-    mermaid-cli install under tools/mermaid. WeasyPrint has no JS engine to
-    run Mermaid.js client-side the way the live Zensical site does, so the
-    diagram source must become an image before Pandoc ever sees it. The
-    emitted markdown image tag is then picked up and base64-inlined by the
-    existing image encoder further down in preprocess_markdown().
-    """
+def _render_one_mermaid_diagram(diagram_source, temp_build_dir, mermaid_state):
+    """Renders a single Mermaid diagram's source to a static SVG file via a
+    local mermaid-cli install under tools/mermaid, returning the absolute SVG
+    path, or None if mermaid-cli isn't installed or the render failed. The
+    actual subprocess invocation shared by render_mermaid_diagrams() (the
+    markdown-syntax-based pipeline) and render_page_html() (see
+    zendoc-template#92's HTML-based pipeline, which finds diagram source in
+    <pre class="mermaid"> rather than a ```mermaid fence)."""
     mmdc_bin = os.path.abspath(os.path.join("tools", "mermaid", "node_modules", ".bin", "mmdc"))
     if not os.path.exists(mmdc_bin):
-        return content
+        return None
     # Mermaid's default node/edge labels are HTML <foreignObject> content, which
     # WeasyPrint's SVG renderer can't display (text silently vanishes). Forcing
     # htmlLabels off makes mermaid emit plain SVG <text>/<tspan> labels instead.
@@ -359,7 +369,35 @@ def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
     puppeteer_config = os.path.abspath(os.path.join("tools", "mermaid", "puppeteer_config.json"))
 
     mermaid_dir = os.path.join(temp_build_dir, "mermaid_diagrams")
+    mermaid_state['count'] += 1
+    idx = mermaid_state['count']
+    os.makedirs(mermaid_dir, exist_ok=True)
+    mmd_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.mmd"))
+    svg_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.svg"))
+    with open(mmd_path, "w", encoding="utf-8") as f:
+        f.write(diagram_source)
 
+    try:
+        subprocess.run(
+            [mmdc_bin, "-i", mmd_path, "-o", svg_path, "-b", "transparent",
+             "-c", mmdc_config, "-p", puppeteer_config],
+            check=True, capture_output=True, text=True, timeout=60
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        detail = getattr(e, "stderr", None) or str(e)
+        print(f"\u26a0\ufe0f  Mermaid render failed for diagram {idx}: {detail}")
+        return None
+    return svg_path
+
+def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
+    """Pre-renders ```mermaid fenced code blocks (see
+    https://zensical.org/docs/authoring/diagrams/) to static SVGs (see
+    _render_one_mermaid_diagram()). WeasyPrint has no JS engine to run
+    Mermaid.js client-side the way the live Zensical site does, so the
+    diagram source must become an image before Pandoc ever sees it. The
+    emitted markdown image tag is then picked up and base64-inlined by the
+    existing image encoder further down in preprocess_markdown().
+    """
     def replace(match):
         indent = match.group(1)
         raw_block = match.group(2)
@@ -367,26 +405,9 @@ def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
             line[len(indent):] if line.startswith(indent) else line.lstrip()
             for line in raw_block.splitlines()
         )
-
-        mermaid_state['count'] += 1
-        idx = mermaid_state['count']
-        os.makedirs(mermaid_dir, exist_ok=True)
-        mmd_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.mmd"))
-        svg_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.svg"))
-        with open(mmd_path, "w", encoding="utf-8") as f:
-            f.write(diagram_source)
-
-        try:
-            subprocess.run(
-                [mmdc_bin, "-i", mmd_path, "-o", svg_path, "-b", "transparent",
-                 "-c", mmdc_config, "-p", puppeteer_config],
-                check=True, capture_output=True, text=True, timeout=60
-            )
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-            detail = getattr(e, "stderr", None) or str(e)
-            print(f"\u26a0\ufe0f  Mermaid render failed for diagram {idx}: {detail}")
+        svg_path = _render_one_mermaid_diagram(diagram_source, temp_build_dir, mermaid_state)
+        if svg_path is None:
             return match.group(0)
-
         return f'{indent}![Mermaid diagram]({svg_path})'
 
     return re.sub(
@@ -471,6 +492,38 @@ def build_page_anchor_map(md_files):
         slug = re.sub(r'[^a-z0-9]+', '-', key.lower().rsplit('.', 1)[0]).strip('-')
         page_anchor_map[key] = f'page-{slug}'
     return page_anchor_map
+
+def _virtual_page_path(docs_rel_path):
+    """The clean-URL "virtual directory" a docs_dir-relative page path maps
+    to under Zensical's use_directory_urls convention - e.g.
+    "starthere/installtooling.md" becomes "starthere/installtooling" (one
+    level deeper than its own containing directory), while an index.md
+    stays at its containing directory rather than nesting deeper (e.g.
+    "starthere/index.md" -> "starthere", top-level "index.md" -> ""). Used
+    by build_virtual_page_map()/render_page_html() to resolve a real
+    <a href> - already rewritten to this same clean-URL form by
+    zensical.extensions.links.LinksTreeprocessor (regular links) or
+    zendoc's own cross_page_href() (\\ref{}/\\cite{}/\\gls{} links) by the
+    time render() returns the page's HTML - back to the real page it
+    points at."""
+    dirname = os.path.dirname(docs_rel_path)
+    basename = os.path.basename(docs_rel_path)
+    if basename.lower() == 'index.md':
+        return dirname
+    slug = basename.rsplit('.', 1)[0]
+    return os.path.join(dirname, slug).replace('\\', '/') if dirname else slug
+
+def build_virtual_page_map(md_files):
+    """Maps each nav markdown file's clean-URL virtual directory path (see
+    _virtual_page_path()) to the same anchor id build_page_anchor_map()
+    assigns it, so render_page_html() can resolve a rewritten <a href>
+    without needing to know the original .md filename at all."""
+    anchor_map = build_page_anchor_map(md_files)
+    virtual_map = {}
+    for f in md_files:
+        key = os.path.normpath(f).replace('\\', '/')
+        virtual_map[_virtual_page_path(key)] = anchor_map[key]
+    return virtual_map
 
 def build_citation_map(md_files, docs_dir):
     """Scans every nav markdown file for {: #id ... data-cite-text="..." }
@@ -1698,6 +1751,280 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(new_lines))
 
+def to_base64_data_uri(img_src, base_dir):
+    """Resolves a (possibly relative) image src to an absolute path under
+    base_dir and returns it as a base64 data: URI, so the standalone
+    compiled document doesn't depend on relative file paths resolving
+    correctly from wherever Pandoc happens to run. Module-level so both
+    preprocess_markdown()'s own nested copy (unchanged, still used by its
+    markdown-syntax-based pipeline) and render_page_html() (see
+    zendoc-template#92's HTML-based pipeline) can use the identical logic."""
+    if img_src.startswith('data:'):
+        return img_src
+
+    path_part = img_src.split('#')[0]
+    if path_part.startswith('file://'):
+        path_part = path_part[7:]
+
+    img_path = os.path.abspath(os.path.join(base_dir, path_part))
+    if not os.path.exists(img_path):
+        img_path = os.path.abspath(path_part)
+
+    if os.path.exists(img_path) and os.path.isfile(img_path):
+        try:
+            ext = os.path.splitext(img_path)[1].lower().strip('.')
+            mime_type = f"image/{ext}"
+            if ext == "svg": mime_type = "image/svg+xml"
+            elif ext == "jpg": mime_type = "image/jpeg"
+            with open(img_path, 'rb') as f:
+                b64_content = base64.b64encode(f.read()).decode('utf-8')
+            return f"data:{mime_type};base64,{b64_content}"
+        except Exception:
+            pass
+    return img_src
+
+def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid_state, is_index=False, repo_url=''):
+    """New render pipeline (see zendoc-template#92): renders this page
+    through Zensical's own zensical.markdown.render.render() - the exact
+    same zendoc/pymdownx extensions, real Jinja macro/variable substitution,
+    and {% if %} conditional evaluation the live website uses - then lightly
+    cleans up the resulting HTML for Pandoc's benefit, instead of the ~1000
+    lines of regex preprocess_markdown() uses to hand-translate Zensical/
+    pymdownx/zendoc markdown syntax (admonitions, tabs, grid cards, captions,
+    superfences attributes, attr_list spans, mark/insert/keys, {% if %}
+    conditionals) into a Pandoc-compatible markdown dialect - all of which
+    Pandoc's own HTML reader already understands correctly once it's real
+    HTML, no translation needed. Requires zensical.config.parse_config() to
+    have already been called once (see main()) so zensical.config.get_config()
+    - which zensical.markdown.render.render() and zendoc's own Zensical
+    auto-detection both read - is actually populated.
+
+    Math (pymdownx.arithmatex): Pandoc's HTML reader has no special
+    awareness of <div class="arithmatex">/<span class="arithmatex"> the way
+    its *markdown* reader recognises native $...$/$$...$$ as a real Math
+    AST node, so the existing Lua filter's Math() handler never fires for
+    HTML input - handled instead by dedicated Div()/Span() handlers in the
+    Lua filter (see main()), matched by class rather than AST node type.
+
+    Returns real HTML, fed to Pandoc with -f html - see main().
+    """
+    from zensical.markdown.render import render as zensical_render
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        raw_content = f.read()
+
+    docs_dir = config.get('docs_dir', 'docs')
+    current_docs_rel_path = os.path.normpath(os.path.relpath(file_path, docs_dir)).replace('\\', '/')
+
+    result = zensical_render(raw_content, current_docs_rel_path, current_docs_rel_path)
+    soup = BeautifulSoup(result['content'], 'html.parser')
+
+    # Website-only presentational output with no PDF equivalent: the PDF
+    # numbers headings separately via the Lua filter's Header() function
+    # and gets equivalent CSS added directly to the compiled stylesheet
+    # instead (see reference_style_css/acronym_style_css/glossary_style_css
+    # in main()), so heading_counter_reset()/reference_style()/
+    # acronym_style()/glossary_style()'s injected <style> blocks are just
+    # noise here. toc's hover-to-copy permalink links are meaningless in a
+    # PDF too.
+    for style in soup.find_all('style'):
+        style.decompose()
+    for permalink in soup.select('a.headerlink'):
+        permalink.decompose()
+    # zensical.extensions.glightbox wraps every image in a click-to-zoom
+    # <a class="glightbox" href="..."> - a website-only JS lightbox feature
+    # with no PDF equivalent, and whose href uses a different relative-path
+    # convention than the <img> it wraps (assuming the page's own clean URL
+    # is itself a directory, e.g. "../images/x.png" from
+    # "starthere/startediting/" - one level deeper than the <img src>'s
+    # "images/x.png" resolved directly against the source file's own
+    # directory), which Pandoc/WeasyPrint then fails to resolve as a broken
+    # link. Unwrapping to just the <img> avoids resolving that href at all.
+    for lightbox_link in soup.select('a.glightbox'):
+        lightbox_link.unwrap()
+
+    # Embedded videos (e.g. a YouTube <iframe>, see starthere.md): confirmed
+    # a raw <iframe> left for Pandoc/WeasyPrint to handle produces a stray,
+    # unwanted heading in the compiled PDF (WeasyPrint attempting to fetch
+    # the iframe's src and something in that response ending up parsed as
+    # real page content) - a static PDF can't embed a live video player
+    # regardless, so replace it with a "Watch Video" admonition link instead
+    # (same treatment preprocess_markdown()'s video_iframe_replacer() gives
+    # it, rebuilt here as real admonition HTML rather than "!!! info"
+    # markdown syntax).
+    for iframe in soup.find_all('iframe'):
+        src = iframe.get('src', '')
+        if not src:
+            iframe.decompose()
+            continue
+        if 'youtube.com/embed/' in src:
+            video_url = src.replace('youtube.com/embed/', 'youtube.com/watch?v=').split('?')[0]
+        else:
+            video_url = src
+        video_title = iframe.get('title', '').strip() or 'Video Tutorial'
+        admonition = soup.new_tag('div')
+        admonition['class'] = ['admonition', 'info']
+        title_p = soup.new_tag('p')
+        title_p['class'] = 'admonition-title'
+        title_p.string = video_title
+        body_p = soup.new_tag('p')
+        strong = soup.new_tag('strong')
+        link = soup.new_tag('a', href=video_url)
+        link.string = 'Watch Video'
+        strong.append(link)
+        body_p.append(strong)
+        admonition.append(title_p)
+        admonition.append(body_p)
+        parent = iframe.parent
+        # Only replace the immediate wrapping <div> too if the iframe is its
+        # only real content - otherwise this would swallow unrelated sibling
+        # content (e.g. a grid card, or the whole page's own wrapper div).
+        if parent is not None and parent.name == 'div' and len(list(parent.find_all(True))) == 1:
+            parent.replace_with(admonition)
+        else:
+            iframe.replace_with(admonition)
+
+    # Content tabs: pymdownx.blocks.tab renders each tab's label as an
+    # inline <label> sibling inside a wrapping <div class="tabbed-labels">.
+    # Pandoc's HTML reader merges adjacent inline-level siblings with no
+    # block boundary between them into one Plain block - confirmed this
+    # collapses every label in a tabbed-set into one unseparated run of
+    # text, with no way to recover the boundary afterward in a Lua filter.
+    # Rewriting each into its own <p> here, before Pandoc's reader ever
+    # sees it, is the only point this can be fixed - see the Lua filter's
+    # tabbed-set Div() handler for the matching reconstruction into
+    # tabbox-header/tabbox-body (the same shape the existing tabbox
+    # convention already produces, so no CSS changes are needed to style
+    # it).
+    for radio in soup.select('input[type="radio"]'):
+        radio.decompose()
+    for label in soup.select('div.tabbed-labels label'):
+        p = soup.new_tag('p')
+        p['class'] = 'zendoc-tab-label'
+        p.string = label.get_text()
+        label.replace_with(p)
+
+    # Mermaid diagrams: WeasyPrint has no JS engine to run Mermaid.js
+    # client-side - pre-render each <pre class="mermaid">'s source to a
+    # static SVG via the same mermaid-cli install render_mermaid_diagrams()
+    # uses (see _render_one_mermaid_diagram()), just reading the diagram
+    # source from the rendered HTML instead of a markdown fence.
+    for pre in soup.select('pre.mermaid'):
+        svg_path = _render_one_mermaid_diagram(pre.get_text(), temp_build_dir, mermaid_state)
+        if svg_path is not None:
+            img = soup.new_tag('img', src=svg_path, alt='Mermaid diagram')
+            pre.replace_with(img)
+
+    # Zensical rewrites every page-relative reference - not just <a href>
+    # links to other pages, but an <img src> too - relative to this page's
+    # own clean-URL *virtual* directory (e.g. "starthere/startediting.md"'s
+    # virtual directory is "starthere/startediting/", one level deeper than
+    # its own containing directory), matching its use_directory_urls
+    # convention - see _virtual_page_path(). Confirmed directly: a
+    # <img src="../images/x.png"> here really does mean
+    # "docs/starthere/images/x.png", not "docs/images/x.png" as a naive
+    # relative-to-the-source-file resolution would assume.
+    current_virtual_dir = _virtual_page_path(current_docs_rel_path)
+    virtual_base_dir = os.path.join(docs_dir, current_virtual_dir)
+
+    # Images: base64-embed every local image reference directly into the
+    # HTML, so the standalone compiled document doesn't depend on relative
+    # file paths resolving correctly from wherever Pandoc happens to run -
+    # same reasoning as to_base64_data_uri()'s other call sites, just
+    # targeting real <img> tags directly (render() has already resolved
+    # markdown image syntax into these).
+    for img in soup.find_all('img'):
+        src = img.get('src', '')
+        if src and not src.startswith('data:'):
+            img['src'] = to_base64_data_uri(src, virtual_base_dir)
+
+    # Cross-page links: build_pdf.py concatenates every page into one PDF
+    # document, so a link like installtooling.md (fine on the website, a
+    # separate page) has nothing to point at here - rewrite to the
+    # deterministic in-document anchor from page_anchor_map instead (see
+    # build_page_anchor_map() / issue #16). By the time render() returns
+    # this page's HTML, every such link - both a regular markdown link
+    # (rewritten by zensical.extensions.links.LinksTreeprocessor) and a
+    # \ref{}/\cite{}/\gls{} link (rewritten by zendoc's own
+    # cross_page_href()) - already uses the same clean-URL virtual-
+    # directory form.
+    virtual_page_map = {_virtual_page_path(key): anchor for key, anchor in page_anchor_map.items()}
+    for a in soup.find_all('a', href=True):
+        href = a['href']
+        if href.startswith(('http://', 'https://', 'mailto:', '#')):
+            continue
+        target, _, frag = href.partition('#')
+        if not target:
+            continue
+        resolved = os.path.normpath(os.path.join(current_virtual_dir, target)).replace('\\', '/').rstrip('/')
+        anchor = virtual_page_map.get(resolved)
+        if anchor is not None:
+            a['href'] = f'#{frag}' if frag else f'#{anchor}'
+
+    # Repo file links: a relative link to a non-markdown repo file (e.g.
+    # [extra.css](../stylesheets/extra.css) in customise.md) isn't part of
+    # the concatenated PDF at all (unlike a page link above) - resolved
+    # relative to wherever Pandoc happens to run, it's meaningless (and
+    # reveals a local file path) to anyone else reading the PDF, so rewrite
+    # it to the file's canonical GitHub/GitLab "blob" URL instead (see
+    # issue #19), same as rewrite_repo_file_links(). Unlike the clean-URL
+    # page links above, this one *is* just a direct relative path from the
+    # source file's own directory - Zensical doesn't clean-URL-rewrite
+    # links to non-page assets.
+    current_dir = os.path.dirname(current_docs_rel_path)
+    repo_url_lower = repo_url.lower()
+    if 'github.com' in repo_url_lower:
+        blob_prefix = f'{repo_url}/blob/main/'
+    elif 'gitlab' in repo_url_lower:
+        blob_prefix = f'{repo_url}/-/blob/main/'
+    else:
+        blob_prefix = None
+    for a in soup.find_all('a', href=True):
+        href = a['href']
+        if href.startswith(('http://', 'https://', 'mailto:', '#', '/')):
+            continue
+        if blob_prefix is None:
+            a.unwrap()
+            continue
+        repo_rel_path = os.path.normpath(os.path.join(docs_dir, current_dir, href)).replace('\\', '/')
+        a['href'] = f'{blob_prefix}{repo_rel_path}'
+
+    # Cover page: every heading here (there's usually just one, hidden) is
+    # decorative, not a real chapter - unnumbered/unlisted/hidden from the
+    # Lua filter's Header() counter and the table of contents, matching
+    # preprocess_markdown()'s own tag_unnumbered() handling for is_index.
+    # Wrapped in the same .cover-page class the compiled stylesheet already
+    # styles against.
+    if is_index:
+        for heading in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
+            classes = heading.get('class', [])
+            for extra_class in ('hidden', 'unnumbered', 'unlisted'):
+                if extra_class not in classes:
+                    classes.append(extra_class)
+            heading['class'] = classes
+        cover_div = soup.new_tag('div')
+        cover_div['class'] = 'cover-page'
+        for child in list(soup.contents):
+            cover_div.append(child)
+        soup.append(cover_div)
+
+    # This page's own anchor (see build_page_anchor_map() / issue #16):
+    # give the first real heading that id directly (same approach as
+    # tag_first_heading(), just setting a real HTML attribute rather than a
+    # Pandoc {#id} block), and flag it .appendix if this page is one, for
+    # the Lua filter's Header() to letter instead of number it (see
+    # page_is_appendix() / issue #24).
+    own_anchor = page_anchor_map.get(current_docs_rel_path)
+    first_heading = soup.find(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+    if own_anchor and first_heading is not None:
+        first_heading['id'] = own_anchor
+        if page_is_appendix(file_path):
+            classes = first_heading.get('class', [])
+            classes.append('appendix')
+            first_heading['class'] = classes
+
+    return str(soup)
+
 def main():
     if not os.path.exists('zensical.toml'):
         print("❌ Error: zensical.toml not found in the current directory.")
@@ -1754,8 +2081,17 @@ def main():
         print("❌ Error: No valid markdown files found.")
         sys.exit(1)
     page_anchor_map = build_page_anchor_map(md_files)
-    citation_map = build_citation_map(md_files, docs_dir)
-    glossary_map = build_glossary_map(md_files, docs_dir)
+
+    # Populates zensical.config's module-level config (as a side effect of
+    # parsing zensical.toml through Zensical's own loader, not the toml.load()
+    # above) so zensical.markdown.render.render() - called per page below via
+    # render_page_html() (see zendoc-template#92) - resolves real Jinja
+    # macro/variable substitution and {% if %} conditionals exactly like the
+    # live website, and so zendoc.headings/citations/glossary's own Zensical
+    # auto-detection (nav pre-scan, shared cross-page registries) works the
+    # same way here as it does under `zensical build`/`zensical serve`.
+    import zensical.config as _zensical_config
+    _zensical_config.parse_config('zensical.toml')
 
     calculated_vars = {}
     macros_module = None
@@ -1787,35 +2123,6 @@ def main():
         except Exception as e:
             print(f"⚠️ Warning: Encountered an issue while executing macros.py: {e}")
 
-    # PDF equivalent of the website's {{ nav_snippet() }} macro (see
-    # macros.py): reuses the same _get_nav_snippet() helper directly, since
-    # it's already loaded as a real module here - no need to duplicate the
-    # extraction logic the way reference_style's CSS had to be, since here
-    # both outputs just need the identical extracted text.
-    nav_snippet_text = macros_module._get_nav_snippet() if macros_module and hasattr(macros_module, '_get_nav_snippet') else ''
-
-    # Each nav page's own chapter number ("7") or appendix letter ("A"),
-    # keyed by its docs_dir-relative path - needed for figure/table caption
-    # numbering (see preprocess_markdown()'s chapter_id parameter). Mirrors
-    # macros.py's own _heading_start_counts()/_appendix_letters(), reusing
-    # its _page_is_appendix()/_count_top_level_headings() helpers directly
-    # (already loaded above) rather than re-implementing the same nav walk
-    # a third time.
-    chapter_identifiers = {}
-    if macros_module and hasattr(macros_module, '_page_is_appendix') and hasattr(macros_module, '_count_top_level_headings'):
-        numeric_chapter = 0
-        appendix_index = 0
-        for f in md_files:
-            full_path = os.path.join(docs_dir, f)
-            if macros_module._page_is_appendix(full_path):
-                appendix_index += 1
-                chapter_identifiers[f] = chr(ord('A') + appendix_index - 1)
-            elif macros_module._count_top_level_headings(full_path) > 0:
-                numeric_chapter += 1
-                chapter_identifiers[f] = str(numeric_chapter)
-
-    caption_state = {}
-
     theme_section = project_section.get('theme', {}) if isinstance(project_section, dict) else config.get('theme', {})
     font_section = theme_section.get('font', {}) if isinstance(theme_section, dict) else {}
     main_font, mono_font = "Inter", "JetBrains Mono"
@@ -1826,25 +2133,20 @@ def main():
     copyright_text = project_section.get('copyright') or config.get('copyright') or "Copyright 2026"
     site_name_text = project_section.get('site_name') or config.get('site_name') or ""
 
-    icon_dirs = discover_icon_dirs(config)
-    icon_registry = build_icon_registry(icon_dirs)
-
     temp_build_dir = "pdf_build_workspace"
     os.makedirs(temp_build_dir, exist_ok=True)
-    
-    # Global state tracker maps unfragmented safe tokens to their Base64 payloads
-    global_placeholder_map = {}
+
     mermaid_state = {'count': 0}
 
-    print("🧹 Preprocessing markdown file layouts...")
+    print("🧹 Rendering pages via Zensical...")
     processed_paths = []
     for path in valid_paths:
-        safe_name = path.replace('/', '_').replace('\\', '_')
+        safe_name = path.replace('/', '_').replace('\\', '_') + '.html'
         temp_out_path = os.path.join(temp_build_dir, safe_name)
         is_index = "index.md" in os.path.basename(path).lower()
-        rel_path = os.path.normpath(os.path.relpath(path, docs_dir)).replace('\\', '/')
-        chapter_id = chapter_identifiers.get(rel_path)
-        preprocess_markdown(path, temp_out_path, config, calculated_vars, icon_registry, global_placeholder_map, temp_build_dir, mermaid_state, page_anchor_map, citation_map, glossary_map, nav_snippet_text, is_index=is_index, chapter_id=chapter_id, caption_state=caption_state)
+        html = render_page_html(path, config, page_anchor_map, temp_build_dir, mermaid_state, is_index=is_index, repo_url=calculated_vars.get('repo_url', ''))
+        with open(temp_out_path, 'w', encoding='utf-8') as f:
+            f.write(html)
         processed_paths.append(temp_out_path)
 
     # Fill in the cover page's {WORDCOUNT}/{REPOURL} markers (see index.md),
@@ -1890,25 +2192,21 @@ def main():
         with open(cover_path, 'w', encoding='utf-8') as f:
             f.write(cover_content)
 
-    toc_trigger_path = os.path.join(temp_build_dir, "toc_trigger_temp.md")
+    toc_trigger_path = os.path.join(temp_build_dir, "toc_trigger_temp.html")
     with open(toc_trigger_path, "w", encoding="utf-8") as f:
-        f.write("\n# Table of Contents {.unnumbered .unlisted}\n\n<div class=\"page-break\"></div>\n")
+        f.write('\n<h1 class="unnumbered unlisted">Table of Contents</h1>\n\n<div class="page-break"></div>\n')
 
     compiled_paths = [processed_paths[0], toc_trigger_path] + processed_paths[1:] if "index.md" in os.path.basename(valid_paths[0]).lower() else [toc_trigger_path] + processed_paths
 
     output_pdf = "docs/site_documentation.pdf"
 
-    temp_master_md = os.path.join(temp_build_dir, "_temp_master_compiled.md")
+    temp_master_md = os.path.join(temp_build_dir, "_temp_master_compiled.html")
     with open(temp_master_md, "w", encoding="utf-8") as out_f:
+        out_f.write('<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>\n')
         for chunk_path in compiled_paths:
             with open(chunk_path, "r", encoding="utf-8") as in_f:
                 out_f.write(in_f.read() + "\n\n")
-
-    lua_table_entries = []
-    for token_key, b64_payload in global_placeholder_map.items():
-        lua_table_entries.append(f'  ["{token_key}"] = "{b64_payload}"')
-
-    lua_icon_db_string = "local icon_db = {\n" + ",\n".join(lua_table_entries) + "\n}\n\n"
+        out_f.write('</body></html>')
 
     math_dir = os.path.abspath(os.path.join(temp_build_dir, "math_diagrams"))
     os.makedirs(math_dir, exist_ok=True)
@@ -1917,7 +2215,6 @@ def main():
 
     lua_filter_path = os.path.join(temp_build_dir, "tabbox_filter.lua")
     with open(lua_filter_path, "w", encoding="utf-8") as f:
-        f.write(lua_icon_db_string)
         f.write(
             "local h1, h2, h3 = 0, 0, 0\n"
             "local appendix_index = 0\n"
@@ -1931,6 +2228,10 @@ def main():
             "local function to_letter(n)\n"
             "  return string.char(64 + n)\n"
             "end\n\n"
+            f"local mathjax_available = {'true' if mathjax_available else 'false'}\n"
+            f"local math_dir = \"{math_dir}\"\n"
+            f"local tex2svg_script = \"{tex2svg_script}\"\n"
+            "local math_counter = 0\n\n"
             "function Div(el)\n"
             "  if el.classes:includes('tabbox') then\n"
             "    local title = el.attributes['title'] or 'Tab'\n"
@@ -1940,6 +2241,105 @@ def main():
             "    el.classes = {'tabbox-container'}\n"
             "    return el\n"
             "  end\n"
+            "  -- Reconstructs pymdownx.blocks.tab's HTML structure (see\n"
+            "  -- zendoc-template#92, render_page_html()) into the same\n"
+            "  -- tabbox-header/tabbox-body/tabbox-container shape as the\n"
+            "  -- .tabbox handler just above, so both pipelines share one CSS\n"
+            "  -- convention. A tabbed-set groups every tab's label\n"
+            "  -- (tabbed-labels, one block per label - render_page_html()\n"
+            "  -- rewrote each <label> into its own <p> before Pandoc's HTML\n"
+            "  -- reader could merge them into one unseparated run of text)\n"
+            "  -- and content (tabbed-content, one tabbed-block Div per tab)\n"
+            "  -- together, unlike the .tabbox case above (already split into\n"
+            "  -- one Div per tab before Pandoc ever sees it) - walk both\n"
+            "  -- pairwise and emit one tabbox-container per tab.\n"
+            "  if el.classes:includes('tabbed-set') then\n"
+            "    local labels_div, content_div\n"
+            "    for _, child in ipairs(el.content) do\n"
+            "      if child.t == 'Div' and child.classes:includes('tabbed-labels') then\n"
+            "        labels_div = child\n"
+            "      elseif child.t == 'Div' and child.classes:includes('tabbed-content') then\n"
+            "        content_div = child\n"
+            "      end\n"
+            "    end\n"
+            "    if not labels_div or not content_div then return el end\n"
+            "    local tabs = {}\n"
+            "    for i, label_block in ipairs(labels_div.content) do\n"
+            "      local body_block = content_div.content[i]\n"
+            "      if body_block then\n"
+            "        local header = pandoc.Div({pandoc.Plain(label_block.content)}, {class='tabbox-header'})\n"
+            "        local body = pandoc.Div(body_block.content, {class='tabbox-body'})\n"
+            "        table.insert(tabs, pandoc.Div({header, body}, {class='tabbox-container'}))\n"
+            "      end\n"
+            "    end\n"
+            "    return tabs\n"
+            "  end\n"
+            "  -- pymdownx.arithmatex's generic-mode display math\n"
+            "  -- (<div class=\"arithmatex\">\\[...\\]</div> - see\n"
+            "  -- zendoc-template#92): Pandoc's HTML reader has no native Math\n"
+            "  -- AST node for this the way its *markdown* reader does for\n"
+            "  -- $$...$$, so this can't be handled by the Math() function\n"
+            "  -- below at all - matched by class instead, stripping the\n"
+            "  -- \\[ \\] delimiters before the same tex2svg render Math() uses.\n"
+            "  if el.classes:includes('arithmatex') then\n"
+            "    if not mathjax_available then return nil end\n"
+            "    local text = pandoc.utils.stringify(el.content):gsub('^%s*\\\\%[%s*', ''):gsub('%s*\\\\%]%s*$', '')\n"
+            "    math_counter = math_counter + 1\n"
+            "    local ok, svg = pcall(pandoc.pipe, 'node', {tex2svg_script, 'display'}, text)\n"
+            "    if not ok or not svg or svg == '' then return nil end\n"
+            "    local svg_path = math_dir .. '/formula_' .. math_counter .. '.svg'\n"
+            "    local out = io.open(svg_path, 'w')\n"
+            "    if not out then return nil end\n"
+            "    out:write(svg)\n"
+            "    out:close()\n"
+            "    return pandoc.Para({pandoc.RawInline('html', '<img class=\"pdf-math-display\" src=\"' .. svg_path .. '\" />')})\n"
+            "  end\n"
+            "end\n\n"
+            "-- pymdownx.arithmatex's generic-mode inline math\n"
+            "-- (<span class=\"arithmatex\">\\(...\\)</span>) - same reasoning as\n"
+            "-- the Div() arithmatex handler above, for the inline case.\n"
+            "function Span(el)\n"
+            "  if el.classes:includes('arithmatex') then\n"
+            "    if not mathjax_available then return nil end\n"
+            "    local text = pandoc.utils.stringify(el.content):gsub('^%s*\\\\%(%s*', ''):gsub('%s*\\\\%)%s*$', '')\n"
+            "    math_counter = math_counter + 1\n"
+            "    local ok, svg = pcall(pandoc.pipe, 'node', {tex2svg_script, 'inline'}, text)\n"
+            "    if not ok or not svg or svg == '' then return nil end\n"
+            "    local svg_path = math_dir .. '/formula_' .. math_counter .. '.svg'\n"
+            "    local out = io.open(svg_path, 'w')\n"
+            "    if not out then return nil end\n"
+            "    out:write(svg)\n"
+            "    out:close()\n"
+            "    return pandoc.RawInline('html', '<img class=\"pdf-math-inline\" src=\"' .. svg_path .. '\" />')\n"
+            "  end\n"
+            "end\n\n"
+            "-- Prepends the current chapter number/appendix letter in front\n"
+            "-- of pymdownx.blocks.caption's own bare per-page auto-number\n"
+            "-- (e.g. \"1.\" -> \"7.1.\"), plus the \"Figure \"/\"Table \" word\n"
+            "-- itself (added via CSS ::before on the website - see\n"
+            "-- zendoc-template#92 - which has no equivalent for a PDF, where\n"
+            "-- the number needs to be real text) - matching\n"
+            "-- zensical.toml's zendoc-figure-caption/zendoc-table-caption\n"
+            "-- classes (see [project.markdown_extensions.pymdownx.blocks.caption]).\n"
+            "function Figure(el)\n"
+            "  local word = nil\n"
+            "  if el.classes:includes('zendoc-figure-caption') then word = 'Figure '\n"
+            "  elseif el.classes:includes('zendoc-table-caption') then word = 'Table ' end\n"
+            "  if not word then return el end\n"
+            "  local label = in_appendix and to_letter(appendix_index) or tostring(h1)\n"
+            "  for _, block in ipairs(el.caption.long) do\n"
+            "    if block.t == 'Para' or block.t == 'Plain' then\n"
+            "      for i, inline in ipairs(block.content) do\n"
+            "        if inline.t == 'Span' and inline.classes:includes('caption-prefix') then\n"
+            "          table.insert(inline.content, 1, pandoc.Str(label .. '.'))\n"
+            "          table.insert(block.content, i, pandoc.Str(word))\n"
+            "          return el\n"
+            "        end\n"
+            "      end\n"
+            "      return el\n"
+            "    end\n"
+            "  end\n"
+            "  return el\n"
             "end\n\n"
             "function Header(block)\n"
             "  if heading_numbering_enabled and not block.classes:includes('unnumbered') then\n"
@@ -1979,10 +2379,6 @@ def main():
             "  html = html:gsub('^%s*<p>', ''):gsub('</p>%s*$', '')\n"
             "  return pandoc.RawInline('html', '<span class=\"pdf-footnote\">' .. html .. '</span>')\n"
             "end\n\n"
-            f"local mathjax_available = {'true' if mathjax_available else 'false'}\n"
-            f"local math_dir = \"{math_dir}\"\n"
-            f"local tex2svg_script = \"{tex2svg_script}\"\n"
-            "local math_counter = 0\n\n"
             "function Math(el)\n"
             "  if not mathjax_available then return nil end\n"
             "  math_counter = math_counter + 1\n"
@@ -1996,12 +2392,6 @@ def main():
             "  out:close()\n"
             "  local css_class = is_display and 'pdf-math-display' or 'pdf-math-inline'\n"
             "  return pandoc.RawInline('html', '<img class=\"' .. css_class .. '\" src=\"' .. svg_path .. '\" />')\n"
-            "end\n\n"
-            "function Str(el)\n"
-            "  if icon_db[el.text] then\n"
-            "    return pandoc.RawInline('html', '<img class=\"twemoji\" src=\"data:image/svg+xml;base64,' .. icon_db[el.text] .. '\" />')\n"
-            "  end\n"
-            "  return nil\n"
             "end\n\n"
             "function Pandoc(doc)\n"
             "  local toc_list = pandoc.structure.table_of_contents(doc)\n"
@@ -2517,33 +2907,28 @@ p.glossary + p.glossary {{
 }}
 """
 
-    # Every table caption id that requested the top position (either a
-    # table-caption block with an explicit "| <", or a plain caption using
-    # this template's original default - see table_caption_replacer() /
-    # caption_state above), collected across every page's preprocessing
-    # pass. table caption itself (in the static part of this stylesheet,
-    # above) deliberately doesn't set caption-side at all, so Pandoc's own
-    # default (bottom) applies to any table caption not listed here.
-    caption_style_css = "\n".join(
-        f'table caption[id="{table_id}"] {{ caption-side: top !important; }}'
-        for table_id in sorted(caption_state.get('prepend_table_ids', set()))
-    )
-
+    # NOTE (zendoc-template#92): the old pipeline's per-table "| <" prepend
+    # position tracking (caption_state/prepend_table_ids) doesn't apply to
+    # the new render_page_html() pipeline - pymdownx.blocks.caption's own
+    # HTML output already places a prepended figcaption/caption physically
+    # first in the DOM, rather than needing a CSS caption-side override
+    # keyed by id. Not yet verified that Pandoc's HTML writer preserves this
+    # positioning through to the PDF - tracked as a known follow-up.
     with open(temp_compiled_css, "w", encoding="utf-8") as f:
-        f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css + "\n\n" + acronym_style_css + "\n\n" + glossary_style_css + "\n\n" + caption_style_css)
+        f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css + "\n\n" + acronym_style_css + "\n\n" + glossary_style_css)
 
     cmd = [
         "pandoc",
-        os.path.join(temp_build_dir, "_temp_master_compiled.md"),                
+        os.path.join(temp_build_dir, "_temp_master_compiled.html"),
         "-o", output_pdf,
         "--pdf-engine=weasyprint",
         "--pdf-engine-opt=-q",
         "--mathjax",
         f"--lua-filter={lua_filter_path}",
-        "-f", "markdown",
+        "-f", "html",
         "--resource-path=.",
         f"--resource-path={docs_dir}",
-        f"--css={temp_compiled_css}"   
+        f"--css={temp_compiled_css}"
     ]
 
     print("🚀 Processing via unified layout configuration framework...")

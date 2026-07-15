@@ -1363,13 +1363,25 @@ div.zendoc-figure-caption > p:first-child {
     page-break-after: avoid !important;
     break-after: avoid-page !important;
 }
-table th { background-color: rgba(0, 0, 0, 0.1) !important; font-weight: bold !important; }
+table th { background-color: rgba(0, 0, 0, 0.1) !important; font-weight: bold !important; text-align: center !important; }
+/* text-align/font-size set explicitly here, not left to inherit - a
+   table-caption's own wrapping div (div.zendoc-table-caption above, or
+   the pre-existing "figure {}" rule for an append-position table caption)
+   sets text-align: center to keep its caption text centered, which every
+   cell's content otherwise silently inherits too (confirmed directly:
+   table body text was rendering center-aligned with no explicit rule
+   anywhere overriding it). font-size is reduced from the inherited body
+   size, matching how a dense grid of short cells reads better smaller -
+   same reasoning as .tabbox-header/.admonition-title's own explicit
+   smaller sizes above. */
 table th, table td {
     padding: 8px 12px !important;
     border-top: 0.25pt solid #555555 !important;
     border-bottom: 0.25pt solid #555555 !important;
     border-left: none !important; border-right: none !important;
+    font-size: 10pt !important;
 }
+table td { text-align: left !important; }
 table tr:first-child th, table tr:first-child td { border-top: none !important; }
 table tr:last-child td { border-bottom: none !important; }
 
@@ -1523,6 +1535,14 @@ div.grid.cards > ul > li > p:first-child {
    code and code blocks; see docs/stylesheets/extra.css / the Zensical
    default theme), kept identical between inline code and code blocks here. */
 pre, code { font-family: "__MONO_FONT__", monospace !important; }
+/* text-align isn't otherwise set anywhere on pre/code, so a fenced code
+   block nested inside a centered ancestor (figure {}, div.zendoc-*-caption,
+   .gridcard-title, an admonition/tab that happens to be inside one of
+   those, etc.) would silently inherit centered text-align, ragging every
+   code line's left edge - same class of inheritance bug as the table
+   text-align fix above. Explicit left keeps code blocks left-aligned
+   regardless of ancestor context. */
+pre { text-align: left !important; }
 pre { padding: 10px !important; border-radius: 4px !important; margin: 1em 0 !important; white-space: pre-wrap !important; background-color: #dddddd !important; }
 code { padding: 2px 4px !important; border-radius: 3px !important; background-color: #dddddd !important; }
 /* Multi-line <code> inside <pre> is a single inline box split across hard line

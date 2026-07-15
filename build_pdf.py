@@ -559,6 +559,23 @@ def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid
                     title_p.insert(0, ' ')
                     title_p.insert(0, icon_img)
 
+    # Any other inline icon/emoji shortcode (pymdownx.emoji renders these as
+    # a raw inline <svg> inside a <span class="twemoji ...">, e.g. a grid
+    # card's own ":material-clock-fast:" title icon) - confirmed, the same
+    # way as admonition icons above, that a raw inline <svg> doesn't survive
+    # Pandoc's HTML-to-HTML round trip through to WeasyPrint at all (tested
+    # directly, in isolation). Converts every remaining <svg> anywhere on
+    # the page to a base64 data: URI <img>, reusing the same img.twemoji
+    # sizing rule.
+    for svg in soup.find_all('svg'):
+        b64 = base64.b64encode(str(svg).encode('utf-8')).decode('utf-8')
+        icon_img = soup.new_tag(
+            'img',
+            src=f'data:image/svg+xml;base64,{b64}',
+            **{'class': 'twemoji'},
+        )
+        svg.replace_with(icon_img)
+
     # Mermaid diagrams: WeasyPrint has no JS engine to run Mermaid.js
     # client-side - pre-render each <pre class="mermaid">'s source to a
     # static SVG via the same mermaid-cli install render_mermaid_diagrams()
@@ -643,6 +660,54 @@ def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid
             continue
         repo_rel_path = os.path.normpath(os.path.join(docs_dir, current_dir, href)).replace('\\', '/')
         a['href'] = f'{blob_prefix}{repo_rel_path}'
+
+    # Prepend-position figure-caption/table-caption ("/// figure-caption | <"
+    # or "/// table-caption | <" - see "Captions" in customise.md): Pandoc's
+    # Figure AST node stores Caption and content as two separate,
+    # independently-typed fields rather than as ordered children reflecting
+    # the original DOM position, and Pandoc's own HTML writer always
+    # re-emits a Figure's <figcaption> *after* its content when serializing
+    # back to HTML for WeasyPrint - confirmed directly (isolated test: a
+    # <figcaption> placed first in the source HTML still comes out last in
+    # Pandoc's own HTML writer output), discarding "prepend" positioning
+    # entirely regardless of input order. A Div's children, unlike a
+    # Figure's, ARE emitted in original document order - so retag any
+    # figure whose <figcaption> comes first to a <div> (preserving id/
+    # class) and unwrap the <figcaption> itself (also confirmed: Pandoc's
+    # HTML reader treats a bare <figcaption> not inside a <figure> as
+    # ordinary flow content), leaving the caption as this element's first
+    # child block. The Lua filter's Div() handler applies the same
+    # "Figure "/"Table " + chapter-prefix numbering to this case that its
+    # Figure() handler applies to the (unaffected) default append-position
+    # case.
+    for figure in soup.find_all('figure', class_=['zendoc-figure-caption', 'zendoc-table-caption']):
+        first_child = figure.find(True, recursive=False)
+        if first_child is not None and first_child.name == 'figcaption':
+            figure.name = 'div'
+            first_child.unwrap()
+
+    # Pandoc's native Para AST node has no attribute field at all (unlike
+    # Div/Header/CodeBlock/Table/Figure, which all carry one) - confirmed
+    # directly: a <p id="..." class="...">, once read by Pandoc's HTML
+    # reader, comes out the other end as a bare Para with both the id *and*
+    # the class silently gone. This is exactly the shape every attr_list
+    # citation/acronym/glossary definition takes ({: #id .reference
+    # data-cite-text="..." } on a plain paragraph - see "References and
+    # bibliography" in customise.md), and the cover page's own title lines
+    # ({: .title-ctr-b4 } etc.) - both would otherwise silently lose their
+    # id/styling with no error at all. Retagging as a <div> (which Pandoc's
+    # reader does preserve attributes on) fixes both at once.
+    for p in soup.find_all('p'):
+        classes = p.get('class') or []
+        # zendoc-tab-label (see above) deliberately stays a <p>: the Lua
+        # filter's tabbed-set Div() handler reads it as a Plain/Para whose
+        # .content is a plain inline list, matching Pandoc's own Para AST
+        # node - retagging it to a Div here too would change its .content
+        # to a list of blocks instead, breaking that handler.
+        if 'zendoc-tab-label' in classes:
+            continue
+        if p.get('id') or classes:
+            p.name = 'div'
 
     # Cover page: every heading here (there's usually just one, hidden) is
     # decorative, not a real chapter - unnumbered/unlisted/hidden from the
@@ -935,6 +1000,36 @@ def main():
             "      end\n"
             "    end\n"
             "    return tabs\n"
+            "  end\n"
+            "  -- Prepend-position figure-caption/table-caption (see\n"
+            "  -- render_page_html(), zendoc-template#93): pymdownx.blocks.caption's\n"
+            "  -- own HTML places a prepended figcaption physically first in the\n"
+            "  -- DOM, but Pandoc's Figure AST node stores Caption and content as\n"
+            "  -- two separate fields regardless of original order, and Pandoc's\n"
+            "  -- own HTML writer always re-emits the caption *after* the content\n"
+            "  -- when serializing Figure back to HTML - discarding the \"prepend\"\n"
+            "  -- positioning entirely (confirmed directly, isolated test).\n"
+            "  -- render_page_html() works around this by retagging any prepend-\n"
+            "  -- position figure/table caption to a <div> before Pandoc parses it\n"
+            "  -- (a Div's children ARE emitted in original document order),\n"
+            "  -- leaving the caption as this Div's first child block - same\n"
+            "  -- \"Figure \"/\"Table \" + chapter-prefix numbering as the Figure()\n"
+            "  -- handler below, applied to el.content[1] instead of\n"
+            "  -- el.caption.long[1].\n"
+            "  if el.classes:includes('zendoc-figure-caption') or el.classes:includes('zendoc-table-caption') then\n"
+            "    local word = el.classes:includes('zendoc-figure-caption') and 'Figure ' or 'Table '\n"
+            "    local label = in_appendix and to_letter(appendix_index) or tostring(h1)\n"
+            "    local block = el.content[1]\n"
+            "    if block and (block.t == 'Para' or block.t == 'Plain') then\n"
+            "      for i, inline in ipairs(block.content) do\n"
+            "        if inline.t == 'Span' and inline.classes:includes('caption-prefix') then\n"
+            "          table.insert(inline.content, 1, pandoc.Str(label .. '.'))\n"
+            "          table.insert(block.content, i, pandoc.Str(word))\n"
+            "          break\n"
+            "        end\n"
+            "      end\n"
+            "    end\n"
+            "    return el\n"
             "  end\n"
             "  -- pymdownx.arithmatex's generic-mode display math\n"
             "  -- (<div class=\"arithmatex\">\\[...\\]</div> - see\n"
@@ -1381,6 +1476,33 @@ blockquote {
     display: block !important; color: #111111 !important; page-break-after: avoid !important; break-after: avoid !important;
 }
 .gridcard-title p { font-weight: bold !important; font-size: 13pt !important; color: #111111 !important; margin: 0 !important; display: inline !important; }
+/* Zensical's own native grid-card HTML (<div class="grid cards" markdown>
+   wrapping a bullet list - see "Grid cards" in zensicalbasics.md) is a
+   plain <div class="grid cards ..."><ul><li>...</li></ul></div>, not the
+   .gridcard-matrix/-item/-title structure above (that was hand-built by
+   the old regex pipeline's own ::: {.gridcard-matrix} fenced-div
+   convention, retired in zendoc-template#92 along with everything else
+   that only existed to translate Zensical/pymdownx markdown syntax Pandoc
+   itself doesn't understand - card layout has no such translation problem,
+   Pandoc reads the real <div>/<ul>/<li> as-is). Same visual treatment as
+   .gridcard-item/-title above, targeting the real structure directly: each
+   <li> is a card, and the card's leading paragraph (its "__bold title__")
+   is styled as the title.
+   WeasyPrint's CSS Grid support is too limited to trust for an actual
+   side-by-side multi-column layout, so every card - one-column or not -
+   renders as one full-width box per row, stacked. */
+div.grid.cards > ul {
+    list-style: none !important; margin: 1.5em 0 !important; padding: 0 !important;
+}
+div.grid.cards > ul > li {
+    background-color: #f4f8ff !important; border: none !important;
+    padding: 16px !important; margin-bottom: 1em !important; border-radius: 4px !important;
+    page-break-inside: avoid; break-inside: avoid; list-style: none !important;
+}
+div.grid.cards > ul > li > p:first-child {
+    font-weight: bold !important; font-size: 13pt !important; margin-bottom: 12px !important;
+    color: #111111 !important; page-break-after: avoid !important; break-after: avoid !important;
+}
 
 /* #dddddd is another 5% darker than #e9e9e9 (itself 5% darker than
    #f5f5f5, --md-code-bg-color - the website's shading for both inline
@@ -1428,6 +1550,16 @@ img {
    figures (any standalone image Pandoc auto-wraps in <figure>, e.g. the
    institution logos on the front page). */
 figure {
+    page-break-inside: avoid !important;
+    break-inside: avoid-page !important;
+    text-align: center !important;
+}
+/* A prepend-position figure-caption/table-caption is retagged from
+   <figure> to <div> in render_page_html() (see zendoc-template#93, and
+   the Lua filter's Div() handler above) so its caption keeps original
+   document order through Pandoc - same page-break/centering treatment as
+   the "figure {}" rule above, which no longer matches once it's a <div>. */
+div.zendoc-figure-caption, div.zendoc-table-caption {
     page-break-inside: avoid !important;
     break-inside: avoid-page !important;
     text-align: center !important;
@@ -1569,13 +1701,15 @@ p.glossary + p.glossary {{
 }}
 """
 
-    # NOTE (zendoc-template#92): the old pipeline's per-table "| <" prepend
-    # position tracking (caption_state/prepend_table_ids) doesn't apply to
-    # the new render_page_html() pipeline - pymdownx.blocks.caption's own
-    # HTML output already places a prepended figcaption/caption physically
-    # first in the DOM, rather than needing a CSS caption-side override
-    # keyed by id. Not yet verified that Pandoc's HTML writer preserves this
-    # positioning through to the PDF - tracked as a known follow-up.
+    # NOTE (zendoc-template#92/#93): the old pipeline's per-table "| <"
+    # prepend position tracking (caption_state/prepend_table_ids) doesn't
+    # apply to the new render_page_html() pipeline - pymdownx.blocks.caption's
+    # own HTML output already places a prepended figcaption/caption physically
+    # first in the DOM. Pandoc's own HTML writer does NOT preserve this
+    # positioning though (confirmed: its Figure AST node always re-emits the
+    # caption after the content, regardless of source order) - worked around
+    # in render_page_html() by retagging any prepend-position figure/table
+    # caption to a <div> before Pandoc parses it, which does preserve order.
     with open(temp_compiled_css, "w", encoding="utf-8") as f:
         f.write(cleaned_original_css + "\n\n" + final_css_payload + "\n\n" + reference_style_css + "\n\n" + acronym_style_css + "\n\n" + glossary_style_css)
 

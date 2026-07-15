@@ -2123,13 +2123,6 @@ def main():
         except Exception as e:
             print(f"⚠️ Warning: Encountered an issue while executing macros.py: {e}")
 
-    # PDF equivalent of the website's {{ nav_snippet() }} macro (see
-    # macros.py): reuses the same _get_nav_snippet() helper directly, since
-    # it's already loaded as a real module here - no need to duplicate the
-    # extraction logic the way reference_style's CSS had to be, since here
-    # both outputs just need the identical extracted text.
-    nav_snippet_text = macros_module._get_nav_snippet() if macros_module and hasattr(macros_module, '_get_nav_snippet') else ''
-
     theme_section = project_section.get('theme', {}) if isinstance(project_section, dict) else config.get('theme', {})
     font_section = theme_section.get('font', {}) if isinstance(theme_section, dict) else {}
     main_font, mono_font = "Inter", "JetBrains Mono"
@@ -2140,14 +2133,9 @@ def main():
     copyright_text = project_section.get('copyright') or config.get('copyright') or "Copyright 2026"
     site_name_text = project_section.get('site_name') or config.get('site_name') or ""
 
-    icon_dirs = discover_icon_dirs(config)
-    icon_registry = build_icon_registry(icon_dirs)
-
     temp_build_dir = "pdf_build_workspace"
     os.makedirs(temp_build_dir, exist_ok=True)
-    
-    # Global state tracker maps unfragmented safe tokens to their Base64 payloads
-    global_placeholder_map = {}
+
     mermaid_state = {'count': 0}
 
     print("🧹 Rendering pages via Zensical...")
@@ -2220,12 +2208,6 @@ def main():
                 out_f.write(in_f.read() + "\n\n")
         out_f.write('</body></html>')
 
-    lua_table_entries = []
-    for token_key, b64_payload in global_placeholder_map.items():
-        lua_table_entries.append(f'  ["{token_key}"] = "{b64_payload}"')
-
-    lua_icon_db_string = "local icon_db = {\n" + ",\n".join(lua_table_entries) + "\n}\n\n"
-
     math_dir = os.path.abspath(os.path.join(temp_build_dir, "math_diagrams"))
     os.makedirs(math_dir, exist_ok=True)
     tex2svg_script = os.path.abspath(os.path.join("tools", "mathjax", "tex2svg.js"))
@@ -2233,7 +2215,6 @@ def main():
 
     lua_filter_path = os.path.join(temp_build_dir, "tabbox_filter.lua")
     with open(lua_filter_path, "w", encoding="utf-8") as f:
-        f.write(lua_icon_db_string)
         f.write(
             "local h1, h2, h3 = 0, 0, 0\n"
             "local appendix_index = 0\n"
@@ -2411,12 +2392,6 @@ def main():
             "  out:close()\n"
             "  local css_class = is_display and 'pdf-math-display' or 'pdf-math-inline'\n"
             "  return pandoc.RawInline('html', '<img class=\"' .. css_class .. '\" src=\"' .. svg_path .. '\" />')\n"
-            "end\n\n"
-            "function Str(el)\n"
-            "  if icon_db[el.text] then\n"
-            "    return pandoc.RawInline('html', '<img class=\"twemoji\" src=\"data:image/svg+xml;base64,' .. icon_db[el.text] .. '\" />')\n"
-            "  end\n"
-            "  return nil\n"
             "end\n\n"
             "function Pandoc(doc)\n"
             "  local toc_list = pandoc.structure.table_of_contents(doc)\n"

@@ -14,6 +14,7 @@ import json
 import urllib.request
 import urllib.parse
 import markdown
+from bs4 import BeautifulSoup
 
 # In-process cache so the same emoji is never fetched/read twice within a single build
 _TWEMOJI_SVG_CACHE = {}
@@ -338,18 +339,17 @@ def get_latest_release_tag(repo_url):
     except Exception:
         return ""
 
-def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
-    """Pre-renders ```mermaid fenced code blocks (see
-    https://zensical.org/docs/authoring/diagrams/) to static SVGs via a local
-    mermaid-cli install under tools/mermaid. WeasyPrint has no JS engine to
-    run Mermaid.js client-side the way the live Zensical site does, so the
-    diagram source must become an image before Pandoc ever sees it. The
-    emitted markdown image tag is then picked up and base64-inlined by the
-    existing image encoder further down in preprocess_markdown().
-    """
+def _render_one_mermaid_diagram(diagram_source, temp_build_dir, mermaid_state):
+    """Renders a single Mermaid diagram's source to a static SVG file via a
+    local mermaid-cli install under tools/mermaid, returning the absolute SVG
+    path, or None if mermaid-cli isn't installed or the render failed. The
+    actual subprocess invocation shared by render_mermaid_diagrams() (the
+    markdown-syntax-based pipeline) and render_page_html() (see
+    zendoc-template#92's HTML-based pipeline, which finds diagram source in
+    <pre class="mermaid"> rather than a ```mermaid fence)."""
     mmdc_bin = os.path.abspath(os.path.join("tools", "mermaid", "node_modules", ".bin", "mmdc"))
     if not os.path.exists(mmdc_bin):
-        return content
+        return None
     # Mermaid's default node/edge labels are HTML <foreignObject> content, which
     # WeasyPrint's SVG renderer can't display (text silently vanishes). Forcing
     # htmlLabels off makes mermaid emit plain SVG <text>/<tspan> labels instead.
@@ -359,7 +359,35 @@ def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
     puppeteer_config = os.path.abspath(os.path.join("tools", "mermaid", "puppeteer_config.json"))
 
     mermaid_dir = os.path.join(temp_build_dir, "mermaid_diagrams")
+    mermaid_state['count'] += 1
+    idx = mermaid_state['count']
+    os.makedirs(mermaid_dir, exist_ok=True)
+    mmd_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.mmd"))
+    svg_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.svg"))
+    with open(mmd_path, "w", encoding="utf-8") as f:
+        f.write(diagram_source)
 
+    try:
+        subprocess.run(
+            [mmdc_bin, "-i", mmd_path, "-o", svg_path, "-b", "transparent",
+             "-c", mmdc_config, "-p", puppeteer_config],
+            check=True, capture_output=True, text=True, timeout=60
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        detail = getattr(e, "stderr", None) or str(e)
+        print(f"\u26a0\ufe0f  Mermaid render failed for diagram {idx}: {detail}")
+        return None
+    return svg_path
+
+def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
+    """Pre-renders ```mermaid fenced code blocks (see
+    https://zensical.org/docs/authoring/diagrams/) to static SVGs (see
+    _render_one_mermaid_diagram()). WeasyPrint has no JS engine to run
+    Mermaid.js client-side the way the live Zensical site does, so the
+    diagram source must become an image before Pandoc ever sees it. The
+    emitted markdown image tag is then picked up and base64-inlined by the
+    existing image encoder further down in preprocess_markdown().
+    """
     def replace(match):
         indent = match.group(1)
         raw_block = match.group(2)
@@ -367,26 +395,9 @@ def render_mermaid_diagrams(content, temp_build_dir, mermaid_state):
             line[len(indent):] if line.startswith(indent) else line.lstrip()
             for line in raw_block.splitlines()
         )
-
-        mermaid_state['count'] += 1
-        idx = mermaid_state['count']
-        os.makedirs(mermaid_dir, exist_ok=True)
-        mmd_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.mmd"))
-        svg_path = os.path.abspath(os.path.join(mermaid_dir, f"diagram_{idx}.svg"))
-        with open(mmd_path, "w", encoding="utf-8") as f:
-            f.write(diagram_source)
-
-        try:
-            subprocess.run(
-                [mmdc_bin, "-i", mmd_path, "-o", svg_path, "-b", "transparent",
-                 "-c", mmdc_config, "-p", puppeteer_config],
-                check=True, capture_output=True, text=True, timeout=60
-            )
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-            detail = getattr(e, "stderr", None) or str(e)
-            print(f"\u26a0\ufe0f  Mermaid render failed for diagram {idx}: {detail}")
+        svg_path = _render_one_mermaid_diagram(diagram_source, temp_build_dir, mermaid_state)
+        if svg_path is None:
             return match.group(0)
-
         return f'{indent}![Mermaid diagram]({svg_path})'
 
     return re.sub(
@@ -1697,6 +1708,167 @@ def preprocess_markdown(file_path, output_path, config, calculated_vars, icon_re
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(new_lines))
+
+def to_base64_data_uri(img_src, base_dir):
+    """Resolves a (possibly relative) image src to an absolute path under
+    base_dir and returns it as a base64 data: URI, so the standalone
+    compiled document doesn't depend on relative file paths resolving
+    correctly from wherever Pandoc happens to run. Module-level so both
+    preprocess_markdown()'s own nested copy (unchanged, still used by its
+    markdown-syntax-based pipeline) and render_page_html() (see
+    zendoc-template#92's HTML-based pipeline) can use the identical logic."""
+    if img_src.startswith('data:'):
+        return img_src
+
+    path_part = img_src.split('#')[0]
+    if path_part.startswith('file://'):
+        path_part = path_part[7:]
+
+    img_path = os.path.abspath(os.path.join(base_dir, path_part))
+    if not os.path.exists(img_path):
+        img_path = os.path.abspath(path_part)
+
+    if os.path.exists(img_path) and os.path.isfile(img_path):
+        try:
+            ext = os.path.splitext(img_path)[1].lower().strip('.')
+            mime_type = f"image/{ext}"
+            if ext == "svg": mime_type = "image/svg+xml"
+            elif ext == "jpg": mime_type = "image/jpeg"
+            with open(img_path, 'rb') as f:
+                b64_content = base64.b64encode(f.read()).decode('utf-8')
+            return f"data:{mime_type};base64,{b64_content}"
+        except Exception:
+            pass
+    return img_src
+
+def render_page_html(file_path, config, page_anchor_map, temp_build_dir, mermaid_state):
+    """New render pipeline (see zendoc-template#92): renders this page
+    through Zensical's own zensical.markdown.render.render() - the exact
+    same zendoc/pymdownx extensions, real Jinja macro/variable substitution,
+    and {% if %} conditional evaluation the live website uses - then lightly
+    cleans up the resulting HTML for Pandoc's benefit, instead of the ~1000
+    lines of regex preprocess_markdown() uses to hand-translate Zensical/
+    pymdownx/zendoc markdown syntax (admonitions, tabs, grid cards, captions,
+    superfences attributes, attr_list spans, mark/insert/keys, {% if %}
+    conditionals) into a Pandoc-compatible markdown dialect - all of which
+    Pandoc's own HTML reader already understands correctly once it's real
+    HTML, no translation needed. Requires zensical.config.parse_config() to
+    have already been called once (see main()) so zensical.config.get_config()
+    - which zensical.markdown.render.render() and zendoc's own Zensical
+    auto-detection both read - is actually populated.
+
+    Math (pymdownx.arithmatex) is not yet handled by this pipeline - see
+    zendoc-template#92: Pandoc's HTML reader has no special awareness of
+    <div class="arithmatex"> the way its *markdown* reader recognises native
+    $...$/$$...$$ as a real Math AST node, so the existing Lua filter's
+    Math() handler never fires for HTML input. A page using $...$ math will
+    show the literal, un-rendered arithmatex markup until a matching Lua
+    Div/Span handler is added.
+
+    Returns real HTML, fed to Pandoc with -f html - see main().
+    """
+    from zensical.markdown.render import render as zensical_render
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        raw_content = f.read()
+
+    docs_dir = config.get('docs_dir', 'docs')
+    current_docs_rel_path = os.path.normpath(os.path.relpath(file_path, docs_dir)).replace('\\', '/')
+
+    result = zensical_render(raw_content, current_docs_rel_path, current_docs_rel_path)
+    soup = BeautifulSoup(result['content'], 'html.parser')
+
+    # Website-only presentational output with no PDF equivalent: the PDF
+    # numbers headings separately via the Lua filter's Header() function
+    # and gets equivalent CSS added directly to the compiled stylesheet
+    # instead (see reference_style_css/acronym_style_css/glossary_style_css
+    # in main()), so heading_counter_reset()/reference_style()/
+    # acronym_style()/glossary_style()'s injected <style> blocks are just
+    # noise here. toc's hover-to-copy permalink links are meaningless in a
+    # PDF too.
+    for style in soup.find_all('style'):
+        style.decompose()
+    for permalink in soup.select('a.headerlink'):
+        permalink.decompose()
+
+    # Content tabs: pymdownx.blocks.tab renders each tab's label as an
+    # inline <label> sibling inside a wrapping <div class="tabbed-labels">.
+    # Pandoc's HTML reader merges adjacent inline-level siblings with no
+    # block boundary between them into one Plain block - confirmed this
+    # collapses every label in a tabbed-set into one unseparated run of
+    # text, with no way to recover the boundary afterward in a Lua filter.
+    # Rewriting each into its own <p> here, before Pandoc's reader ever
+    # sees it, is the only point this can be fixed - see the Lua filter's
+    # tabbed-set Div() handler for the matching reconstruction into
+    # tabbox-header/tabbox-body (the same shape the existing tabbox
+    # convention already produces, so no CSS changes are needed to style
+    # it).
+    for radio in soup.select('input[type="radio"]'):
+        radio.decompose()
+    for label in soup.select('div.tabbed-labels label'):
+        p = soup.new_tag('p')
+        p['class'] = 'zendoc-tab-label'
+        p.string = label.get_text()
+        label.replace_with(p)
+
+    # Mermaid diagrams: WeasyPrint has no JS engine to run Mermaid.js
+    # client-side - pre-render each <pre class="mermaid">'s source to a
+    # static SVG via the same mermaid-cli install render_mermaid_diagrams()
+    # uses (see _render_one_mermaid_diagram()), just reading the diagram
+    # source from the rendered HTML instead of a markdown fence.
+    for pre in soup.select('pre.mermaid'):
+        svg_path = _render_one_mermaid_diagram(pre.get_text(), temp_build_dir, mermaid_state)
+        if svg_path is not None:
+            img = soup.new_tag('img', src=svg_path, alt='Mermaid diagram')
+            pre.replace_with(img)
+
+    # Images: base64-embed every local image reference directly into the
+    # HTML, so the standalone compiled document doesn't depend on relative
+    # file paths resolving correctly from wherever Pandoc happens to run -
+    # same reasoning as to_base64_data_uri()'s other call sites, just
+    # targeting real <img> tags directly (render() has already resolved
+    # markdown image syntax into these).
+    base_dir = os.path.dirname(file_path)
+    for img in soup.find_all('img'):
+        src = img.get('src', '')
+        if src and not src.startswith('data:'):
+            img['src'] = to_base64_data_uri(src, base_dir)
+
+    # Cross-page links: build_pdf.py concatenates every page into one PDF
+    # document, so a link like installtooling.md (fine on the website, a
+    # separate page) has nothing to point at here - rewrite to the
+    # deterministic in-document anchor from page_anchor_map instead (see
+    # build_page_anchor_map() / issue #16), targeting real <a href> tags
+    # directly rather than rewrite_internal_md_links()'s markdown syntax.
+    current_dir = os.path.dirname(current_docs_rel_path)
+    for a in soup.find_all('a', href=True):
+        href = a['href']
+        if href.startswith(('http://', 'https://', 'mailto:', '#')):
+            continue
+        target, _, frag = href.partition('#')
+        if not target.endswith('.md'):
+            continue
+        resolved = os.path.normpath(os.path.join(current_dir, target)).replace('\\', '/')
+        anchor = page_anchor_map.get(resolved)
+        if anchor is not None:
+            a['href'] = f'#{frag}' if frag else f'#{anchor}'
+
+    # This page's own anchor (see build_page_anchor_map() / issue #16):
+    # give the first real heading that id directly (same approach as
+    # tag_first_heading(), just setting a real HTML attribute rather than a
+    # Pandoc {#id} block), and flag it .appendix if this page is one, for
+    # the Lua filter's Header() to letter instead of number it (see
+    # page_is_appendix() / issue #24).
+    own_anchor = page_anchor_map.get(current_docs_rel_path)
+    first_heading = soup.find(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+    if own_anchor and first_heading is not None:
+        first_heading['id'] = own_anchor
+        if page_is_appendix(file_path):
+            classes = first_heading.get('class', [])
+            classes.append('appendix')
+            first_heading['class'] = classes
+
+    return str(soup)
 
 def main():
     if not os.path.exists('zensical.toml'):

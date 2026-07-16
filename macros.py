@@ -14,7 +14,7 @@ option makes Zensical also watch the module's file for auto-reload, and if
 the module lives outside the project directory (true for any pip-installed
 package, e.g. in CI where dependencies install outside the checkout) that
 watch triggers an upstream panic in `zensical build`'s file watcher
-(zensical/zensical#WORKAROUND-ISSUE). Calling it as a plain import instead
+(zensical/zensical#823). Calling it as a plain import instead
 gives identical behaviour without that second watch registration - remove
 this workaround and switch back to `modules = [...]` in zensical.toml once
 that's fixed upstream."""

@@ -513,8 +513,10 @@ types = [
 
 
 [project.markdown_extensions.zensical.extensions.macros]
+# zendoc.zensical_macros is imported directly by macros.py's own
+# define_env() instead of being listed here as a second `modules` entry -
+# see macros.py's docstring for why (zensical/zensical#WORKAROUND-ISSUE).
 module_name = "macros"
-modules = ["zendoc.zensical_macros"]
 on_error_fail = true
 
 [project.plugins.mkdocstrings.handlers.python]

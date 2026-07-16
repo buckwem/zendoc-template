@@ -4,7 +4,7 @@
 """Builds docs/site_documentation.pdf from this project's own zensical.toml.
 
 The actual Pandoc/WeasyPrint pipeline (HTML fixups, Lua filter, CSS,
-Mermaid/icon handling) now lives in zendoc.pdf (see zendoc-extension#96) -
+Mermaid/icon handling) now lives in zendoc.pdf (see zendoc-extensions#96) -
 this script is left with only what's specific to this template: the cover
 page's {WORDCOUNT}/{REPOURL}/{RELEASE}/{{ site_name }} markers (see
 index.md), the word count itself (see "Word count" in customise.md), and
@@ -230,7 +230,7 @@ def main():
 
     # Fill in the cover page's {WORDCOUNT}/{REPOURL}/{RELEASE} markers (see
     # index.md), if present - PDF-only cover-page behaviour with no
-    # equivalent in zendoc.pdf itself (see zendoc-extension#96).
+    # equivalent in zendoc.pdf itself (see zendoc-extensions#96).
     if pages and pages[0].is_index and len(pages) > 1:
         cover = pages[0]
         cover_html = cover.html

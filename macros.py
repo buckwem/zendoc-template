@@ -6,7 +6,7 @@ default) and the nav_snippet() documentation helper. Everything else a
 professional/academic report commonly needs (word count, repo URL,
 site name, chapter/appendix numbering, reference/acronym/glossary spacing)
 now comes from zendoc.zensical_macros instead (see zensical.toml's
-`modules = ["zendoc.zensical_macros"]`, and zendoc-extension#96) - not
+`modules = ["zendoc.zensical_macros"]`, and zendoc-extensions#96) - not
 duplicated here."""
 
 import os

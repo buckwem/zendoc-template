@@ -35,7 +35,7 @@ def _import_repo_module(name):
     be testing the test suite's own copy, not catching a real regression in
     the production code. Most of macros.py's own former logic (word count,
     repo URL, numbering/reference-style macros) now lives in
-    zendoc.zensical_macros instead (see zendoc-extension#96) - tests that
+    zendoc.zensical_macros instead (see zendoc-extensions#96) - tests that
     need it import that package directly."""
     spec = importlib.util.spec_from_file_location(name, REPO_ROOT / f"{name}.py")
     module = importlib.util.module_from_spec(spec)

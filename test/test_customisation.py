@@ -228,7 +228,7 @@ def test_pdf_uses_the_documented_default_fonts_when_unset(zensical_config):
     defaults (customise.md's "Fonts" section: Inter / JetBrains Mono) -
     zendoc.pdf.build_pdf()'s own default, read directly via its signature
     rather than reimplemented here (build_pdf.py no longer hardcodes these -
-    see zendoc-extension#96 - it only passes them through when configured)."""
+    see zendoc-extensions#96 - it only passes them through when configured)."""
     assert "font" not in zensical_config["project"]["theme"]
     defaults = inspect.signature(build_pdf).parameters
     assert defaults["main_font"].default == "Inter"
@@ -272,7 +272,7 @@ def test_configured_icon_names_resolve_to_real_files(zensical_config):
     """theme.icon.* and theme.icon.admonition.* (see "Icons") name icons as
     "set/path" (e.g. "fontawesome/brands/github") - build_icon_registry()
     is the same lookup build_pdf.py itself uses (via zendoc.pdf.icons - see
-    zendoc-extension#96) to resolve an icon shortcode to a real .svg file;
+    zendoc-extensions#96) to resolve an icon shortcode to a real .svg file;
     a typo here would silently 404/break on the website and leak as
     missing content in the PDF."""
     docs_dir_name = zensical_config["project"].get("docs_dir", "docs")
@@ -390,7 +390,7 @@ def test_reference_acronym_glossary_spacing_matches_between_website_and_pdf():
     reference_spacing_global in zensical.toml (issue #66). Both the website
     (via zendoc.zensical_macros) and the PDF (via zendoc.pdf.css.build_css())
     now derive these from the same zendoc.settings.reference_style_values() -
-    see zendoc-extension#96 - so this checks that shared function's own
+    see zendoc-extensions#96 - so this checks that shared function's own
     defaults, plus confirms build_css()'s generated CSS actually plugs each
     value into the right selector (not, say, the wrong variable
     copy-pasted into the acronym/glossary block)."""
@@ -569,7 +569,7 @@ def test_pdf_page_size_and_margins_match_configured_defaults(pdf_doc, zensical_c
 def test_screenshot_class_styling_matches_between_website_and_pdf():
     """.screenshot's border/border-radius/box-shadow (see "Screenshots") are
     duplicated - extra.css for the website, a plain selector in
-    zendoc.pdf.css.build_css() for the PDF (see zendoc-extension#96; same
+    zendoc.pdf.css.build_css() for the PDF (see zendoc-extensions#96; same
     "no .md-typeset wrapper in Pandoc's HTML" reason as the reference/
     acronym/glossary spacing above) - checks the two stay in sync."""
     extra_css = _read(EXTRA_CSS_PATH)

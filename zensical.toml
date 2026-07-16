@@ -480,7 +480,7 @@ custom_checkbox = true
 # anywhere. Unlike pymdownx/zensical's own namespaces, Zensical doesn't
 # hoist a nested "zendoc.headings" table into that dotted extension name,
 # so these need a quoted key instead - see
-# https://buckwem.github.io/zendoc-extension/ and zendoc-template#25/#87.
+# https://buckwem.github.io/zendoc-extensions/ and zendoc-template#25/#87.
 [project.markdown_extensions."zendoc.headings"]
 # numbering = "continuous" makes h1 numbering carry on across pages in nav
 # order (page two's first h1 continues from wherever page one left off)

@@ -5,15 +5,27 @@
 default) and the nav_snippet() documentation helper. Everything else a
 professional/academic report commonly needs (word count, repo URL,
 site name, chapter/appendix numbering, reference/acronym/glossary spacing)
-now comes from zendoc.zensical_macros instead (see zensical.toml's
-`modules = ["zendoc.zensical_macros"]`, and zendoc-extensions#96) - not
-duplicated here."""
+comes from zendoc.zensical_macros instead (see zendoc-extensions#96) - not
+duplicated here.
+
+zendoc.zensical_macros.define_env() is called directly below rather than
+via zensical.toml's documented `modules = [...]` extension option: that
+option makes Zensical also watch the module's file for auto-reload, and if
+the module lives outside the project directory (true for any pip-installed
+package, e.g. in CI where dependencies install outside the checkout) that
+watch triggers an upstream panic in `zensical build`'s file watcher
+(zensical/zensical#823). Calling it as a plain import instead
+gives identical behaviour without that second watch registration - remove
+this workaround and switch back to `modules = [...]` in zensical.toml once
+that's fixed upstream."""
 
 import os
 import re
 import shutil
 import subprocess
 from pathlib import Path
+
+from zendoc.zensical_macros import define_env as _zendoc_define_env
 
 
 def _get_nav_snippet():
@@ -88,6 +100,8 @@ def _detect_is_surrey(env=None):
 
 
 def define_env(env):
+    _zendoc_define_env(env)
+
     # ==========================================
     # 1. SURREY ENVIRONMENT DETECTION LOGIC
     # ==========================================

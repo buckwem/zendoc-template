@@ -216,7 +216,7 @@ Keep the numbers in each title sequential as you add, remove, or reorder chapter
 
 ### References and bibliography
 
-This template uses [`zendoc.citations`](https://buckwem.github.io/zendoc-extension/extensions/citations/) (from the [zendoc](https://github.com/buckwem/zendoc-extension) package, already installed and enabled in `zensical.toml` - see [zendoc-template#25](https://github.com/buckwem/zendoc-template/issues/25)) for citations: define a source once, cite it by key anywhere with `\cite{id}`.
+This template uses [`zendoc.citations`](https://buckwem.github.io/zendoc-extensions/extensions/citations/) (from the [zendoc](https://github.com/buckwem/zendoc-extensions) package, already installed and enabled in `zensical.toml` - see [zendoc-template#25](https://github.com/buckwem/zendoc-template/issues/25)) for citations: define a source once, cite it by key anywhere with `\cite{id}`.
 
 !!! info "How the PDF handles this"
     `build_pdf.py` renders every page through the same Zensical/zendoc pipeline the website uses (see `render_page_html()`), so `\cite{id}` resolves to the same linked citation in both outputs automatically - no separate PDF-side translation needed, and no manual HTML or per-output link either.
@@ -282,7 +282,7 @@ This template uses [`zendoc.citations`](https://buckwem.github.io/zendoc-extensi
 
 ### Acronyms and abbreviations
 
-This template uses [`zendoc.glossary`](https://buckwem.github.io/zendoc-extension/extensions/glossary/) (from the same [zendoc](https://github.com/buckwem/zendoc-extension) package as citations above - see [zendoc-template#87](https://github.com/buckwem/zendoc-template/issues/87)) for acronyms: define a term once, insert it by id with `\gls{id}` - it expands to the term's own text, linked to its definition.
+This template uses [`zendoc.glossary`](https://buckwem.github.io/zendoc-extensions/extensions/glossary/) (from the same [zendoc](https://github.com/buckwem/zendoc-extensions) package as citations above - see [zendoc-template#87](https://github.com/buckwem/zendoc-template/issues/87)) for acronyms: define a term once, insert it by id with `\gls{id}` - it expands to the term's own text, linked to its definition.
 
 !!! info "How the PDF handles this"
     Same as citations above - `build_pdf.py` renders this page through the real Zensical/zendoc pipeline, so `\gls{id}` resolves the same way in both outputs with no separate PDF-side translation.
@@ -340,7 +340,7 @@ You can build a glossary of key terms the same way, in its own page - this templ
     {: #css .acronym data-term="CSS" }
     ```
 
-    This template's own `docs/acronyms.md`/`docs/glossary.md` cross-link every entry that has a counterpart on the other page this way - see [zendoc.glossary's own docs](https://buckwem.github.io/zendoc-extension/extensions/glossary/#cross-links-between-entries-use-a-plain-link-not-glsid) for the full rule of thumb: `\gls{id}` when the term's own name belongs in the sentence, a plain link when the link text needs to say something else entirely.
+    This template's own `docs/acronyms.md`/`docs/glossary.md` cross-link every entry that has a counterpart on the other page this way - see [zendoc.glossary's own docs](https://buckwem.github.io/zendoc-extensions/extensions/glossary/#cross-links-between-entries-use-a-plain-link-not-glsid) for the full rule of thumb: `\gls{id}` when the term's own name belongs in the sentence, a plain link when the link text needs to say something else entirely.
 
 !!! tip
     If a term is also one of your acronyms, cross-link the two entries as shown above rather than duplicating the explanation on both pages.
@@ -677,8 +677,8 @@ Now that you've customised the website, the document structure, the cover page, 
         * :material-file-document-outline: `additionaltooling.md` — Optional extra tooling (GitLab/GitHub, GitLens, and spell-checking VS Code extensions, commit signing, a GUI Git client, image optimisation, and Vale).
         * :material-file-document-outline: `shcommands.md` — Reference for shell commands used in the documentation.
         * :material-file-document-outline: `testing.md` — How to run and extend the test suite in `test/`, for anyone contributing to the template itself.
-* :material-file-code-outline: `build_pdf.py` — Builds the single-file PDF version of your document.
-* :material-file-code-outline: `macros.py` — Zensical macro hooks (Surrey detection, word count, repository link, heading numbering).
+* :material-file-code-outline: `build_pdf.py` — Builds the single-file PDF version of your document, via the [zendoc](https://github.com/buckwem/zendoc-extensions) package's `zendoc.pdf`.
+* :material-file-code-outline: `macros.py` — This template's own Zensical macro hooks (Surrey detection, the `nav_snippet()` documentation helper). Word count, repository link, and heading/reference-style numbering come from `zendoc.zensical_macros` instead - see `zensical.toml`'s `modules = ["zendoc.zensical_macros"]`.
 * :material-folder: **tools/** — Node.js tooling used only by `build_pdf.py`, not the website.
     * :material-folder: **mermaid/** — `mermaid-cli`, for rendering ` ```mermaid ` diagrams to images in the PDF.
     * :material-folder: **mathjax/** — `mathjax-full`, for rendering `$...$`/`$$...$$` maths to images in the PDF.

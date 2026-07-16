@@ -17,6 +17,8 @@ import re
 
 import pytest
 
+from conftest import count_top_level_headings, page_is_appendix
+
 BOLD_FLAG = 1 << 4
 H1_MIN_SIZE = 20
 H2_MIN_SIZE = 15
@@ -119,17 +121,17 @@ def test_appendix_letters_are_sequential_starting_at_a(headings):
     assert letters == expected, f"Appendix letters aren't sequential from A: {letters}"
 
 
-def test_appendix_pages_dont_consume_a_chapter_number(headings, nav_pages, macros, docs_dir):
+def test_appendix_pages_dont_consume_a_chapter_number(headings, nav_pages, docs_dir):
     """The numeric chapter sequence should have exactly one entry per
     non-appendix nav page with a heading - i.e. appendix pages (see
-    _page_is_appendix()) are skipped, not just lettered on top of an
+    page_is_appendix()) are skipped, not just lettered on top of an
     otherwise-continuing numeric count."""
     numeric_count = sum(1 for level, text in headings if level == 1 and H1_NUMERIC.match(text))
     non_appendix_pages_with_headings = sum(
         1
         for rel_path in nav_pages
-        if not macros._page_is_appendix(docs_dir / rel_path)
-        and macros._count_top_level_headings(docs_dir / rel_path) > 0
+        if not page_is_appendix(docs_dir / rel_path)
+        and count_top_level_headings(docs_dir / rel_path) > 0
     )
     assert numeric_count == non_appendix_pages_with_headings
 

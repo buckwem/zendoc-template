@@ -1,11 +1,10 @@
 # Copyright (c) 2025-2026 Mark Buckwell, Zensical and contributors
 # SPDX-License-Identifier: MIT
 
-"""fences batch: exercises the fence-detection primitives macros.py's own
-heading/word counters rely on (the fence-skipping loops in
-_count_top_level_headings()/_count_words_in_markdown()) against nested
-combinations of headings, admonitions, and code blocks - not just a single
-flat fenced block.
+"""fences batch: exercises the fence-detection primitives
+conftest.count_top_level_headings()/zendoc.wordcount.count_words() rely on
+against nested combinations of headings, admonitions, and code blocks - not
+just a single flat fenced block.
 
 build_pdf.py's own equivalent fence-awareness concerns (skipping fenced
 examples of tab/admonition/caption syntax, code fences nested under grid
@@ -22,17 +21,21 @@ batch) this one runs without building anything first."""
 
 import textwrap
 
+from zendoc.wordcount import count_words
+
+from conftest import count_top_level_headings
+
 
 def dedent(text):
     return textwrap.dedent(text).strip("\n") + "\n"
 
 
 # ---------------------------------------------------------------------------
-# macros.py: heading/word counting must also skip fenced (incl. indented,
-# i.e. nested-under-an-admonition-or-tab) code
+# heading/word counting must also skip fenced (incl. indented, i.e.
+# nested-under-an-admonition-or-tab) code
 # ---------------------------------------------------------------------------
 
-def test_count_top_level_headings_skips_fenced_and_indented_fenced_examples(macros, tmp_path):
+def test_count_top_level_headings_skips_fenced_and_indented_fenced_examples(tmp_path):
     content = dedent(
         """
         # Real Heading One
@@ -54,27 +57,18 @@ def test_count_top_level_headings_skips_fenced_and_indented_fenced_examples(macr
     )
     md_file = tmp_path / "page.md"
     md_file.write_text(content, encoding="utf-8")
-    assert macros._count_top_level_headings(md_file) == 2
+    assert count_top_level_headings(md_file) == 2
 
 
-def test_count_words_in_markdown_excludes_fenced_code(macros, tmp_path):
-    prose_only = tmp_path / "prose.md"
-    prose_only.write_text("one two three four five\n", encoding="utf-8")
+def test_count_words_excludes_fenced_code():
+    prose_only = "one two three four five\n"
+    prose_plus_code = dedent(
+        """
+        one two three four five
 
-    prose_plus_code = tmp_path / "prose_plus_code.md"
-    prose_plus_code.write_text(
-        dedent(
-            """
-            one two three four five
-
-            ```python
-            this block has plenty of extra words that must not be counted as prose
-            ```
-            """
-        ),
-        encoding="utf-8",
+        ```python
+        this block has plenty of extra words that must not be counted as prose
+        ```
+        """
     )
-
-    assert macros._count_words_in_markdown(prose_only) == macros._count_words_in_markdown(
-        prose_plus_code
-    )
+    assert count_words(prose_only) == count_words(prose_plus_code)

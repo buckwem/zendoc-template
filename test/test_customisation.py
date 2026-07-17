@@ -30,11 +30,11 @@ import hashlib
 import inspect
 import re
 
-from zendoc.pdf.build import build_pdf
-from zendoc.pdf.css import build_css
-from zendoc.pdf.icons import build_icon_registry, discover_icon_dirs
-from zendoc.settings import reference_style_values
-from zendoc.zensical_macros import _get_repo_url
+from prodockit.pdf.build import build_pdf
+from prodockit.pdf.css import build_css
+from prodockit.pdf.icons import build_icon_registry, discover_icon_dirs
+from prodockit.settings import reference_style_values
+from prodockit.zensical_macros import _get_repo_url
 
 from conftest import PDF_PATH, REPO_ROOT, soup_for
 
@@ -139,12 +139,12 @@ def test_repository_link_is_independent_of_cover_page_repourl_marker(zensical_co
     """customise.md's note in "Repository link": the sidebar link above
     reads zensical.toml's own repo_url directly; the cover page's
     {{ repo_url }}/{REPOURL} marker is computed independently from the
-    local git remote (see zendoc.zensical_macros._get_repo_url()) - in
+    local git remote (see prodockit.zensical_macros._get_repo_url()) - in
     practice they usually match, but they're not the same mechanism.
     Confirms that here."""
     configured = zensical_config["project"]["repo_url"]
     computed = _get_repo_url()
-    assert computed, "zendoc.zensical_macros._get_repo_url() returned nothing - no git remote configured?"
+    assert computed, "prodockit.zensical_macros._get_repo_url() returned nothing - no git remote configured?"
     assert computed.rstrip("/") == configured.rstrip("/")
 
 
@@ -226,9 +226,9 @@ def test_pdf_uses_the_documented_default_fonts_when_unset(zensical_config):
     """[project.theme.font] is commented out in this template's own
     zensical.toml, so both outputs should fall back to the documented
     defaults (customise.md's "Fonts" section: Inter / JetBrains Mono) -
-    zendoc.pdf.build_pdf()'s own default, read directly via its signature
+    prodockit.pdf.build_pdf()'s own default, read directly via its signature
     rather than reimplemented here (build_pdf.py no longer hardcodes these -
-    see zendoc-extensions#96 - it only passes them through when configured)."""
+    see prodockit-extensions#96 - it only passes them through when configured)."""
     assert "font" not in zensical_config["project"]["theme"]
     defaults = inspect.signature(build_pdf).parameters
     assert defaults["main_font"].default == "Inter"
@@ -271,8 +271,8 @@ def test_website_also_uses_the_default_fonts(public_dir):
 def test_configured_icon_names_resolve_to_real_files(zensical_config):
     """theme.icon.* and theme.icon.admonition.* (see "Icons") name icons as
     "set/path" (e.g. "fontawesome/brands/github") - build_icon_registry()
-    is the same lookup build_pdf.py itself uses (via zendoc.pdf.icons - see
-    zendoc-extensions#96) to resolve an icon shortcode to a real .svg file;
+    is the same lookup build_pdf.py itself uses (via prodockit.pdf.icons - see
+    prodockit-extensions#96) to resolve an icon shortcode to a real .svg file;
     a typo here would silently 404/break on the website and leak as
     missing content in the PDF."""
     docs_dir_name = zensical_config["project"].get("docs_dir", "docs")
@@ -388,9 +388,9 @@ def test_reference_acronym_glossary_spacing_matches_between_website_and_pdf():
     both outputs (see "References and bibliography"), driven by
     project.extra.reference_spacing_european/reference_indent_global/
     reference_spacing_global in zensical.toml (issue #66). Both the website
-    (via zendoc.zensical_macros) and the PDF (via zendoc.pdf.css.build_css())
-    now derive these from the same zendoc.settings.reference_style_values() -
-    see zendoc-extensions#96 - so this checks that shared function's own
+    (via prodockit.zensical_macros) and the PDF (via prodockit.pdf.css.build_css())
+    now derive these from the same prodockit.settings.reference_style_values() -
+    see prodockit-extensions#96 - so this checks that shared function's own
     defaults, plus confirms build_css()'s generated CSS actually plugs each
     value into the right selector (not, say, the wrong variable
     copy-pasted into the acronym/glossary block)."""
@@ -403,8 +403,8 @@ def test_reference_acronym_glossary_spacing_matches_between_website_and_pdf():
         ("reference_spacing_global", "2em", spacing_global),
     ):
         pdf_default = pdf_defaults[key].default
-        assert shared_default == expected_default, f"zendoc.settings' {key!r} default is {shared_default!r}, expected {expected_default!r}"
-        assert pdf_default == expected_default, f"zendoc.pdf.css.build_css()'s {key!r} default is {pdf_default!r}, expected {expected_default!r}"
+        assert shared_default == expected_default, f"prodockit.settings' {key!r} default is {shared_default!r}, expected {expected_default!r}"
+        assert pdf_default == expected_default, f"prodockit.pdf.css.build_css()'s {key!r} default is {pdf_default!r}, expected {expected_default!r}"
 
     # The generated CSS itself: each selector's margin-top/indent should
     # actually reflect the given values, in both the default "european"
@@ -569,7 +569,7 @@ def test_pdf_page_size_and_margins_match_configured_defaults(pdf_doc, zensical_c
 def test_screenshot_class_styling_matches_between_website_and_pdf():
     """.screenshot's border/border-radius/box-shadow (see "Screenshots") are
     duplicated - extra.css for the website, a plain selector in
-    zendoc.pdf.css.build_css() for the PDF (see zendoc-extensions#96; same
+    prodockit.pdf.css.build_css() for the PDF (see prodockit-extensions#96; same
     "no .md-typeset wrapper in Pandoc's HTML" reason as the reference/
     acronym/glossary spacing above) - checks the two stay in sync."""
     extra_css = _read(EXTRA_CSS_PATH)

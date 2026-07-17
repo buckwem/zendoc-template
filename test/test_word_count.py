@@ -9,7 +9,7 @@ exists somewhere, but that it visibly changes the computed total."""
 import os
 import re
 
-from zendoc.wordcount import count_words
+from prodockit.wordcount import count_words
 
 from conftest import page_excluded_from_word_count
 
@@ -51,7 +51,7 @@ def test_website_word_count_excludes_flagged_pages(website_word_count, nav_pages
 def test_pdf_word_count_reflects_the_excluded_pages(pdf_full_text, nav_pages, docs_dir):
     """The PDF computes its word count independently (build_pdf.py runs it
     on already-rendered pages, a different pipeline to
-    zendoc.zensical_macros' website-side count - see the "Word count" note
+    prodockit.zensical_macros' website-side count - see the "Word count" note
     in customise.md), so it won't match the website's number exactly. But
     it should land closer to "excluding the flagged pages" than to
     "including them" - if exclusion silently broke, the PDF's count would

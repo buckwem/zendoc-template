@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 """fences batch: exercises the fence-detection primitives
-conftest.count_top_level_headings()/zendoc.wordcount.count_words() rely on
+conftest.count_top_level_headings()/prodockit.wordcount.count_words() rely on
 against nested combinations of headings, admonitions, and code blocks - not
 just a single flat fenced block.
 
@@ -21,7 +21,7 @@ batch) this one runs without building anything first."""
 
 import textwrap
 
-from zendoc.wordcount import count_words
+from prodockit.wordcount import count_words
 
 from conftest import count_top_level_headings
 

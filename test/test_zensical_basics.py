@@ -737,7 +737,7 @@ def test_real_grid_card_does_not_force_a_blank_page_gap_before_its_heading(pdf_d
 def test_real_table_body_text_is_left_aligned_not_centered(pdf_doc):
     """Regression test: table th/td had no explicit text-align, so cell
     content silently inherited text-align: center from a table-caption's
-    own wrapping container (div.zendoc-table-caption, or the pre-existing
+    own wrapping container (div.prodockit-table-caption, or the pre-existing
     "figure {}" rule for the append-position case) - confirmed directly,
     every real table's body text was centering rather than reading
     left-aligned. Checks the real 'Basic navigation commands' table

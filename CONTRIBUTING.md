@@ -25,7 +25,7 @@ For anything beyond a small fix (typos, broken links), please open an issue firs
    - Website changes: `zensical serve` and check the page in a browser.
    - PDF-affecting changes (`build_pdf.py`, `macros.py`, `docs/stylesheets/print.css`): run `python build_pdf.py` and check `docs/site_documentation.pdf`.
    - Prose changes: optionally run `vale docs/` if you have [Vale](https://vale.sh/) installed (see [Additional tooling](docs/starthere/additionaltooling.md#install-vale-to-check-for-grammar-spelling-and-style-issues)); it's not enforced in CI.
-   - Run the test suite (see below) - it checks the built website and PDF for regressions in this template's own zendoc-specific features (numbering, word count, links, and so on), and runs in CI on every push.
+   - Run the test suite (see below) - it checks the built website and PDF for regressions in this template's own prodockit-specific features (numbering, word count, links, and so on), and runs in CI on every push.
 3. Open a pull request against `main`. `main` is protected, so all changes - including from maintainers - go through a PR.
 4. Reference the issue your PR addresses (e.g. `Fixes #123`) where applicable.
 

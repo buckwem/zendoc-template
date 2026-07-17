@@ -45,9 +45,9 @@ def test_pdf_uri_links_are_not_local_filesystem_paths(pdf_doc):
 
 
 def test_youtube_embed_link_keeps_its_video_id(pdf_doc):
-    """Regression test for a bug in zendoc.pdf.html's iframe->"Watch Video"
+    """Regression test for a bug in prodockit.pdf.html's iframe->"Watch Video"
     admonition link builder (fixed upstream, not in this repo - see
-    zendoc.pdf.html's own comment on the youtube.com/embed/ branch): an
+    prodockit.pdf.html's own comment on the youtube.com/embed/ branch): an
     earlier version stripped the video id from *every* conversion by
     splitting off the query string after adding "?v=..." instead of before,
     leaving a bare "https://www.youtube.com/watch" with no video specified.

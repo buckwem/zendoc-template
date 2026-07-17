@@ -186,7 +186,7 @@ Once your commit reaches the default branch, the [CI/CD pipeline](#automated-bui
 
 ## Build the PDF
 
-`docs/site_documentation.pdf` isn't built by `zensical serve` or `zensical build` - it has its own build script, `build_pdf.py`, a zendoc-specific extension on top of Zensical (see [Customise PDF generation](customise.md#customise-pdf-generation) for what it is and how to customise its output; this section just covers running it).
+`docs/site_documentation.pdf` isn't built by `zensical serve` or `zensical build` - it has its own build script, `build_pdf.py`, a prodockit-specific extension on top of Zensical (see [Customise PDF generation](customise.md#customise-pdf-generation) for what it is and how to customise its output; this section just covers running it).
 
 ### Building it manually
 

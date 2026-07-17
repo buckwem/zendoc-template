@@ -109,7 +109,7 @@ def test_pdf_internal_goto_links_resolve_to_a_real_page(pdf_doc):
 
 def _is_internal(href):
     """True for a same-page fragment ("#foo") or a relative/site-root path
-    ("../glossary/", "/starthere/") - false for anything with a
+    ("../glossary/", "/references/") - false for anything with a
     URL scheme (http:, mailto:, tel:, javascript:, data:), which urlsplit()
     reports as a non-empty scheme."""
     return bool(href) and urlsplit(href).scheme == ""
@@ -117,7 +117,7 @@ def _is_internal(href):
 
 def _resolve_internal_href(href, current_file, public_dir):
     """Resolves an internal href (e.g. "../glossary/#css-def", "#appendixes",
-    "/starthere/") found in current_file to (target_file, fragment).
+    "/references/") found in current_file to (target_file, fragment).
     Returns (None, fragment) if the target file doesn't exist on disk."""
     path_part, _, fragment = href.partition("#")
     fragment = fragment or None

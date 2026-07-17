@@ -68,10 +68,6 @@ nav = [
     {"4. Section" = "section3.md"},
     {"5. Section" = "section4.md"}
   ]},
-  # Comment out the START HERE section before releasing your report, as it contains instructions for the author and is not meant for the reader of the report.
-  {"START HERE" = [
-    {"6. Start Here" = "starthere.md"}
-  ]},
   {"Appendixes" = [
     {"Appendix A. Acronyms" = "acronyms.md"},
     {"Appendix B. Glossary" = "glossary.md"},

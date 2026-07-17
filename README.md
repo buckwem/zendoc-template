@@ -43,7 +43,7 @@ Built on [Zensical](https://zensical.org/), a static site generator, with a comp
 4. Write your report in `docs/` (`originality.md`, `section1.md`–`section4.md`).
 5. Build the PDF with `python build_pdf.py`.
 
-Full, step-by-step instructions for all of this - installing tools, editing and previewing locally, Markdown and Zensical syntax, customising the template, and building the PDF - are in the **[prodockit User Guide](https://buckwem.github.io/prodockit-userguide/)**. This template's own **[Start Here](docs/starthere.md)** stub page links out to it.
+Full, step-by-step instructions for all of this - installing tools, editing and previewing locally, Markdown and Zensical syntax, customising the template, and building the PDF - are in the **[prodockit User Guide](https://buckwem.github.io/prodockit-userguide/)**.
 
 ## Building the PDF
 
@@ -56,7 +56,7 @@ This produces `docs/site_documentation.pdf`. Building Mermaid diagrams and maths
 
 ## Directory structure
 
-* `docs/` - your report's Markdown source (`index.md` cover page, `originality.md`, `section1.md`-`section4.md`) and the `starthere.md` guidance stub.
+* `docs/` - your report's Markdown source (`index.md` cover page, `originality.md`, `section1.md`-`section4.md`, `acronyms.md`, `glossary.md`, `references.md`).
 * `docs/stylesheets/` - `extra.css` (website) and `print.css` (PDF) appearance.
 * `zensical.toml` - site configuration and navigation.
 * `macros.py` - build-time logic (Surrey detection, word count, repository link, heading numbering).
@@ -67,7 +67,7 @@ See [Directory structure](https://buckwem.github.io/prodockit-userguide/customis
 
 ## Finishing your report
 
-Before you submit, follow [Finalising your document](https://buckwem.github.io/prodockit-userguide/customise/#finalising-your-document) to remove the "Start Here" section from `nav` in `zensical.toml` (and optionally delete `docs/starthere.md`), and update this README to describe your own report.
+Before you submit, update this README to describe your own report.
 
 ## Contributing
 

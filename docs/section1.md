@@ -11,7 +11,7 @@ icon: lucide/book-open
 
 # Section
 
-## SubSection
+## SubSection {: #citations-example }
 
 Git is a tool used to manage version control in software development with many developers making changes at the same time.\cite{skou2023}
 
@@ -21,7 +21,7 @@ Above is an example of using references in a document. The reference is linked t
 
 ### SubSubSection
 
-## SubSection
+## SubSection {: #acronyms-example }
 
 This template uses \gls{css} to control the appearance of both the website and the PDF.
 
@@ -29,7 +29,7 @@ Above is an example of using acronyms in a document. The acronym is linked to th
 
 ### SubSubSection
 
-## SubSection
+## SubSection {: #glossary-example }
 
 This document is written in \gls{markdown-def}, then converted into the website and PDF you're reading.
 

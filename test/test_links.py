@@ -44,6 +44,29 @@ def test_pdf_uri_links_are_not_local_filesystem_paths(pdf_doc):
     assert not offenders, f"PDF links pointing at a local filesystem path: {offenders}"
 
 
+def test_youtube_embed_link_keeps_its_video_id(pdf_doc):
+    """Regression test for a bug in zendoc.pdf.html's iframe->"Watch Video"
+    admonition link builder (fixed upstream, not in this repo - see
+    zendoc.pdf.html's own comment on the youtube.com/embed/ branch): an
+    earlier version stripped the video id from *every* conversion by
+    splitting off the query string after adding "?v=..." instead of before,
+    leaving a bare "https://www.youtube.com/watch" with no video specified.
+    Checks the real embed in starthere.md resolves to a URL with an actual
+    video id."""
+    offenders = []
+    for page_number, page in enumerate(pdf_doc):
+        for link in page.get_links():
+            uri = link.get("uri") or ""
+            if "youtube.com/watch" in uri and "v=" not in uri:
+                offenders.append((page_number, uri))
+    assert not offenders, f"YouTube watch link(s) missing their video id: {offenders}"
+    assert any(
+        "youtube.com/watch?v=" in (link.get("uri") or "")
+        for page in pdf_doc
+        for link in page.get_links()
+    ), "Expected to find at least one real YouTube watch link with a video id in the PDF"
+
+
 GOTO_INTERNAL = 4
 
 

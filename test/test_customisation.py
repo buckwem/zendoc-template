@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MIT
 
 """customisation batch: checks the template-specific customisation points
-documented in docs/starthere/customise.md - the ones not already covered by
+documented in the User Guide's customise.md (see issue #49 - that page now
+lives in the separate prodockit-userguide repo) - the ones not already covered by
 a more specific batch (numbering: heading/appendix numbering; word_count:
 exclude_from_word_count; captions: figure/table-caption; content/links:
 leaked syntax and broken links; pdf_structure: cover page has *some* word
@@ -310,7 +311,7 @@ def test_enabled_features_reach_the_built_sites_own_config(public_dir, zensical_
     client-side JS reading an embedded page config, not baked into the
     static HTML at build time - e.g. the copy button itself only exists
     once bundle.js runs in a real browser, which this fast/synthetic test
-    suite deliberately doesn't drive (see docs/starthere/testing.md).
+    suite deliberately doesn't drive (see the User Guide's testing.md).
     What's checkable without a browser, and actually the thing customise.md
     describes configuring ("comment a line out to disable that feature"),
     is that the configured features list reaches this embedded config at
@@ -348,24 +349,6 @@ def test_extra_css_and_js_are_built_and_referenced(public_dir, zensical_config):
         assert any(js_path in (script.get("src") or "") for script in soup.find_all("script")), (
             f"{js_path} not referenced by a <script> tag"
         )
-
-
-# ---------------------------------------------------------------------------
-# Navigation structure
-# ---------------------------------------------------------------------------
-
-def test_nav_snippet_macro_matches_the_real_nav_config(macros, zensical_config):
-    """customise.md's "Navigation structure" section shows this template's
-    own nav "pulled directly from zensical.toml" via the nav_snippet()
-    macro, described as updating automatically as nav changes - confirms
-    that's actually true, not just true when it was last written."""
-    snippet = macros._get_nav_snippet()
-    project = zensical_config["project"]
-    # Every top-level group name in the real nav should appear in the
-    # rendered snippet text.
-    for group in project["nav"]:
-        for group_name in group:
-            assert group_name in snippet, f"Top-level nav group '{group_name}' missing from nav_snippet()"
 
 
 # ---------------------------------------------------------------------------

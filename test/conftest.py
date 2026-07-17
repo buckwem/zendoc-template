@@ -74,9 +74,8 @@ def resolved_zensical_config():
 @pytest.fixture(scope="session")
 def nav_pages(resolved_zensical_config):
     """List of every nav markdown file, docs_dir-relative, in nav order -
-    e.g. "section1.md", "starthere/customise.md" - the same order both
-    build_pdf.py and prodockit.zensical_macros walk to compute chapter
-    numbers."""
+    e.g. "section1.md", "acronyms.md" - the same order both build_pdf.py
+    and prodockit.zensical_macros walk to compute chapter numbers."""
     return [page["url"] for page in flatten_nav(resolved_zensical_config.get("nav") or [])]
 
 
@@ -233,6 +232,76 @@ def _flatten_markdown_extensions(extensions_config, prefix=""):
         else:
             flat[dotted] = value
     return flat
+
+
+@pytest.fixture
+def build_synthetic_pdf(tmp_path, docs_dir, resolved_zensical_config):
+    """Factory fixture: build_synthetic_pdf([("page.md", "# Heading\\n...")])
+    renders each given (docs_rel_path, markdown_text) pair through the real
+    Zensical Markdown pipeline and then the real prodockit.pdf Pandoc/
+    WeasyPrint pipeline - the same pipeline build_pdf.py's own main() uses,
+    including this project's real extra.css/print.css and icon config - into
+    a small, throwaway PDF, and returns it opened as a fitz.Document.
+
+    For tests that need to check a specific real-world PDF rendering or
+    pagination behaviour (see test_captions.py/test_zensical_basics.py)
+    without depending on actual report content still demonstrating it -
+    content that may move, change, or (see issue #49) leave the repo
+    entirely. Caller is responsible for closing the returned document."""
+    import zensical.config as _zensical_config_module
+    from zensical.markdown.render import render as _zensical_render
+
+    from prodockit.pdf import Page, build_pdf
+    from prodockit.pdf.icons import build_icon_registry, discover_icon_dirs
+    from prodockit.pdf.mermaid import render_mermaid_diagram
+
+    build_pdf_module = _import_repo_module("build_pdf")
+
+    def _build(pages_markdown, *, heading_numbering_enabled=True):
+        _zensical_config_module.parse_config(str(ZENSICAL_TOML_PATH))
+        pages = []
+        for path, text in pages_markdown:
+            result = _zensical_render(text, path, path)
+            pages.append(Page(docs_rel_path=path, html=result["content"]))
+
+        theme = resolved_zensical_config.get("theme") or {}
+        admonition_icon_config = (theme.get("icon") or {}).get("admonition") or {}
+        icon_registry = build_icon_registry(discover_icon_dirs(str(docs_dir)))
+        extra_css = build_pdf_module._load_extra_css(str(docs_dir))
+        output_path = str(tmp_path / "synthetic.pdf")
+
+        mmdc_bin = build_pdf_module._find_mmdc_bin()
+        render_mermaid = None
+        if mmdc_bin:
+            mermaid_dir = str(tmp_path / "mermaid_diagrams")
+            mermaid_state = {"count": 0}
+
+            def render_mermaid(source):
+                mermaid_state["count"] += 1
+                return render_mermaid_diagram(source, mmdc_bin, mermaid_dir, mermaid_state["count"])
+
+        math_dir = tmp_path / "math_diagrams"
+        math_dir.mkdir(parents=True, exist_ok=True)
+        math_dir = str(math_dir)
+        tex2svg_script = str(REPO_ROOT / "tools" / "mathjax" / "tex2svg.js")
+        mathjax_available = (REPO_ROOT / "tools" / "mathjax" / "node_modules" / "mathjax-full").exists()
+
+        build_pdf(
+            pages,
+            output_path,
+            docs_dir=str(docs_dir),
+            extra_css=extra_css,
+            icon_registry=icon_registry,
+            admonition_icon_config=admonition_icon_config,
+            heading_numbering_enabled=heading_numbering_enabled,
+            render_mermaid=render_mermaid,
+            mathjax_available=mathjax_available,
+            math_dir=math_dir,
+            tex2svg_script=tex2svg_script,
+        )
+        return fitz.open(output_path)
+
+    return _build
 
 
 @pytest.fixture(scope="session")

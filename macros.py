@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: MIT
 
 """This project's own Zensical macros - institution branding (Surrey vs.
-default) and the nav_snippet() documentation helper. Everything else a
-professional/academic report commonly needs (word count, repo URL,
-site name, chapter/appendix numbering, reference/acronym/glossary spacing)
-comes from prodockit.zensical_macros instead (see prodockit-extensions#96,
-formerly zendoc-extensions#96 before #16's rename) - not duplicated here.
+default). Everything else a professional/academic report commonly needs
+(word count, repo URL, site name, chapter/appendix numbering,
+reference/acronym/glossary spacing) comes from prodockit.zensical_macros
+instead (see prodockit-extensions#96, formerly zendoc-extensions#96 before
+#16's rename) - not duplicated here.
 
 prodockit.zensical_macros.define_env() is called directly below rather than
 via zensical.toml's documented `modules = [...]` extension option: that
@@ -20,41 +20,11 @@ this workaround and switch back to `modules = [...]` in zensical.toml once
 that's fixed upstream."""
 
 import os
-import re
 import shutil
 import subprocess
 from pathlib import Path
 
 from prodockit.zensical_macros import define_env as _prodockit_define_env
-
-
-def _get_nav_snippet():
-    """Extracts the current `nav = [...]` block from zensical.toml verbatim -
-    same indentation, same comments - for the nav_snippet() macro used in
-    Customisation's "Navigation structure" section, so that example always
-    matches the real config instead of drifting stale as nav changes. Reads
-    the raw file text and bracket-matches rather than round-tripping through
-    `toml.load()`, since that would lose the formatting and comments that
-    make the example worth showing in the first place. Returns "" if
-    zensical.toml or a nav block can't be found."""
-    config_path = "zensical.toml"
-    if not os.path.exists(config_path):
-        return ""
-    with open(config_path, "r", encoding="utf-8") as f:
-        text = f.read()
-    match = re.search(r"^nav\s*=\s*\[", text, flags=re.MULTILINE)
-    if not match:
-        return ""
-    bracket_start = text.index("[", match.start())
-    depth = 0
-    for i in range(bracket_start, len(text)):
-        if text[i] == "[":
-            depth += 1
-        elif text[i] == "]":
-            depth -= 1
-            if depth == 0:
-                return text[match.start():i + 1]
-    return ""
 
 
 def _detect_is_surrey(env=None):
@@ -140,16 +110,3 @@ def define_env(env):
     except FileNotFoundError as e:
         print(f"[Zensical Startup Warning] Could not copy logos: {e}")
         print("Please ensure logo_surrey_*.png and logo_default_*.png exist in docs/assets/")
-
-    @env.macro
-    def nav_snippet():
-        """Returns the current `nav = [...]` block from zensical.toml,
-        verbatim, so the Navigation structure documentation always matches
-        the real config instead of a hand-maintained example that drifts
-        stale as nav changes. Usage: place inside a fenced code block:
-
-            ```toml
-            {{ nav_snippet() }}
-            ```
-        """
-        return _get_nav_snippet()

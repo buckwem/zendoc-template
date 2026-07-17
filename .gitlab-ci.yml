@@ -23,7 +23,7 @@ pages:
     - curl -fsSL -o /tmp/pandoc.deb "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb"
     - apt-get install -y /tmp/pandoc.deb
     # fonts-inter/fonts-jetbrains-mono: this template's default fonts (see
-    # "Fonts" in customise.md) - the website loads them from Google Fonts at
+    # "Fonts" in the User Guide's customise.md) - the website loads them from Google Fonts at
     # view time, but WeasyPrint has no such fallback for the PDF; it needs
     # the font files actually installed to embed them, and silently
     # substitutes a generic system font instead of erroring if they're

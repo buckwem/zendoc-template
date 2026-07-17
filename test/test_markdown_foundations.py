@@ -1,8 +1,9 @@
 # Copyright (c) 2025-2026 Mark Buckwell, Zensical and contributors
 # SPDX-License-Identifier: MIT
 
-"""markdown_foundations batch: checks the core Markdown syntax taught in
-docs/starthere/markdown.md ("9. Markdown basics") - headings, text
+"""markdown_foundations batch: checks the core Markdown syntax that used to
+be taught on the User Guide's markdown.md page (see issue #49 - that page
+moved to the separate prodockit-userguide repo) - headings, text
 formatting, links/images, lists (including the 4-space nesting rule),
 code blocks, tables, horizontal rules, task lists, and blockquotes -
 actually renders the way that page says it does.

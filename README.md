@@ -43,7 +43,7 @@ Built on [Zensical](https://zensical.org/), a static site generator, with a comp
 4. Write your report in `docs/` (`originality.md`, `section1.md`–`section4.md`).
 5. Build the PDF with `python build_pdf.py`.
 
-Full, step-by-step instructions for all of this - installing tools, editing and previewing locally, Markdown and Zensical syntax, customising the template, and building the PDF - are in the **[Start Here](docs/starthere/starthere.md)** section of the documentation itself. Read it on the live site, or start from [`docs/starthere/starthere.md`](docs/starthere/starthere.md).
+Full, step-by-step instructions for all of this - installing tools, editing and previewing locally, Markdown and Zensical syntax, customising the template, and building the PDF - are in the **[prodockit User Guide](https://buckwem.github.io/prodockit-userguide/)**.
 
 ## Building the PDF
 
@@ -52,22 +52,22 @@ pip install -r requirements.txt
 python build_pdf.py
 ```
 
-This produces `docs/site_documentation.pdf`. Building Mermaid diagrams and maths to images also requires the Node tooling under `tools/mermaid/` and `tools/mathjax/` (`npm ci` in each) - see [`docs/starthere/installtooling.md`](docs/starthere/installtooling.md) for the full setup, and `.gitlab-ci.yml` / `.github/workflows/docs.yml` for how the CI pipelines do it.
+This produces `docs/site_documentation.pdf`. Building Mermaid diagrams and maths to images also requires the Node tooling under `tools/mermaid/` and `tools/mathjax/` (`npm ci` in each) - see [Install tooling](https://buckwem.github.io/prodockit-userguide/installtooling/) in the User Guide for the full setup, and `.gitlab-ci.yml` / `.github/workflows/docs.yml` for how the CI pipelines do it.
 
 ## Directory structure
 
-* `docs/` - your report's Markdown source (`index.md` cover page, `originality.md`, `section1.md`-`section4.md`) and the `starthere/` guidance section.
+* `docs/` - your report's Markdown source (`index.md` cover page, `originality.md`, `section1.md`-`section4.md`, `acronyms.md`, `glossary.md`, `references.md`).
 * `docs/stylesheets/` - `extra.css` (website) and `print.css` (PDF) appearance.
 * `zensical.toml` - site configuration and navigation.
 * `macros.py` - build-time logic (Surrey detection, word count, repository link, heading numbering).
 * `build_pdf.py` - builds the single-file PDF.
 * `tools/` - Node.js tooling used only by the PDF build (Mermaid, MathJax rendering).
 
-See [Directory structure](docs/starthere/customise.md#directory-structure) in the Customisation page for the complete, up-to-date map.
+See [Directory structure](https://buckwem.github.io/prodockit-userguide/customise/#directory-structure) in the User Guide's Customisation page for the complete, up-to-date map.
 
 ## Finishing your report
 
-Before you submit, follow [Finalising your document](docs/starthere/customise.md#finalising-your-document) to remove the "Start Here" section from `nav` in `zensical.toml` (and optionally delete `docs/starthere/`), and update this README to describe your own report.
+Before you submit, update this README to describe your own report.
 
 ## Contributing
 

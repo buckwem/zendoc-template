@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: MIT
 
 """zensical_basics batch: checks the Zensical-specific Markdown extensions
-taught in docs/starthere/zensicalbasics.md ("10. Zensical basics") -
-admonitions, collapsible details, code blocks, content tabs, images,
-diagrams, footnotes, formatting, icons/emojis, maths, task lists, and
-tooltips - render the way that page (and the fuller upstream
-zensical.org/docs/authoring/* pages it links out to for "full
-documentation") say they do.
+that used to be taught on the User Guide's zensicalbasics.md page (see
+issue #49 - that page, and most of the rest of docs/starthere/, moved to
+the separate prodockit-userguide repo) - admonitions, collapsible details,
+code blocks, content tabs, images, diagrams, footnotes, formatting,
+icons/emojis, maths, task lists, and tooltips - render the way the fuller
+upstream zensical.org/docs/authoring/* pages say they do.
 
 Like test_markdown_foundations.py, this renders hand-written snippets
 through a real markdown.Markdown() instance built from this project's own
@@ -15,27 +15,24 @@ zensical.toml extension config (see conftest.py's markdown_extension_config
 fixture), so tests can't silently drift out of sync with it. Unlike that
 batch, this one also wires up a *working* pymdownx.emoji config - real
 zensical.extensions.emoji callables, not the dotted-string references
-markdown_extension_config deliberately omits - since "Icons, emojis" is a
-section on this specific page.
+markdown_extension_config deliberately omits - since "Icons, emojis" was a
+section on that page.
 
 Each section below cross-checks against the corresponding
-zensical.org/docs/authoring/* page (linked from zensicalbasics.md itself),
-not just the one worked example shown on our own page, per issue #50 -
-e.g. all 12 configured admonition types, not just the note/warning pair
-zensicalbasics.md happens to show; all 5 officially-supported Mermaid
-diagram types, not just the one flowchart example.
+zensical.org/docs/authoring/* page, not just one worked example, per issue
+#50 - e.g. all 12 configured admonition types, not just a note/warning
+pair; all 5 officially-supported Mermaid diagram types, not just one
+flowchart example.
 
 Not covered: the "Commands" section (zensical new/serve/build) - these are
 CLI behaviour, not Markdown syntax, and aren't meaningfully testable by
-rendering a snippet the way everything else on this page is."""
+rendering a snippet the way everything else here is."""
 
-import re
 import textwrap
 
 import markdown
 import pytest
 
-from conftest import chapter_page_range
 from pymdownx.superfences import fence_code_format
 from zensical.extensions.emoji import to_svg, twemoji
 
@@ -484,7 +481,7 @@ def test_attr_list_title_as_a_tooltip_on_a_non_link_element(render):
 
 
 # ---------------------------------------------------------------------------
-# Real, already-built PDF checks
+# Real, synthetic-but-real-pipeline PDF checks
 # ---------------------------------------------------------------------------
 # Everything above renders synthetic snippets through the website's own
 # Markdown pipeline - a faithful proxy for the *website*, since that's
@@ -492,334 +489,532 @@ def test_attr_list_title_as_a_tooltip_on_a_non_link_element(render):
 # which goes through a completely different parser (Pandoc) that
 # build_pdf.py has to explicitly teach about each pymdownx extension one at
 # a time (see #25/#28's "every feature needs its own bespoke regex pass").
-# zensicalbasics.md's own "each with a live example" content already
-# exercises every feature on this page for real, so these check that
-# content in the actual built PDF, the same end-to-end pattern
-# test_captions.py already uses - rather than assuming a feature "should"
-# work in the PDF just because it's covered above for the website.
+#
+# These used to check zensicalbasics.md's own "each with a live example"
+# content in the actual, already-built site PDF - see issue #49: that page
+# moved to the separate prodockit-userguide repo, so these now build their
+# own small pages through the real Zensical-render + prodockit.pdf Pandoc/
+# WeasyPrint pipeline instead (see conftest.py's build_synthetic_pdf
+# fixture), keeping the regression coverage independent of which report
+# content happens to exist here.
 
-def test_admonitions_render_styled_not_leaked(pdf_full_text, pdf_doc):
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    chapter_text = "".join(pdf_full_text[start:end])
-    assert "Note" in chapter_text and "This is a" in chapter_text and "note admonition" in chapter_text
-    assert "Warning" in chapter_text and "warning admonition" in chapter_text
-    assert "!!! note" not in chapter_text and "!!! warning" not in chapter_text
+def test_admonitions_render_styled_not_leaked(build_synthetic_pdf):
+    doc = build_synthetic_pdf([("test.md", """# Test Chapter
+
+!!! note
+
+    This is a **note** admonition. Use it to provide helpful information.
+
+!!! warning
+
+    This is a **warning** admonition. Be careful!
+""")])
+    try:
+        text = "\n".join(page.get_text() for page in doc)
+        assert "Note" in text and "This is a" in text and "note admonition" in text
+        assert "Warning" in text and "warning admonition" in text
+        assert "!!! note" not in text and "!!! warning" not in text
+    finally:
+        doc.close()
 
 
-def test_collapsible_details_renders_content_not_leaked(pdf_full_text, pdf_doc):
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    chapter_text = "".join(pdf_full_text[start:end])
-    assert "Click to expand for more info" in chapter_text
-    assert "hidden until you click to expand" in chapter_text
-    assert "??? info" not in chapter_text
+def test_collapsible_details_renders_content_not_leaked(build_synthetic_pdf):
+    doc = build_synthetic_pdf([("test.md", """# Test Chapter
+
+??? info "Click to expand for more info"
+
+    This content is hidden until you click to expand it.
+    Great for FAQs or long explanations.
+""")])
+    try:
+        text = "\n".join(page.get_text() for page in doc)
+        assert "Click to expand for more info" in text
+        assert "hidden until you click to expand" in text
+        assert "??? info" not in text
+    finally:
+        doc.close()
 
 
-def test_content_tabs_render_both_tabs_content_not_leaked(pdf_full_text, pdf_doc):
+def test_content_tabs_render_both_tabs_content_not_leaked(build_synthetic_pdf):
     """The PDF is static - there's no interactive tab-switching - so both
     tabs' content should appear (sequentially), not just one, and
     definitely not the raw === "Tab" marker syntax."""
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    chapter_text = "".join(pdf_full_text[start:end])
-    assert 'print("Hello from Python!")' in chapter_text
-    assert 'println!("Hello from Rust!")' in chapter_text
-    assert '=== "Python"' not in chapter_text
+    doc = build_synthetic_pdf([("test.md", '''# Test Chapter
+
+=== "Python"
+
+    ``` python
+    print("Hello from Python!")
+    ```
+
+=== "Rust"
+
+    ``` rs
+    println!("Hello from Rust!");
+    ```
+''')])
+    try:
+        text = "\n".join(page.get_text() for page in doc)
+        assert 'print("Hello from Python!")' in text
+        assert 'println!("Hello from Rust!")' in text
+        assert '=== "Python"' not in text
+    finally:
+        doc.close()
 
 
-def test_mermaid_diagram_is_a_real_embedded_image_not_leaked_text(pdf_doc):
+def test_mermaid_diagram_is_a_real_embedded_diagram_not_leaked_text(build_synthetic_pdf):
     """render_mermaid_diagrams() in build_pdf.py pre-renders ```mermaid
     fences to static images via mermaid-cli (see test_fences.py for the
-    function itself) - confirms that actually reaches this page of the
-    real PDF: an embedded image, and no literal "```mermaid" text."""
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    found_image = False
-    for i in range(start, end):
-        page = pdf_doc[i]
-        if "```mermaid" in page.get_text() or "``` mermaid" in page.get_text():
-            raise AssertionError(f"Leaked literal mermaid fence syntax on page {i}")
-        if page.get_image_info():
-            found_image = True
-    assert found_image, "No embedded image found anywhere in the Zensical basics chapter"
+    function itself) - confirms that actually reaches the real PDF: real
+    vector drawing content (WeasyPrint renders the resulting SVG as native
+    vector paths/text, not a raster image XObject - get_drawings(), not
+    get_image_info()), and no literal "```mermaid" text."""
+    doc = build_synthetic_pdf([("test.md", """# Test Chapter
+
+``` mermaid
+graph LR
+  A[Start] --> B{Error?}
+```
+""")])
+    try:
+        found_drawing = False
+        for page in doc:
+            if "```mermaid" in page.get_text() or "``` mermaid" in page.get_text():
+                raise AssertionError("Leaked literal mermaid fence syntax")
+            if page.get_drawings():
+                found_drawing = True
+        assert found_drawing, "No rendered diagram drawing found anywhere in the PDF"
+    finally:
+        doc.close()
 
 
-def test_math_is_rendered_not_leaked_as_literal_dollar_syntax(pdf_full_text, pdf_doc):
+def test_math_is_rendered_not_leaked_as_literal_dollar_syntax(build_synthetic_pdf):
     """mathjax-full pre-renders $...$/$$...$$ to static images for the PDF
     (see tools/mathjax/, and build_pdf.py's own comment on why - WeasyPrint
     has no JS engine to run MathJax client-side). Confirms the literal
     dollar-delimited source doesn't leak through unconverted."""
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    chapter_text = "".join(pdf_full_text[start:end])
-    assert r"\cos x" not in chapter_text, "Raw LaTeX source leaked instead of being rendered to an image"
+    doc = build_synthetic_pdf([("test.md", r"""# Test Chapter
+
+$$
+\cos x=\sum_{k=0}^{\infty}\frac{(-1)^k}{(2k)!}x^{2k}
+$$
+""")])
+    try:
+        text = "\n".join(page.get_text() for page in doc)
+        assert r"\cos x" not in text, "Raw LaTeX source leaked instead of being rendered to an image"
+    finally:
+        doc.close()
 
 
-def test_task_list_renders_real_checkboxes_not_leaked(pdf_full_text, pdf_doc):
-    """"- [ ]"/"- [x]" legitimately appear once each already, as inline-code
-    syntax examples in this section's own explanatory prose ("using the
-    - [ ] syntax for an unchecked item") - not a leak, real content this
-    template's own docs intentionally show literally. What would indicate
-    an actual leak is the task list *itself* rendering as raw markdown
-    right next to its own label text, so this checks for that combined
-    string specifically rather than a bare "- [x]"/"- [ ]" anywhere on the
-    page."""
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    chapter_text = "".join(pdf_full_text[start:end])
-    assert "Install Zensical" in chapter_text
-    assert "- [x] Install Zensical" not in chapter_text
-    assert "- [ ] Deploy anywhere" not in chapter_text
+def test_task_list_renders_real_checkboxes_not_leaked(build_synthetic_pdf):
+    doc = build_synthetic_pdf([("test.md", """# Test Chapter
+
+* [x] Install Zensical
+* [ ] Deploy anywhere
+""")])
+    try:
+        text = "\n".join(page.get_text() for page in doc)
+        assert "Install Zensical" in text
+        assert "- [x] Install Zensical" not in text
+        assert "- [ ] Deploy anywhere" not in text
+    finally:
+        doc.close()
 
 
-def test_footnote_renders_with_backlink_not_leaked(pdf_full_text, pdf_doc):
-    """"[^1]" legitimately appears once already, as an inline-code syntax
-    example in this section's own explanatory prose ("using the [^1]
-    syntax") - not a leak. What would indicate an actual leak is the real
-    footnote reference itself staying as raw "[^1]" text right after the
-    sentence it's attached to, so this checks for that combined string
-    specifically."""
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    chapter_text = "".join(pdf_full_text[start:end])
-    # WeasyPrint's float: footnote renders the footnote area in a narrow
-    # fixed-width column (a known WeasyPrint limitation - see build_pdf.py's
-    # ".pdf-footnote" comment), so short footnote text often wraps onto 2-3
-    # lines instead of one - normalize whitespace rather than requiring it
-    # stay on one line, which would be asserting on a rendering detail this
-    # template's own CSS has no control over.
-    normalized = " ".join(chapter_text.split())
-    assert "This is the footnote." in normalized
-    assert "footnote.[^1]" not in chapter_text
+def test_footnote_renders_with_backlink_not_leaked(build_synthetic_pdf):
+    doc = build_synthetic_pdf([("test.md", """# Test Chapter
+
+Here's a sentence with a footnote.[^1]
+
+[^1]: This is the footnote.
+""")])
+    try:
+        text = "\n".join(page.get_text() for page in doc)
+        normalized = " ".join(text.split())
+        assert "This is the footnote." in normalized
+        assert "footnote.[^1]" not in text
+    finally:
+        doc.close()
 
 
-def test_icons_and_emoji_render_as_real_glyphs_not_leaked(pdf_doc):
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    found_image = False
-    for i in range(start, end):
-        page = pdf_doc[i]
-        text = page.get_text()
-        if ":sparkles:" in text or ":rocket:" in text:
-            # Icon shortcode text itself is expected in this template's own
-            # attr_list-styled inline-code spans (see zensicalbasics.md's
-            # own "* :sparkles: `:sparkles:`" - the *second*, backtick-
-            # wrapped copy is an intentional literal example) - only flag
-            # it if there's no rendered glyph at all anywhere nearby.
-            found_image = found_image or bool(page.get_image_info())
-    # At minimum, some image (twemoji/icon SVG rendered to a raster/vector
-    # image in the PDF) should exist somewhere on these pages.
-    assert any(pdf_doc[i].get_image_info() for i in range(start, end))
+def test_icons_and_emoji_render_as_real_glyphs_not_leaked(build_synthetic_pdf):
+    """Twemoji's SVGs come through as native vector drawings once WeasyPrint
+    rasterizes/vectorizes them (get_drawings(), not get_image_info() - the
+    same as a real Mermaid diagram's own SVG, confirmed above), not an
+    embedded raster image."""
+    doc = build_synthetic_pdf([("test.md", """# Test Chapter
+
+* :sparkles: :rocket: :tada:
+""")])
+    try:
+        found_drawing = any(page.get_drawings() for page in doc)
+        assert found_drawing, "Expected the emoji/icon shortcodes to render as real vector glyphs"
+        text = "\n".join(page.get_text() for page in doc)
+        assert ":sparkles:" not in text and ":rocket:" not in text and ":tada:" not in text
+    finally:
+        doc.close()
 
 
-def test_mark_insert_and_keys_render_styled_not_leaked(pdf_full_text, pdf_doc):
+def test_mark_insert_and_keys_render_styled_not_leaked(build_synthetic_pdf):
     """issue #72: Pandoc's markdown reader has no native support for
     pymdownx.mark (==highlight==) or pymdownx.keys (++key+combo++), so both
     used to leak through as literal, unrendered text; pymdownx.caret's insert
     mode (^^underline^^) used to silently collide with Pandoc's own
     single-caret superscript syntax and produce an empty, invisible
-    <sup></sup> instead (a second, separate bug caught while fixing this
-    one - the underline never actually rendered, despite an earlier,
-    incorrect assumption that it did). build_pdf.py now renders the page
-    through the real pymdownx.mark/pymdownx.caret/pymdownx.keys extensions
-    (see render_page_html()) and hands Pandoc the resulting real HTML, which
-    it passes through untouched, rather than hand-translating the markdown
-    syntax itself; confirmed here against the actual built PDF page text,
-    and separately by rendering the page to an image and visually checking
-    the highlight/underline/kbd-box styling."""
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    chapter_text = "".join(pdf_full_text[start:end])
+    <sup></sup> instead. build_pdf.py now renders the page through the real
+    pymdownx.mark/pymdownx.caret/pymdownx.keys extensions (see
+    render_page_html()) and hands Pandoc the resulting real HTML, which it
+    passes through untouched, rather than hand-translating the markdown
+    syntax itself."""
+    doc = build_synthetic_pdf([("test.md", """# Test Chapter
 
-    assert "This was marked (highlight)" in chapter_text
-    assert "==This was marked (highlight)==" not in chapter_text
+- ==This was marked (highlight)==
+- ^^This was inserted (underline)^^
+- ~~This was deleted (strikethrough)~~
+- ++ctrl+alt+del++
+""")])
+    try:
+        text = "\n".join(page.get_text() for page in doc)
 
-    assert "This was inserted (underline)" in chapter_text
-    assert "^^This was inserted (underline)^^" not in chapter_text
+        assert "This was marked (highlight)" in text
+        assert "==This was marked (highlight)==" not in text
 
-    assert "Ctrl" in chapter_text and "Alt" in chapter_text and "Del" in chapter_text
-    assert "++ctrl+alt+del++" not in chapter_text
+        assert "This was inserted (underline)" in text
+        assert "^^This was inserted (underline)^^" not in text
 
-    # The extension's sibling on the same page, for contrast - confirms this
-    # is specifically the mark/insert/keys fix, not a regression elsewhere.
-    assert "This was deleted (strikethrough)" in chapter_text
-    assert "~~This was deleted (strikethrough)~~" not in chapter_text
+        assert "Ctrl" in text and "Alt" in text and "Del" in text
+        assert "++ctrl+alt+del++" not in text
+
+        # The extension's sibling, for contrast - confirms this is
+        # specifically the mark/insert/keys fix, not a regression elsewhere.
+        assert "This was deleted (strikethrough)" in text
+        assert "~~This was deleted (strikethrough)~~" not in text
+    finally:
+        doc.close()
 
 
 # ---------------------------------------------------------------------------
 # Grid cards and table styling (prodockit-template#92/#93)
 # ---------------------------------------------------------------------------
 # Zensical's native grid-card HTML (a plain <div class="grid cards"><ul><li>)
-# isn't demonstrated as its own section in zensicalbasics.md, but is a real,
-# load-bearing feature used throughout installtooling.md ("7. Install
-# tooling") - checked here against the real, already-built PDF rather than a
+# isn't demonstrated as its own section on this page, but is a real,
+# load-bearing feature used throughout the User Guide's installtooling.md
+# (see issue #49) - checked here against a real synthetic PDF rather than a
 # render() snippet, since every regression this guards against (render_page_
-# html()'s own <svg>-><img> icon conversion, the CSS matching Zensical's real
-# grid-card DOM instead of the old, dead .gridcard-matrix convention, and the
-# page-break-inside value on both grid cards and table captions) only
-# manifests through the full Pandoc/WeasyPrint pipeline. Table cell alignment
-# is included here rather than in test_markdown_foundations.py for the same
-# reason - it's a compiled-CSS/WeasyPrint concern, not something the website's
-# own markdown.Markdown() pipeline that batch otherwise tests can exercise.
+# html()'s own <svg>-><img> icon conversion, and the CSS matching Zensical's
+# real grid-card DOM instead of the old, dead .gridcard-matrix convention)
+# only manifests through the full Pandoc/WeasyPrint pipeline. Table cell
+# alignment is included here rather than in test_markdown_foundations.py for
+# the same reason - it's a compiled-CSS/WeasyPrint concern, not something
+# the website's own markdown.Markdown() pipeline that batch otherwise tests
+# can exercise.
 
-def test_real_grid_card_renders_as_a_bordered_box_not_a_plain_bullet_list(pdf_doc):
+GRID_CARD_MD = """
+<div class="grid cards one-column" markdown>
+
+-   :material-clock-fast:{ .lg .middle } __Do a thing__
+
+    1. First step.
+    2. Second step.
+
+</div>
+"""
+
+
+def test_real_grid_card_renders_as_a_bordered_box_not_a_plain_bullet_list(build_synthetic_pdf):
     """Regression test (prodockit-template#92): Zensical's real grid-card HTML
     is a plain <div class="grid cards"><ul><li>, not the old regex
     pipeline's own .gridcard-matrix/-item convention (retired along with the
     rest of preprocess_markdown()) - the compiled PDF CSS only had rules for
     the old, now-dead structure until this was fixed, so a real grid card
     rendered as an unstyled bullet list instead of the card box treatment.
-    Checks the "Fork the documentation template" card (installtooling.md)
-    for a filled background rectangle (the card box, #f4f8ff) behind it."""
-    for page in pdf_doc:
-        if "Fork the documentation template" not in page.get_text():
-            continue
-        filled = [
-            d for d in page.get_drawings()
-            if d.get("fill") and all(abs(c1 - c2) < 0.01 for c1, c2 in zip(d["fill"], (0.9569, 0.9725, 1.0)))
-        ]
-        assert filled, "Expected a filled background rectangle (the grid card box) behind 'Fork the documentation template'"
-        return
-    raise AssertionError("Expected to find the 'Fork the documentation template' grid card in the PDF")
+    Checks for a filled background rectangle (the card box, #f4f8ff) behind
+    a real grid card."""
+    doc = build_synthetic_pdf([("test.md", f"# Test Chapter\n{GRID_CARD_MD}")])
+    try:
+        for page in doc:
+            if "Do a thing" not in page.get_text():
+                continue
+            filled = [
+                d for d in page.get_drawings()
+                if d.get("fill") and all(abs(c1 - c2) < 0.01 for c1, c2 in zip(d["fill"], (0.9569, 0.9725, 1.0)))
+            ]
+            assert filled, "Expected a filled background rectangle (the grid card box) behind the grid card"
+            return
+        raise AssertionError("Expected to find the grid card in the PDF")
+    finally:
+        doc.close()
 
 
-def test_real_grid_card_title_icon_renders_as_an_image_not_missing(pdf_doc):
+def test_real_grid_card_title_icon_renders_as_an_image_not_missing(build_synthetic_pdf):
     """Regression test: a grid card title's icon shortcode
     (e.g. ":material-clock-fast:") renders as a raw inline <svg> from
     pymdownx.emoji - confirmed this doesn't survive Pandoc's HTML-to-HTML
     round trip through to WeasyPrint at all (isolated test: a <p>Before
     <svg>...</svg> After</p> rendered as "Before  After", no error, nothing
     visible). render_page_html() base64-embeds every remaining <svg> as an
-    <img> instead - checks the "Fork the documentation template" card's page
-    has at least one embedded image (the icon)."""
-    for page in pdf_doc:
-        if "Fork the documentation template" not in page.get_text():
-            continue
-        assert len(page.get_images()) > 0, "Expected the grid card title's icon to render as an embedded image"
-        return
-    raise AssertionError("Expected to find the 'Fork the documentation template' grid card in the PDF")
+    <img> instead - checks the grid card's page has real vector content for
+    the icon (get_drawings() - WeasyPrint renders the embedded SVG as native
+    vector paths, not a raster image XObject, same as the emoji/mermaid
+    checks above), rather than nothing at all."""
+    doc = build_synthetic_pdf([("test.md", f"# Test Chapter\n{GRID_CARD_MD}")])
+    try:
+        for page in doc:
+            if "Do a thing" not in page.get_text():
+                continue
+            assert page.get_drawings(), "Expected the grid card title's icon to render as real vector content"
+            return
+        raise AssertionError("Expected to find the grid card in the PDF")
+    finally:
+        doc.close()
 
 
-@pytest.mark.parametrize("parent_heading,child_heading", [
-    ("7.1 Install Visual Studio Code", "7.1.1 Install Visual Studio Code"),
-    ("7.2 Install Git with Visual Studio Code", "7.2.1 Install and configure Git"),
-    # These two pairs (additionaltooling.md) have a different root cause
-    # than the grid-card page-break-inside fix above: print.css's own
-    # "h1..h6 { page-break-after: avoid }" is fine for h1/h2 (a short intro
-    # follows), but for h3-h6 it couldn't be satisfied without pulling in
-    # far more content than intended whenever a large grid card immediately
-    # follows, so the *entire* heading (not just what follows it) got
-    # pushed onto a fresh page - confirmed directly via an A/B rebuild
-    # toggling "h3, h4, h5, h6 { page-break-after: auto }" on and off.
-    ("12.3 Installing a GUI Git client", "12.3.1 Installing GitHub Desktop"),
-    ("12.3.1 Installing GitHub Desktop", "12.3.2 Installing GitKraken"),
-])
-def test_real_grid_card_does_not_force_a_blank_page_gap_before_its_heading(pdf_doc, parent_heading, child_heading):
-    """Regression test (prodockit-template#93): a real grid card commonly wraps
-    a whole tabbed-set (e.g. installtooling.md's per-OS install
-    instructions, all three OS tabs stacked since WeasyPrint can't do
-    interactive tabs) - often taller than a full page. The grid-card CSS's
-    page-break-inside: avoid forced the entire oversized card onto a fresh
-    page as one atomic unit (unable to actually fit there either), leaving a
-    large blank gap on the previous page - confirmed directly against the
-    built PDF for both heading pairs below, each immediately followed by
-    exactly this kind of grid card. Both headings in a pair should land on
-    the same page."""
-    parent_page = child_page = None
-    for i, page in enumerate(pdf_doc):
-        text = page.get_text()
-        if parent_heading in text:
-            parent_page = i
-        if child_heading in text:
-            child_page = i
-        if parent_page is not None and child_page is not None:
-            break
-    assert parent_page is not None, f"Expected to find '{parent_heading}' in the PDF"
-    assert child_page is not None, f"Expected to find '{child_heading}' in the PDF"
-    assert parent_page == child_page, (
-        f"Expected '{child_heading}' on the same page as '{parent_heading}' (page {parent_page}), "
-        f"found it on page {child_page} instead - possible page-break regression"
-    )
+TABLE_MD = """
+/// table-caption
+Basic navigation commands
+///
+
+| Command | Description |
+|---|---|
+| Print Working Directory | pwd |
+| List working directory contents | ls |
+"""
 
 
-def test_real_table_body_text_is_left_aligned_not_centered(pdf_doc):
+def test_real_table_body_text_is_left_aligned_not_centered(build_synthetic_pdf):
     """Regression test: table th/td had no explicit text-align, so cell
     content silently inherited text-align: center from a table-caption's
     own wrapping container (div.prodockit-table-caption, or the pre-existing
     "figure {}" rule for the append-position case) - confirmed directly,
     every real table's body text was centering rather than reading
-    left-aligned. Checks the real 'Basic navigation commands' table
-    (shcommands.md): the left edge of each row's second-column text should
-    line up, which centered text (whose left edge shifts with each row's
-    text length) would not."""
-    x0s = []
-    for page in pdf_doc:
-        if "Basic navigation commands" not in page.get_text():
-            continue
-        for block in page.get_text("dict")["blocks"]:
-            if block.get("type") != 0:
+    left-aligned. Checks two rows' left edges line up, which centered text
+    (whose left edge shifts with each row's text length) would not."""
+    doc = build_synthetic_pdf([("test.md", f"# Test Chapter\n{TABLE_MD}")])
+    try:
+        x0s = []
+        for page in doc:
+            if "Basic navigation commands" not in page.get_text():
                 continue
-            for line in block.get("lines", []):
-                for span in line["spans"]:
-                    if span["text"].strip().startswith(("Print Working", "List:", "Cleans up")):
-                        x0s.append(round(span["bbox"][0], 1))
-        break
-    assert len(x0s) >= 2, "Expected at least two matching table body cells in the PDF"
-    assert max(x0s) - min(x0s) < 1, f"Expected consistent left-aligned x-positions, got {x0s}"
+            for block in page.get_text("dict")["blocks"]:
+                if block.get("type") != 0:
+                    continue
+                for line in block.get("lines", []):
+                    for span in line["spans"]:
+                        if span["text"].strip().startswith(("Print Working", "List working")):
+                            x0s.append(round(span["bbox"][0], 1))
+            break
+        assert len(x0s) >= 2, "Expected at least two matching table body cells in the PDF"
+        assert max(x0s) - min(x0s) < 1, f"Expected consistent left-aligned x-positions, got {x0s}"
+    finally:
+        doc.close()
 
 
-def test_real_table_body_font_size_is_smaller_than_body_text(pdf_doc):
+def test_real_table_body_font_size_is_smaller_than_body_text(build_synthetic_pdf):
     """Companion to the alignment fix above - table th/td font-size is
     reduced to 10pt (see build_pdf.py's "table th, table td" rule), smaller
-    than surrounding body text, so a dense grid of short cells reads better.
-    Checks the real 'Basic navigation commands' table body text is smaller
-    than this same chapter's own intro paragraph text."""
-    table_size = paragraph_size = None
-    for page in pdf_doc:
-        text = page.get_text()
-        for block in page.get_text("dict")["blocks"]:
-            if block.get("type") != 0:
-                continue
-            for line in block.get("lines", []):
-                for span in line["spans"]:
-                    if "Print Working Directory" in span["text"]:
-                        table_size = span["size"]
-                    if "Knowing where you are and how to move" in span["text"]:
-                        paragraph_size = span["size"]
-        if table_size is not None and paragraph_size is not None:
+    than surrounding body text, so a dense grid of short cells reads
+    better."""
+    doc = build_synthetic_pdf([("test.md", f"""# Test Chapter
+
+Knowing where you are and how to move around is essential.
+{TABLE_MD}""")])
+    try:
+        table_size = paragraph_size = None
+        for page in doc:
+            for block in page.get_text("dict")["blocks"]:
+                if block.get("type") != 0:
+                    continue
+                for line in block.get("lines", []):
+                    for span in line["spans"]:
+                        if "Print Working Directory" in span["text"]:
+                            table_size = span["size"]
+                        if "Knowing where you are and how to move" in span["text"]:
+                            paragraph_size = span["size"]
+            if table_size is not None and paragraph_size is not None:
+                break
+        assert table_size is not None, "Expected to find table body text in the PDF"
+        assert paragraph_size is not None, "Expected to find the intro paragraph in the PDF"
+        assert table_size < paragraph_size, (
+            f"Expected table body text ({table_size}pt) smaller than body text ({paragraph_size}pt)"
+        )
+    finally:
+        doc.close()
+
+
+# ---------------------------------------------------------------------------
+# Pagination: no forced blank-page gaps (prodockit-template#93)
+# ---------------------------------------------------------------------------
+# These page-break/orphans/widows rules all live in the external
+# prodockit-extensions package's own compiled CSS now (prodockit.pdf.css),
+# not in this repo - see build.py's `prodockit.pdf` import. What's still
+# worth checking from this repo's own test suite is the *integration*: this
+# repo's currently-pinned prodockit version, combined with this repo's own
+# extra.css/print.css, still avoids leaving a large forced blank gap before
+# a heading/admonition/code block that immediately follows a nearly-full
+# page - the exact failure mode each of these was originally caught from
+# (a real page whose content happened to land at just the wrong point).
+# Rather than reproducing each historical page's exact wording (fragile, and
+# most of that content left for prodockit-userguide - see issue #49), these
+# build a page with enough filler paragraphs to push the element under test
+# close to a page boundary, then assert the *previous* page stays
+# well-utilized (a small footer-sized gap, not a large forced one) - a more
+# robust signal than requiring two specific pieces of text land on an exact
+# page number, which normal, non-buggy reflow can also produce.
+
+FILLER_PARAGRAPH = (
+    "This is a filler paragraph used only to push subsequent content toward "
+    "the bottom of the page, so the real element under test lands near a "
+    "page boundary the way genuine report prose eventually would, without "
+    "depending on any specific piece of report content to still exist. "
+)
+
+BLANK_GAP_THRESHOLD_PT = 150
+
+
+def _filler(n):
+    return "\n\n".join([FILLER_PARAGRAPH] * n)
+
+
+def _blank_space_before_page_with(doc, marker):
+    """Returns (blank_pt, target_page) - blank_pt is the unused vertical
+    space at the bottom of the page immediately before the first page
+    (after the Table of Contents) containing marker."""
+    target_page = None
+    for i in range(1, doc.page_count):
+        if marker in doc[i].get_text():
+            target_page = i
             break
-    assert table_size is not None, "Expected to find table body text in the PDF"
-    assert paragraph_size is not None, "Expected to find the chapter's own intro paragraph in the PDF"
-    assert table_size < paragraph_size, (
-        f"Expected table body text ({table_size}pt) smaller than body text ({paragraph_size}pt)"
-    )
+    assert target_page is not None and target_page > 0, f"Expected to find {marker!r} on a page after the ToC"
+    prev_page = doc[target_page - 1]
+    blocks = [b for b in prev_page.get_text("dict")["blocks"] if b.get("type") == 0]
+    max_y = max((b["bbox"][3] for b in blocks), default=0)
+    return prev_page.rect.height - max_y, target_page
 
 
-def test_real_heading_does_not_force_a_blank_page_gap_after_a_short_preceding_admonition(pdf_doc):
+def test_real_grid_card_does_not_force_a_blank_page_gap_before_it(build_synthetic_pdf):
+    """Regression test: a real grid card commonly wraps a whole tabbed-set
+    (e.g. per-OS install instructions, all tabs stacked since WeasyPrint
+    can't do interactive tabs) - often taller than a full page. The
+    grid-card CSS's page-break-inside: avoid used to force the entire
+    oversized card onto a fresh page as one atomic unit (unable to actually
+    fit there either), leaving a large blank gap on the previous page."""
+    doc = build_synthetic_pdf([("test.md", f"""# Filler Chapter
+
+{_filler(15)}
+
+### Target Heading
+
+<div class="grid cards one-column" markdown>
+
+-   :material-clock-fast:{{ .lg .middle }} __Do a thing__
+
+    === "Option A"
+
+        1. First step for option A.
+        2. Second step for option A.
+        3. Third step for option A.
+        4. Fourth step for option A.
+
+    === "Option B"
+
+        1. First step for option B.
+        2. Second step for option B.
+        3. Third step for option B.
+        4. Fourth step for option B.
+
+    === "Option C"
+
+        1. First step for option C.
+        2. Second step for option C.
+        3. Third step for option C.
+        4. Fourth step for option C.
+
+</div>
+""")])
+    try:
+        blank, _ = _blank_space_before_page_with(doc, "Target Heading")
+        assert blank < BLANK_GAP_THRESHOLD_PT, f"Expected a well-utilized page before the grid card, got {blank:.0f}pt of blank space"
+    finally:
+        doc.close()
+
+
+def test_real_heading_and_its_short_paragraph_do_not_force_a_blank_page_gap(build_synthetic_pdf):
     """Regression test: a plain <p> had no break-inside/orphans/widows
     protection at all. Simply making every <p> unsplittable (break-inside:
     avoid) over-corrected - a short (e.g. 2-line) paragraph immediately
     after a heading became atomic with that heading too, and if the
     combined size didn't fit the page's remaining space, the *whole*
     heading+paragraph pair was pushed to a fresh page, leaving a large
-    blank gap behind (confirmed directly for "8.2 Synchronise your
-    updates" - startediting.md). orphans: 1 / widows: 2 replaces the
-    blanket avoid: a short paragraph can still leave as few as 1 line
-    behind (no gap forced) while a longer one avoids an ugly single-line
-    widow if it does split. Checks the Tip admonition's own last line
-    (startediting.md, immediately before "8.2") lands on the same page as
-    the "8.2" heading and the start of its own paragraph."""
-    admonition_page = heading_page = None
-    for i, page in enumerate(pdf_doc):
-        text = page.get_text()
-        if "See Build the PDF below to preview the PDF output." in text:
-            admonition_page = i
-        if "8.2 Synchronise your updates" in text:
-            heading_page = i
-        if admonition_page is not None and heading_page is not None:
-            break
-    assert admonition_page is not None, "Expected to find the Tip admonition's own last line in the PDF"
-    assert heading_page is not None, "Expected to find the '8.2 Synchronise your updates' heading in the PDF"
-    assert admonition_page == heading_page, (
-        f"Expected '8.2 Synchronise your updates' on the same page as the preceding Tip "
-        f"admonition (page {admonition_page}), found it on page {heading_page} instead - "
-        f"possible page-break regression"
-    )
+    blank gap behind. orphans: 1 / widows: 2 replaces the blanket avoid: a
+    short paragraph can still leave as few as 1 line behind (no gap
+    forced) while a longer one avoids an ugly single-line widow if it does
+    split."""
+    doc = build_synthetic_pdf([("test.md", f"""# Filler Chapter
+
+{_filler(15)}
+
+### Target Heading
+
+A short two-line paragraph immediately follows this heading, with nothing
+else keeping them apart.
+""")])
+    try:
+        blank, _ = _blank_space_before_page_with(doc, "Target Heading")
+        assert blank < BLANK_GAP_THRESHOLD_PT, f"Expected a well-utilized page before the heading, got {blank:.0f}pt of blank space"
+    finally:
+        doc.close()
 
 
-def test_real_footnote_lands_near_its_reference_and_is_smaller(pdf_doc):
+def test_real_admonition_does_not_force_a_blank_page_gap_before_it(build_synthetic_pdf):
+    """Regression test: .admonition-title's own page-break-after: avoid had
+    the same WeasyPrint quirk as headings' own page-break-after - even
+    though .admonition itself already uses page-break-inside: auto, the
+    title's own avoid-after still forced the *entire* admonition onto a
+    fresh page rather than letting it start on the current one, leaving a
+    large blank gap behind, even for a short 2-3 line admonition body that
+    would easily have fit."""
+    doc = build_synthetic_pdf([("test.md", f"""# Filler Chapter
+
+{_filler(15)}
+
+!!! note "Target Admonition"
+    A short admonition body, only two or three lines long.
+""")])
+    try:
+        blank, _ = _blank_space_before_page_with(doc, "Target Admonition")
+        assert blank < BLANK_GAP_THRESHOLD_PT, f"Expected a well-utilized page before the admonition, got {blank:.0f}pt of blank space"
+    finally:
+        doc.close()
+
+
+def test_real_large_code_block_does_not_force_a_blank_page_gap_before_it(build_synthetic_pdf):
+    """Regression test: print.css's own "img, pre, blockquote,
+    .tabbox-container { page-break-inside: avoid }" is fine for img/
+    blockquote (naturally short/atomic) and is already overridden back to
+    auto for .tabbox-container elsewhere in this stylesheet - but pre
+    wasn't, so a large fenced code block hit the same WeasyPrint quirk
+    already fixed for grid cards/table captions/admonitions/headings
+    above: it forced itself entirely onto a fresh page rather than
+    splitting, leaving a large blank gap on the previous page."""
+    code_lines = "\n".join(f"line_{i} = {i}" for i in range(40))
+    doc = build_synthetic_pdf([("test.md", f"""# Filler Chapter
+
+{_filler(15)}
+
+Introducing a large code example:
+
+``` python
+{code_lines}
+```
+""")])
+    try:
+        blank, _ = _blank_space_before_page_with(doc, "line_0 = 0")
+        assert blank < BLANK_GAP_THRESHOLD_PT, f"Expected a well-utilized page before the code block, got {blank:.0f}pt of blank space"
+    finally:
+        doc.close()
+
+
+def test_real_footnote_lands_near_its_reference_and_is_smaller(build_synthetic_pdf):
     """Regression test (prodockit-template#93): Zensical's own markdown
     pipeline renders a footnote as a <div class="footnote"> collecting
     every footnote's own text at the *end* of the page, never a
@@ -832,124 +1027,35 @@ def test_real_footnote_lands_near_its_reference_and_is_smaller(pdf_doc):
     own reference, at regular body-text size. render_page_html() now moves
     each footnote's text inline at its own reference point instead, so
     WeasyPrint's float: footnote can at least attempt to anchor it nearby.
+    Checks the footnote text lands on the same page as its reference,
+    smaller than body text."""
+    doc = build_synthetic_pdf([("test.md", """# Test Chapter
 
-    WeasyPrint's own placement isn't pixel-perfect even with this fix -
-    confirmed directly that unrelated layout changes elsewhere in the same
-    chapter (e.g. the h3-h6/admonition-title page-break-after fixes above)
-    can still shift the footnote text onto the chapter's last page rather
-    than its own exact reference page - a further symptom of the same
-    WeasyPrint limitation tracked in prodockit-template#95, not something
-    build_pdf.py's CSS can pin down further. Checks the real "Here's a
-    sentence with a footnote." example (zensicalbasics.md): its footnote
-    text should land somewhere in the same chapter as the reference (not
-    several chapters away, as before this fix), smaller than body text."""
-    start, end = chapter_page_range(pdf_doc, "10. Zensical basics")
-    body_size = None
-    footnote_size = None
-    for i in range(start, end):
-        for block in pdf_doc[i].get_text("dict")["blocks"]:
-            if block.get("type") != 0:
-                continue
-            for line in block.get("lines", []):
-                for span in line["spans"]:
-                    if "Here's a sentence with a footnote" in span["text"]:
-                        body_size = span["size"]
-                    elif "This is" == span["text"].strip() or "the footnote." in span["text"]:
-                        footnote_size = span["size"]
-    assert body_size is not None, "Expected to find the footnote reference sentence in the PDF"
-    assert footnote_size is not None, (
-        "Expected to find the footnote's own text somewhere in the '10. Zensical basics' chapter"
-    )
-    assert footnote_size < body_size, (
-        f"Expected footnote text ({footnote_size}pt) smaller than body text ({body_size}pt)"
-    )
+Here's a sentence with a footnote.[^1]
 
-
-def test_real_short_heading_and_its_own_paragraph_do_not_separate(pdf_doc):
-    """Regression test: h3-h6's page-break-after: auto (see the h3,h4,h5,h6
-    rule above) fixed the blank-gap regression, but on its own could leave
-    a heading orphaned alone at the bottom of a page with its own
-    paragraph starting completely fresh on the next - confirmed directly
-    for "7.2.2 Generate and configure ssh keys for Git" (installtooling.md):
-    its own intro paragraph is only 2 lines, shorter than the previous
-    orphans: 3 / widows: 3 combined minimum (6 lines), so no split was
-    legal at all and the whole paragraph moved away from the heading.
-    orphans: 1 / widows: 2 (only 3 combined) fixes this - checks the
-    heading and the start of its own paragraph now land on the same page."""
-    heading_page = paragraph_page = None
-    for i, page in enumerate(pdf_doc):
-        text = page.get_text()
-        if "7.2.2 Generate and configure ssh keys for Git" in text:
-            heading_page = i
-        if "Now generate the ssh keys to use for authentication" in text:
-            paragraph_page = i
-        if heading_page is not None and paragraph_page is not None:
-            break
-    assert heading_page is not None, "Expected to find the '7.2.2' heading in the PDF"
-    assert paragraph_page is not None, "Expected to find its own paragraph's start in the PDF"
-    assert heading_page == paragraph_page, (
-        f"Expected '7.2.2 Generate and configure ssh keys for Git' on the same page as the "
-        f"start of its own paragraph (heading page {heading_page}, paragraph page "
-        f"{paragraph_page}) - possible orphaned-heading regression"
-    )
-
-
-def test_real_admonition_does_not_force_a_blank_page_gap_before_it(pdf_doc):
-    """Regression test: .admonition-title's own page-break-after: avoid had
-    the same WeasyPrint quirk as h3-h6's own page-break-after (see both
-    rules above) - even though .admonition itself already uses
-    page-break-inside: auto, the title's own avoid-after still forced the
-    *entire* admonition onto a fresh page rather than letting it start on
-    the current one, leaving a large blank gap behind - confirmed directly
-    for "The Four Space Rule" admonition (zensicalbasics.md), whose own
-    body is only 2-3 short lines, easily small enough to have fit. Checks
-    the admonition lands on the same page as the paragraph immediately
-    before it."""
-    preceding_page = admonition_page = None
-    for i, page in enumerate(pdf_doc):
-        text = page.get_text()
-        if "the original Markdown specification." in text:
-            preceding_page = i
-        if "Four Space Rule" in text:
-            admonition_page = i
-        if preceding_page is not None and admonition_page is not None:
-            break
-    assert preceding_page is not None, "Expected to find the paragraph preceding the admonition in the PDF"
-    assert admonition_page is not None, "Expected to find 'The Four Space Rule' admonition in the PDF"
-    assert preceding_page == admonition_page, (
-        f"Expected 'The Four Space Rule' admonition on the same page as the preceding "
-        f"paragraph (page {preceding_page}), found it on page {admonition_page} instead - "
-        f"possible page-break regression"
-    )
-
-
-def test_real_large_code_block_does_not_force_a_blank_page_gap_before_it(pdf_doc):
-    """Regression test: print.css's own "img, pre, blockquote,
-    .tabbox-container { page-break-inside: avoid }" is fine for img/
-    blockquote (naturally short/atomic) and is already overridden back to
-    auto for .tabbox-container elsewhere in this stylesheet - but pre
-    wasn't, so a large fenced code block hit the same WeasyPrint quirk
-    already fixed for grid cards/table captions/admonitions/headings
-    above. Confirmed directly against the built PDF: customise.md's own
-    ~34-line "nav = [...]" example (illustrating zensical.toml's own nav
-    list, rendered live via the {{ nav_snippet() }} macro) forced itself
-    entirely onto a fresh page rather than splitting, leaving a large
-    blank gap on the previous page. Checks the paragraph introducing the
-    example ("...matches what's actually configured:") lands on the same
-    page as the start of the code block."""
-    preceding_page = code_page = None
-    for i, page in enumerate(pdf_doc):
-        text = page.get_text()
-        if "matches what's actually configured" in text:
-            preceding_page = i
-        if "nav = [" in text:
-            code_page = i
-        if preceding_page is not None and code_page is not None:
-            break
-    assert preceding_page is not None, "Expected to find the paragraph introducing the nav example in the PDF"
-    assert code_page is not None, "Expected to find the 'nav = [' code example in the PDF"
-    assert preceding_page == code_page, (
-        f"Expected the 'nav = [...]' code example on the same page as its introducing "
-        f"paragraph (page {preceding_page}), found it on page {code_page} instead - "
-        f"possible page-break regression"
-    )
+[^1]: This is the footnote.
+""")])
+    try:
+        body_size = footnote_size = None
+        body_page = footnote_page = None
+        for i in range(1, doc.page_count):
+            for block in doc[i].get_text("dict")["blocks"]:
+                if block.get("type") != 0:
+                    continue
+                for line in block.get("lines", []):
+                    for span in line["spans"]:
+                        if "Here's a sentence with a footnote" in span["text"]:
+                            body_size, body_page = span["size"], i
+                        elif "the footnote." in span["text"] or span["text"].strip() == "This is":
+                            footnote_size, footnote_page = span["size"], i
+        assert body_size is not None, "Expected to find the footnote reference sentence in the PDF"
+        assert footnote_size is not None, "Expected to find the footnote's own text in the PDF"
+        assert footnote_page == body_page, (
+            f"Expected the footnote text on the same page as its reference (page {body_page}), "
+            f"found it on page {footnote_page} instead"
+        )
+        assert footnote_size < body_size, (
+            f"Expected footnote text ({footnote_size}pt) smaller than body text ({body_size}pt)"
+        )
+    finally:
+        doc.close()

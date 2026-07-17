@@ -469,19 +469,19 @@ custom_checkbox = true
 
 # You can add your own custom Markdown extensions here. You can also configure the extensions that Zensical uses by default. See the documentation for details.
 [project.markdown_extensions.tables]
-# zendoc.headings gives every heading an id and a hierarchical section
+# prodockit.headings gives every heading an id and a hierarchical section
 # number (reusing the "toc" extension above for the id/permalink, rather
-# than re-deriving it); zendoc.refs adds \ref{id} section cross-references
-# that resolve to the target's current number; zendoc.citations adds
+# than re-deriving it); prodockit.refs adds \ref{id} section cross-references
+# that resolve to the target's current number; prodockit.citations adds
 # \cite{id} citations - define a source once via attr_list's
 # data-cite-text attribute (see docs/references.md), cite it anywhere;
-# zendoc.glossary adds \gls{id} - define a term once via attr_list's
+# prodockit.glossary adds \gls{id} - define a term once via attr_list's
 # data-term attribute (see docs/acronyms.md/docs/glossary.md), insert it
 # anywhere. Unlike pymdownx/zensical's own namespaces, Zensical doesn't
-# hoist a nested "zendoc.headings" table into that dotted extension name,
+# hoist a nested "prodockit.headings" table into that dotted extension name,
 # so these need a quoted key instead - see
-# https://buckwem.github.io/zendoc-extensions/ and zendoc-template#25/#87.
-[project.markdown_extensions."zendoc.headings"]
+# https://buckwem.github.io/prodockit-extensions/ and zendoc-template#25/#87.
+[project.markdown_extensions."prodockit.headings"]
 # numbering = "continuous" makes h1 numbering carry on across pages in nav
 # order (page two's first h1 continues from wherever page one left off)
 # instead of restarting at 1 on every page - matching the sidebar numbering
@@ -491,9 +491,9 @@ custom_checkbox = true
 # letter-based numbering instead, and doesn't consume a number from the
 # sequence.
 numbering = "continuous"
-[project.markdown_extensions."zendoc.refs"]
-[project.markdown_extensions."zendoc.citations"]
-[project.markdown_extensions."zendoc.glossary"]
+[project.markdown_extensions."prodockit.refs"]
+[project.markdown_extensions."prodockit.citations"]
+[project.markdown_extensions."prodockit.glossary"]
 [project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.blocks.caption]
 # "caption" (no prefix) is kept for a plain, unnumbered caption - e.g. a
@@ -506,14 +506,14 @@ numbering = "continuous"
 # customise.md.
 types = [
   { name = "caption" },
-  { name = "figure-caption", prefix = "{}.", classes = "zendoc-figure-caption" },
-  { name = "table-caption", prefix = "{}.", classes = "zendoc-table-caption" },
+  { name = "figure-caption", prefix = "{}.", classes = "prodockit-figure-caption" },
+  { name = "table-caption", prefix = "{}.", classes = "prodockit-table-caption" },
 ]
 [project.markdown_extensions.zensical.extensions.glightbox]
 
 
 [project.markdown_extensions.zensical.extensions.macros]
-# zendoc.zensical_macros is imported directly by macros.py's own
+# prodockit.zensical_macros is imported directly by macros.py's own
 # define_env() instead of being listed here as a second `modules` entry -
 # see macros.py's docstring for why (zensical/zensical#823).
 module_name = "macros"

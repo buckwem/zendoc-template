@@ -4,15 +4,15 @@
 """Builds docs/site_documentation.pdf from this project's own zensical.toml.
 
 The actual Pandoc/WeasyPrint pipeline (HTML fixups, Lua filter, CSS,
-Mermaid/icon handling) now lives in zendoc.pdf (see zendoc-extensions#96) -
+Mermaid/icon handling) now lives in prodockit.pdf (see prodockit-extensions#96) -
 this script is left with only what's specific to this template: the cover
 page's {WORDCOUNT}/{REPOURL}/{RELEASE}/{{ site_name }} markers (see
 index.md), the word count itself (see "Word count" in customise.md), and
 loading this project's own docs/stylesheets/extra.css and print.css into
-zendoc.pdf.build_pdf()'s extra_css.
+prodockit.pdf.build_pdf()'s extra_css.
 
 A project with no such cover-page markers of its own can just run
-`zendoc pdf` directly instead - see zendoc.pdf's own documentation."""
+`prodockit pdf` directly instead - see prodockit.pdf's own documentation."""
 
 import base64
 import json
@@ -26,12 +26,12 @@ import urllib.request
 import zensical.config as zensical_config
 from zensical.markdown.render import render as zensical_render
 
-from zendoc.pdf import Page, PdfBuildError, build_pdf
-from zendoc.pdf.icons import build_icon_registry, discover_icon_dirs
-from zendoc.pdf.mermaid import render_mermaid_diagram
-from zendoc.settings import flatten_nav, heading_numbering_enabled, reference_style_values
-from zendoc.wordcount import compute_word_count
-from zendoc.zensical_macros import _get_repo_url as get_git_detected_repo_url
+from prodockit.pdf import Page, PdfBuildError, build_pdf
+from prodockit.pdf.icons import build_icon_registry, discover_icon_dirs
+from prodockit.pdf.mermaid import render_mermaid_diagram
+from prodockit.settings import flatten_nav, heading_numbering_enabled, reference_style_values
+from prodockit.wordcount import compute_word_count
+from prodockit.zensical_macros import _get_repo_url as get_git_detected_repo_url
 
 
 def _strip_front_matter(text):
@@ -87,7 +87,7 @@ def get_latest_release_tag(repo_url):
 
 def _css_escape_content_string(text):
     """Collapses text to a single line and escapes it for safe use inside a
-    CSS `content: "..."` string - zendoc.pdf.css.build_css() substitutes
+    CSS `content: "..."` string - prodockit.pdf.css.build_css() substitutes
     copyright_text/site_name directly into such a string without escaping
     it itself (its own docs note both "should already be CSS-content-
     string-safe"), and zensical.toml's copyright is a triple-quoted string
@@ -112,7 +112,7 @@ def _find_mmdc_bin():
 def _load_extra_css(docs_dir):
     """Loads this project's own docs/stylesheets/extra.css and print.css,
     inlining any relative url(...) reference as a base64 data: URI (the
-    compiled CSS zendoc.pdf.build_pdf() writes lives in a different,
+    compiled CSS prodockit.pdf.build_pdf() writes lives in a different,
     temporary directory, where the original relative paths wouldn't
     resolve) and stripping @charset/user-select rules WeasyPrint doesn't
     need. Passed to build_pdf()'s own extra_css parameter, layered
@@ -199,7 +199,7 @@ def main():
             mermaid_state['count'] += 1
             return render_mermaid_diagram(source, mmdc_bin, mermaid_dir, mermaid_state['count'])
 
-    # zendoc.pdf.lua.build_lua_filter()'s math_dir "must already exist or be
+    # prodockit.pdf.lua.build_lua_filter()'s math_dir "must already exist or be
     # creatable by the caller" (its own SVGs are written by the Lua filter
     # itself via io.open(), which doesn't create directories) - unlike
     # render_mermaid_diagram()'s output_dir, which creates itself.
@@ -230,7 +230,7 @@ def main():
 
     # Fill in the cover page's {WORDCOUNT}/{REPOURL}/{RELEASE} markers (see
     # index.md), if present - PDF-only cover-page behaviour with no
-    # equivalent in zendoc.pdf itself (see zendoc-extensions#96).
+    # equivalent in prodockit.pdf itself (see prodockit-extensions#96).
     if pages and pages[0].is_index and len(pages) > 1:
         cover = pages[0]
         cover_html = cover.html
@@ -248,7 +248,7 @@ def main():
             cover_html = cover_html.replace('{WORDCOUNT}', f'{word_count:,}')
         if '{REPOURL}' in cover_html or '{RELEASE}' in cover_html:
             # Computed from the local git remote (like the website's own
-            # {{ repo_url }} - see zendoc.zensical_macros._get_repo_url()),
+            # {{ repo_url }} - see prodockit.zensical_macros._get_repo_url()),
             # not zensical.toml's configured repo_url: in practice they
             # usually match, but they're not the same mechanism (see
             # customise.md's "Repository link" note).
@@ -266,7 +266,7 @@ def main():
             else:
                 cover_html = re.sub(r'^.*\{RELEASE\}.*\n?', '', cover_html, flags=re.MULTILINE)
         if '{{ site_name }}' in cover_html:
-            # zendoc.pdf never evaluates Jinja, so the exact same literal
+            # prodockit.pdf never evaluates Jinja, so the exact same literal
             # "{{ site_name }}" text used for the website's macro variable
             # can just be substituted directly here too - one line in
             # index.md works for both outputs, no separate marker.
@@ -276,7 +276,7 @@ def main():
     extra_css = _load_extra_css(docs_dir)
     output_path = os.path.join(docs_dir, "site_documentation.pdf")
 
-    print("🚀 Building PDF via zendoc.pdf...")
+    print("🚀 Building PDF via prodockit.pdf...")
     try:
         build_pdf(
             pages,

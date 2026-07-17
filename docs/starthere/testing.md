@@ -11,7 +11,7 @@ icon: lucide/book-open
 
 # Testing
 
-Every other page in this section explains how to *use* this template to write your report. This page is different: it documents the test suite in `test/`, which checks that this template's own zendoc-specific features (References, Acronyms, Glossary, Appendix numbering, word-count exclusions, and so on) actually work and haven't regressed - a contributor/maintainer tool, not something you need while writing your assignment.
+Every other page in this section explains how to *use* this template to write your report. This page is different: it documents the test suite in `test/`, which checks that this template's own prodockit-specific features (References, Acronyms, Glossary, Appendix numbering, word-count exclusions, and so on) actually work and haven't regressed - a contributor/maintainer tool, not something you need while writing your assignment.
 
 !!! info "Why this exists"
     Every feature and bug fix in this template used to be verified by hand - a one-off script, eyeballed once, then thrown away. Nothing stopped a later change from silently re-breaking something already fixed. The test suite in `test/` replaces that with checks that run automatically, in CI, on every push.

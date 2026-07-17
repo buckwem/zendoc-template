@@ -18,8 +18,8 @@ import pytest
 import toml
 import zensical.config as zensical_config_module
 from bs4 import BeautifulSoup
-from zendoc.settings import flatten_nav
-from zendoc.zensical_macros import _compute_site_word_count, _front_matter_flag
+from prodockit.settings import flatten_nav
+from prodockit.zensical_macros import _compute_site_word_count, _front_matter_flag
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PDF_PATH = REPO_ROOT / "docs" / "site_documentation.pdf"
@@ -35,7 +35,7 @@ def _import_repo_module(name):
     be testing the test suite's own copy, not catching a real regression in
     the production code. Most of macros.py's own former logic (word count,
     repo URL, numbering/reference-style macros) now lives in
-    zendoc.zensical_macros instead (see zendoc-extensions#96) - tests that
+    prodockit.zensical_macros instead (see prodockit-extensions#96) - tests that
     need it import that package directly."""
     spec = importlib.util.spec_from_file_location(name, REPO_ROOT / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
@@ -62,9 +62,9 @@ def resolved_zensical_config():
     (`zensical.config.parse_config()`) rather than a raw `toml.load()` -
     `nav` here is Zensical's own already-resolved nav tree (each item
     carrying `url`/`is_index`/`children`), the same shape
-    `zendoc.zensical_macros`/`zendoc.pdf.config` work with. Used where a
+    `prodockit.zensical_macros`/`prodockit.pdf.config` work with. Used where a
     test needs that resolved shape specifically (nav walking, or calling
-    into `zendoc.zensical_macros`'s own functions directly) - most other
+    into `prodockit.zensical_macros`'s own functions directly) - most other
     tests use the `zensical_config` fixture's raw structure instead."""
     if not ZENSICAL_TOML_PATH.exists():
         pytest.fail("zensical.toml not found at repo root")
@@ -75,7 +75,7 @@ def resolved_zensical_config():
 def nav_pages(resolved_zensical_config):
     """List of every nav markdown file, docs_dir-relative, in nav order -
     e.g. "section1.md", "starthere/customise.md" - the same order both
-    build_pdf.py and zendoc.zensical_macros walk to compute chapter
+    build_pdf.py and prodockit.zensical_macros walk to compute chapter
     numbers."""
     return [page["url"] for page in flatten_nav(resolved_zensical_config.get("nav") or [])]
 
@@ -89,7 +89,7 @@ def docs_dir(zensical_config):
 
 @pytest.fixture(scope="session")
 def website_word_count(resolved_zensical_config):
-    """The real `{{ word_count }}` value zendoc.zensical_macros computes
+    """The real `{{ word_count }}` value prodockit.zensical_macros computes
     for this project's own website build - see
     test_word_count.py."""
     return _compute_site_word_count(resolved_zensical_config)
@@ -98,14 +98,14 @@ def website_word_count(resolved_zensical_config):
 def page_is_appendix(path):
     """True if path's YAML front matter sets is_appendix: true - see
     "Appendixes" in customise.md. Mirrors the same check
-    zendoc.zensical_macros/zendoc.pdf use for numbering."""
+    prodockit.zensical_macros/prodockit.pdf use for numbering."""
     return _front_matter_flag(str(path), "is_appendix")
 
 
 def page_excluded_from_word_count(path):
     """True if path's YAML front matter sets exclude_from_word_count: true
     - see "Word count" in customise.md. Mirrors the same check
-    zendoc.zensical_macros uses for the website's own word count."""
+    prodockit.zensical_macros uses for the website's own word count."""
     return _front_matter_flag(str(path), "exclude_from_word_count")
 
 
@@ -115,7 +115,7 @@ def count_top_level_headings(path):
     of each page), and headings tagged {.unnumbered} (e.g. the hidden
     cover-page title). Test-only verification helper (see test_numbering.py/
     test_fences.py) - not needed by production code, which gets its
-    numbering from zendoc.headings' own prescan() instead."""
+    numbering from prodockit.headings' own prescan() instead."""
     try:
         text = Path(path).read_text(encoding="utf-8")
     except OSError:

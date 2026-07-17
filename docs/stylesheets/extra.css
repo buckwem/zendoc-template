@@ -187,9 +187,9 @@ SPDX-License-Identifier: MIT
    "Figure 7.1.". See "Captions" in customise.md. Appendix pages override
    these same rules with a literal letter instead of counter(h1-count) - see
    heading_counter_reset() in macros.py. */
-.md-typeset .zendoc-figure-caption .caption-prefix::before {
+.md-typeset .prodockit-figure-caption .caption-prefix::before {
   content: "Figure " counter(h1-count) "."; }
-.md-typeset .zendoc-table-caption .caption-prefix::before {
+.md-typeset .prodockit-table-caption .caption-prefix::before {
   content: "Table " counter(h1-count) "."; }
 
 /* ============================================================= */

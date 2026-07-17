@@ -13,7 +13,7 @@ icon: lucide/book-open
 
 A small number of files control almost every visible part of this template - the website, the cover page, and the generated PDF: `zensical.toml` for configuration, `macros.py` for build-time logic, and `docs/stylesheets/extra.css`/`print.css` for appearance. This section walks through each of these in turn: customising the website's branding and behaviour, restructuring the document itself, customising the cover page, and adjusting the PDF's page layout. It ends with a full map of the template's directory structure, so you know where everything lives.
 
-!!! info "zendoc-specific features"
+!!! info "prodockit-specific features"
     Where [Zensical basics](zensicalbasics.md) is a quick reference for Zensical's own general-purpose Markdown extensions (the same ones you'd find on any Zensical site), everything on this page is specific to this template: features `macros.py` and `build_pdf.py` add on top of Zensical (heading numbering, the references page pattern, Surrey/generic branding, PDF-only/web-only content, and so on) that only exist here, not in a stock Zensical project.
 
 ## Customise the web site
@@ -216,10 +216,10 @@ Keep the numbers in each title sequential as you add, remove, or reorder chapter
 
 ### References and bibliography
 
-This template uses [`zendoc.citations`](https://buckwem.github.io/zendoc-extensions/extensions/citations/) (from the [zendoc](https://github.com/buckwem/zendoc-extensions) package, already installed and enabled in `zensical.toml` - see [zendoc-template#25](https://github.com/buckwem/zendoc-template/issues/25)) for citations: define a source once, cite it by key anywhere with `\cite{id}`.
+This template uses [`prodockit.citations`](https://buckwem.github.io/prodockit-extensions/extensions/citations/) (from the [prodockit](https://github.com/buckwem/prodockit-extensions) package, already installed and enabled in `zensical.toml` - see [zendoc-template#25](https://github.com/buckwem/zendoc-template/issues/25)) for citations: define a source once, cite it by key anywhere with `\cite{id}`.
 
 !!! info "How the PDF handles this"
-    `build_pdf.py` renders every page through the same Zensical/zendoc pipeline the website uses (see `render_page_html()`), so `\cite{id}` resolves to the same linked citation in both outputs automatically - no separate PDF-side translation needed, and no manual HTML or per-output link either.
+    `build_pdf.py` renders every page through the same Zensical/prodockit pipeline the website uses (see `render_page_html()`), so `\cite{id}` resolves to the same linked citation in both outputs automatically - no separate PDF-side translation needed, and no manual HTML or per-output link either.
 
 1. Create a page for your sources (this template includes one at [`docs/references.md`](../references.md)). List each source as a paragraph, and give it a short, unique id plus a short display text using [attr_list](https://zensical.org/docs/authoring/formatting/#attribute-lists) syntax on the line directly below it (no heading needed - attr_list works on plain paragraphs too):
 
@@ -282,10 +282,10 @@ This template uses [`zendoc.citations`](https://buckwem.github.io/zendoc-extensi
 
 ### Acronyms and abbreviations
 
-This template uses [`zendoc.glossary`](https://buckwem.github.io/zendoc-extensions/extensions/glossary/) (from the same [zendoc](https://github.com/buckwem/zendoc-extensions) package as citations above - see [zendoc-template#87](https://github.com/buckwem/zendoc-template/issues/87)) for acronyms: define a term once, insert it by id with `\gls{id}` - it expands to the term's own text, linked to its definition.
+This template uses [`prodockit.glossary`](https://buckwem.github.io/prodockit-extensions/extensions/glossary/) (from the same [prodockit](https://github.com/buckwem/prodockit-extensions) package as citations above - see [zendoc-template#87](https://github.com/buckwem/zendoc-template/issues/87)) for acronyms: define a term once, insert it by id with `\gls{id}` - it expands to the term's own text, linked to its definition.
 
 !!! info "How the PDF handles this"
-    Same as citations above - `build_pdf.py` renders this page through the real Zensical/zendoc pipeline, so `\gls{id}` resolves the same way in both outputs with no separate PDF-side translation.
+    Same as citations above - `build_pdf.py` renders this page through the real Zensical/prodockit pipeline, so `\gls{id}` resolves the same way in both outputs with no separate PDF-side translation.
 
 1. Create a page for your acronyms (this template includes one at [`docs/acronyms.md`](../acronyms.md)). List each acronym as a short paragraph, and give it an id plus a `data-term` attribute (the acronym's own text) using attr_list syntax on the line directly below it:
 
@@ -310,7 +310,7 @@ This template uses [`zendoc.glossary`](https://buckwem.github.io/zendoc-extensio
 
 ### Glossary
 
-You can build a glossary of key terms the same way, in its own page - this template includes one at `docs/glossary.md`, right after the acronyms page in `nav`. Acronym entries and glossary entries share the same `zendoc.glossary` registry - they're the same kind of thing, an id with a short display text - so a `\gls{id}` works identically whichever page defines it.
+You can build a glossary of key terms the same way, in its own page - this template includes one at `docs/glossary.md`, right after the acronyms page in `nav`. Acronym entries and glossary entries share the same `prodockit.glossary` registry - they're the same kind of thing, an id with a short display text - so a `\gls{id}` works identically whichever page defines it.
 
 !!! info "How the PDF handles this"
     Same as acronyms above - resolved automatically, no separate PDF-side translation.
@@ -322,7 +322,7 @@ You can build a glossary of key terms the same way, in its own page - this templ
     {: #markdown-def .glossary data-term="Markdown" }
     ```
 
-    Give glossary entries their own ids, distinct from any acronym ids for the same concept (for example `css-def` rather than `css`) - `zendoc.glossary` shares one id namespace across every page, so two entries sharing an id anywhere in the site would collide.
+    Give glossary entries their own ids, distinct from any acronym ids for the same concept (for example `css-def` rather than `css`) - `prodockit.glossary` shares one id namespace across every page, so two entries sharing an id anywhere in the site would collide.
 
 2. Add the page to `nav` in `zensical.toml` so it appears in the sidebar - as a regular numbered chapter, or as a lettered appendix (see [Appendixes](#appendixes) below). This template ships it as an appendix by default.
 3. Insert the term the first time you use it in a page with `\gls{id}`, the same way as an acronym:
@@ -340,7 +340,7 @@ You can build a glossary of key terms the same way, in its own page - this templ
     {: #css .acronym data-term="CSS" }
     ```
 
-    This template's own `docs/acronyms.md`/`docs/glossary.md` cross-link every entry that has a counterpart on the other page this way - see [zendoc.glossary's own docs](https://buckwem.github.io/zendoc-extensions/extensions/glossary/#cross-links-between-entries-use-a-plain-link-not-glsid) for the full rule of thumb: `\gls{id}` when the term's own name belongs in the sentence, a plain link when the link text needs to say something else entirely.
+    This template's own `docs/acronyms.md`/`docs/glossary.md` cross-link every entry that has a counterpart on the other page this way - see [prodockit.glossary's own docs](https://buckwem.github.io/prodockit-extensions/extensions/glossary/#cross-links-between-entries-use-a-plain-link-not-glsid) for the full rule of thumb: `\gls{id}` when the term's own name belongs in the sentence, a plain link when the link text needs to say something else entirely.
 
 !!! tip
     If a term is also one of your acronyms, cross-link the two entries as shown above rather than duplicating the explanation on both pages.
@@ -476,7 +476,7 @@ Repo: {{ repo_url }}{% endraw %}
 
 ## Customise PDF generation
 
-Zensical only builds the website, so `build_pdf.py` is this template's own build script, layered on top, that turns the same `docs/` content into a single-file PDF via [Pandoc](https://pandoc.org/) and [WeasyPrint](https://weasyprint.org/). It renders every page through the same Zensical/zendoc pipeline the website uses (`render_page_html()`), then hands Pandoc the resulting HTML directly - so `\cite{}`/`\gls{}`/`\ref{}`, admonitions, tabs, and captions all resolve exactly the same way in both outputs, with no separate PDF-side translation for any of them. It also reuses `zensical.toml` settings wherever it can, so most website customisations (site name, copyright, fonts, and so on) apply to the PDF automatically - the sections below cover the handful of things that are PDF-specific.
+Zensical only builds the website, so `build_pdf.py` is this template's own build script, layered on top, that turns the same `docs/` content into a single-file PDF via [Pandoc](https://pandoc.org/) and [WeasyPrint](https://weasyprint.org/). It renders every page through the same Zensical/prodockit pipeline the website uses (`render_page_html()`), then hands Pandoc the resulting HTML directly - so `\cite{}`/`\gls{}`/`\ref{}`, admonitions, tabs, and captions all resolve exactly the same way in both outputs, with no separate PDF-side translation for any of them. It also reuses `zensical.toml` settings wherever it can, so most website customisations (site name, copyright, fonts, and so on) apply to the PDF automatically - the sections below cover the handful of things that are PDF-specific.
 
 For how to actually run it as part of your day-to-day writing - installing its dependencies, the `python build_pdf.py` command itself, and troubleshooting a failed build - see [Build the PDF](startediting.md#build-the-pdf) in *Start editing*; this section is about customising its output once it's already working.
 
@@ -677,8 +677,8 @@ Now that you've customised the website, the document structure, the cover page, 
         * :material-file-document-outline: `additionaltooling.md` — Optional extra tooling (GitLab/GitHub, GitLens, and spell-checking VS Code extensions, commit signing, a GUI Git client, image optimisation, and Vale).
         * :material-file-document-outline: `shcommands.md` — Reference for shell commands used in the documentation.
         * :material-file-document-outline: `testing.md` — How to run and extend the test suite in `test/`, for anyone contributing to the template itself.
-* :material-file-code-outline: `build_pdf.py` — Builds the single-file PDF version of your document, via the [zendoc](https://github.com/buckwem/zendoc-extensions) package's `zendoc.pdf`.
-* :material-file-code-outline: `macros.py` — This template's own Zensical macro hooks (Surrey detection, the `nav_snippet()` documentation helper). Word count, repository link, and heading/reference-style numbering come from `zendoc.zensical_macros` instead - see `zensical.toml`'s `modules = ["zendoc.zensical_macros"]`.
+* :material-file-code-outline: `build_pdf.py` — Builds the single-file PDF version of your document, via the [prodockit](https://github.com/buckwem/prodockit-extensions) package's `prodockit.pdf`.
+* :material-file-code-outline: `macros.py` — This template's own Zensical macro hooks (Surrey detection, the `nav_snippet()` documentation helper). Word count, repository link, and heading/reference-style numbering come from `prodockit.zensical_macros` instead - see `zensical.toml`'s `modules = ["prodockit.zensical_macros"]`.
 * :material-folder: **tools/** — Node.js tooling used only by `build_pdf.py`, not the website.
     * :material-folder: **mermaid/** — `mermaid-cli`, for rendering ` ```mermaid ` diagrams to images in the PDF.
     * :material-folder: **mathjax/** — `mathjax-full`, for rendering `$...$`/`$$...$$` maths to images in the PDF.

@@ -7,12 +7,14 @@ understand, un-substituted {WORDCOUNT}/{REPOURL} markers, or un-evaluated
 {{ jinja }} variables.
 
 This deliberately does NOT scan the whole PDF for these strings: several of
-docs/starthere/customise.md's own documentation sections *intentionally*
-show this syntax as a literal code-block example (e.g. the Captions and
-References sections), so a blanket scan would flag legitimate examples as
-false positives. Checks are scoped to the specific pages where this syntax
-should only ever appear already-converted - the cover page for the PDF
-markers, and the Acronyms/Glossary/References appendix pages for attr_list."""
+the User Guide's customise.md documentation sections *intentionally* show
+this syntax as a literal code-block example (e.g. the Captions and
+References sections) - see issue #49, that page now lives in the separate
+prodockit-userguide repo - so a blanket scan would flag legitimate examples
+as false positives. Checks are scoped to the specific pages where this
+syntax should only ever appear already-converted - the cover page for the
+PDF markers, and the Acronyms/Glossary/References appendix pages for
+attr_list."""
 
 import re
 

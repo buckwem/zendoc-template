@@ -44,27 +44,37 @@ def test_pdf_uri_links_are_not_local_filesystem_paths(pdf_doc):
     assert not offenders, f"PDF links pointing at a local filesystem path: {offenders}"
 
 
-def test_youtube_embed_link_keeps_its_video_id(pdf_doc):
+def test_youtube_embed_link_keeps_its_video_id(build_synthetic_pdf):
     """Regression test for a bug in prodockit.pdf.html's iframe->"Watch Video"
     admonition link builder (fixed upstream, not in this repo - see
     prodockit.pdf.html's own comment on the youtube.com/embed/ branch): an
     earlier version stripped the video id from *every* conversion by
     splitting off the query string after adding "?v=..." instead of before,
     leaving a bare "https://www.youtube.com/watch" with no video specified.
-    Checks the real embed in starthere.md resolves to a URL with an actual
-    video id."""
-    offenders = []
-    for page_number, page in enumerate(pdf_doc):
-        for link in page.get_links():
-            uri = link.get("uri") or ""
-            if "youtube.com/watch" in uri and "v=" not in uri:
-                offenders.append((page_number, uri))
-    assert not offenders, f"YouTube watch link(s) missing their video id: {offenders}"
-    assert any(
-        "youtube.com/watch?v=" in (link.get("uri") or "")
-        for page in pdf_doc
-        for link in page.get_links()
-    ), "Expected to find at least one real YouTube watch link with a video id in the PDF"
+    Used to check the real embed in starthere.md - that content moved to
+    the separate prodockit-userguide repo (see issue #49), so this builds
+    its own small page with an equivalent embed instead."""
+    doc = build_synthetic_pdf([("test.md", """# Test Chapter
+
+<div style="display: flex; justify-content: center;">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/ZlabtdA-gZE?si=_3GQjj5C6EDpMP8Z" title="Test video" frameborder="0" allowfullscreen></iframe>
+</div>
+""")])
+    try:
+        offenders = []
+        for page_number, page in enumerate(doc):
+            for link in page.get_links():
+                uri = link.get("uri") or ""
+                if "youtube.com/watch" in uri and "v=" not in uri:
+                    offenders.append((page_number, uri))
+        assert not offenders, f"YouTube watch link(s) missing their video id: {offenders}"
+        assert any(
+            "youtube.com/watch?v=" in (link.get("uri") or "")
+            for page in doc
+            for link in page.get_links()
+        ), "Expected to find at least one real YouTube watch link with a video id in the PDF"
+    finally:
+        doc.close()
 
 
 GOTO_INTERNAL = 4
@@ -99,7 +109,7 @@ def test_pdf_internal_goto_links_resolve_to_a_real_page(pdf_doc):
 
 def _is_internal(href):
     """True for a same-page fragment ("#foo") or a relative/site-root path
-    ("../glossary/", "/starthere/customise/") - false for anything with a
+    ("../glossary/", "/starthere/") - false for anything with a
     URL scheme (http:, mailto:, tel:, javascript:, data:), which urlsplit()
     reports as a non-empty scheme."""
     return bool(href) and urlsplit(href).scheme == ""
@@ -107,7 +117,7 @@ def _is_internal(href):
 
 def _resolve_internal_href(href, current_file, public_dir):
     """Resolves an internal href (e.g. "../glossary/#css-def", "#appendixes",
-    "/starthere/customise/") found in current_file to (target_file, fragment).
+    "/starthere/") found in current_file to (target_file, fragment).
     Returns (None, fragment) if the target file doesn't exist on disk."""
     path_part, _, fragment = href.partition("#")
     fragment = fragment or None

@@ -7,9 +7,9 @@ The actual Pandoc/WeasyPrint pipeline (HTML fixups, Lua filter, CSS,
 Mermaid/icon handling) now lives in prodockit.pdf (see prodockit-extensions#96) -
 this script is left with only what's specific to this template: the cover
 page's {WORDCOUNT}/{REPOURL}/{RELEASE}/{{ site_name }} markers (see
-index.md), the word count itself (see "Word count" in customise.md), and
-loading this project's own docs/stylesheets/extra.css and print.css into
-prodockit.pdf.build_pdf()'s extra_css.
+index.md), the word count itself (see "Word count" in the User Guide's
+customise.md), and loading this project's own docs/stylesheets/extra.css
+and print.css into prodockit.pdf.build_pdf()'s extra_css.
 
 A project with no such cover-page markers of its own can just run
 `prodockit pdf` directly instead - see prodockit.pdf's own documentation."""
@@ -102,7 +102,7 @@ def _css_escape_content_string(text):
 
 def _find_mmdc_bin():
     """Path to this project's own local mermaid-cli install (see "Mermaid
-    diagrams" in installtooling.md), or None if it isn't installed - a
+    diagrams" in the User Guide's installtooling.md), or None if it isn't installed - a
     diagram is simply left unrendered in that case, rather than failing the
     whole build."""
     mmdc_bin = os.path.abspath(os.path.join("tools", "mermaid", "node_modules", ".bin", "mmdc"))
@@ -117,7 +117,7 @@ def _load_extra_css(docs_dir):
     resolve) and stripping @charset/user-select rules WeasyPrint doesn't
     need. Passed to build_pdf()'s own extra_css parameter, layered
     underneath the CSS it generates - see "Screenshots"/"References and
-    bibliography" in customise.md for why a few rules need a PDF-specific
+    bibliography" in the User Guide's customise.md for why a few rules need a PDF-specific
     copy at all (Pandoc's HTML has no .md-typeset wrapper for extra.css's
     own rules to match against)."""
     def inline_css_urls(css_text, css_dir):
@@ -251,7 +251,7 @@ def main():
             # {{ repo_url }} - see prodockit.zensical_macros._get_repo_url()),
             # not zensical.toml's configured repo_url: in practice they
             # usually match, but they're not the same mechanism (see
-            # customise.md's "Repository link" note).
+            # the User Guide's customise.md "Repository link" note).
             git_repo_url = get_git_detected_repo_url()
         if '{REPOURL}' in cover_html:
             cover_html = cover_html.replace('{REPOURL}', git_repo_url)

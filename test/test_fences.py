@@ -9,7 +9,7 @@ just a single flat fenced block.
 build_pdf.py's own equivalent fence-awareness concerns (skipping fenced
 examples of tab/admonition/caption syntax, code fences nested under grid
 cards, and so on) no longer need dedicated primitives of their own - see
-zendoc-template#92: render_page_html() renders pages through Zensical's real
+prodockit-template#92: render_page_html() renders pages through Zensical's real
 Markdown parser (via render()) rather than regex over raw text, so a real
 `<pre><code>` element's contents are never mistaken for actual markup in the
 first place, the same way python-markdown itself never confuses a heading

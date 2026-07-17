@@ -336,7 +336,7 @@ Now that you've generated your keys and finished the configuration, add them to 
 
 </div>
 
-## Fork and cloning the zendoc-template
+## Fork and cloning the prodockit-template
 
 Forking the documentation template creates a copy of the template into your own GitLab or GitHub cloud account. You will then be able to edit the template locally in Visual Studio Code and publish your own documentation website.
 
@@ -364,15 +364,15 @@ The features of forking and cloning are complementary. You can fork a repository
 !!! Note
     In this case, you will be creating your own documentation website, so you won't be submitting a pull request to the original repository. You will be working on your own forked copy of the documentation template.
 
-### Fork the zendoc-template
+### Fork the prodockit-template
 
 You may already have a GitLab or GitHub repository containing a Zensical template provided for you. If you do, you can skip this section and go to the next section to clone the repository locally.
 
 <!-- Point the user to the correct repository based on whether they are using Surrey GitLab or GitHub. -->
 {% if is_surrey %}
-1. Start with opening up a browser and go to the [zendoc-template repository](https://gitlab.surrey.ac.uk/mb0105/zendoc-template){target="_blank"} on the University of Surrey GitLab.
+1. Start with opening up a browser and go to the [prodockit-template repository](https://gitlab.surrey.ac.uk/mb0105/prodockit-template){target="_blank"} on the University of Surrey GitLab.
 {% else %}
-1. Start with opening up a browser and go to the [zendoc-template repository](https://github.com/buckwem/zendoc-template){target="_blank"} on GitHub.
+1. Start with opening up a browser and go to the [prodockit-template repository](https://github.com/buckwem/prodockit-template){target="_blank"} on GitHub.
 {% endif %}
 
 1. Next, fork the documentation template to create a copy of the template in your own Git cloud account. Follow the instructions below to fork the repository.
@@ -384,7 +384,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
         {% if is_surrey %}
         === "GitLab"
 
-            1. Click on the link to [fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/zendoc-template/-/forks/new){target="_blank"} to create a copy of the template for your use.
+            1. Click on the link to [fork a copy of the documentation template](https://gitlab.surrey.ac.uk/mb0105/prodockit-template/-/forks/new){target="_blank"} to create a copy of the template for your use.
             
                 ![Image title](images/gitlab-fork-project.png){ width=70% .screenshot }
                 /// figure-caption
@@ -399,7 +399,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
         {% else %}
         === "GitHub"
 
-            1. Go to the [zendoc-template repository](https://github.com/buckwem/zendoc-template){target="_blank"} on GitHub and click the **Fork**{: .bg-green} button near the top-right of the page.
+            1. Go to the [prodockit-template repository](https://github.com/buckwem/prodockit-template){target="_blank"} on GitHub and click the **Fork**{: .bg-green} button near the top-right of the page.
             2. On the "Create a new fork" page, keep your own account selected as the **Owner**.
             3. Enter a *Repository name* using the format the coursework specifies, matching the naming convention your course tutor directs (e.g. `cw1-your-username`).
             4. Leave **Copy the `main` branch only** checked.
@@ -413,7 +413,7 @@ You may already have a GitLab or GitHub repository containing a Zensical templat
 !!! Warning
     Don't forget to set the visibility to private, otherwise others can see your repository. Ask someone else to check whether they can see your repository.
 
-### Clone the zendoc-template
+### Clone the prodockit-template
 
 This section takes you through the steps to clone the documentation template into your own local device. You will then be able to edit the template locally in Visual Studio Code and eventually publish your own documentation website.
 
@@ -427,7 +427,7 @@ This section takes you through the steps to clone the documentation template int
 1. Then run the following command to clone the documentation template into your local directory. Replace the `git_website` with the actual GitLab or GitHub website address. For example, `gitlab.com` or `github.organisation.com`. Make sure to replace the `username` with your actual GitLab or GitHub username.
 
     ``` bash
-    git clone git@git_website:username/zendoc-template.git
+    git clone git@git_website:username/prodockit-template.git
     ```
 
     !!! Tip

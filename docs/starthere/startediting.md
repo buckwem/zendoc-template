@@ -163,7 +163,7 @@ Whenever you've made a change you want to keep, there are three things to do: **
 Once your commit reaches the default branch, the [CI/CD pipeline](#automated-builds) rebuilds and republishes the website (and the PDF) automatically - there's nothing extra to trigger.
 
 {% if is_surrey %}
-1. Go to your GitLab Pages address, in the form `https://`*namespace*`.pages.surrey.ac.uk/`*repository-name*. This template's own site is at [http://mb0105.pages.surrey.ac.uk/zendoc-template](http://mb0105.pages.surrey.ac.uk/zendoc-template){target="_blank"}.
+1. Go to your GitLab Pages address, in the form `https://`*namespace*`.pages.surrey.ac.uk/`*repository-name*. This template's own site is at [http://mb0105.pages.surrey.ac.uk/prodockit-template](http://mb0105.pages.surrey.ac.uk/prodockit-template){target="_blank"}.
 2. The first time you visit, GitLab prompts you to authorise GitLab Pages access to your project:
 
     ![Authorise GitLab Pages](images/authorise-gitlab-pages.png){ width="40%" .screenshot }
@@ -171,11 +171,11 @@ Once your commit reaches the default branch, the [CI/CD pipeline](#automated-bui
     Authorise GitLab Pages
     ///
 
-3. Your browser redirects to a URL with an extra, unique key added, such as [https://zendoc-template-4f75ad.pages.surrey.ac.uk/](https://zendoc-template-4f75ad.pages.surrey.ac.uk/){target="_blank"}. This confirms that you (specifically, someone with access to the underlying GitLab project) can view the page - University of Surrey GitLab Pages sites aren't public by default.
+3. Your browser redirects to a URL with an extra, unique key added, such as [https://prodockit-template-4f75ad.pages.surrey.ac.uk/](https://prodockit-template-4f75ad.pages.surrey.ac.uk/){target="_blank"}. This confirms that you (specifically, someone with access to the underlying GitLab project) can view the page - University of Surrey GitLab Pages sites aren't public by default.
 
 {% else %}
 
-1. Go to your GitHub Pages address, in the form `https://`*username*`.github.io/`*repository-name*. This template's own site is at [https://buckwem.github.io/zendoc-template](https://buckwem.github.io/zendoc-template){target="_blank"}.
+1. Go to your GitHub Pages address, in the form `https://`*username*`.github.io/`*repository-name*. This template's own site is at [https://buckwem.github.io/prodockit-template](https://buckwem.github.io/prodockit-template){target="_blank"}.
 2. Unlike GitLab Pages, GitHub Pages sites are publicly accessible by default, even when the source repository is private - so no separate authorisation step is normally needed to view a GitHub Pages site once it's built.
 3. If your organisation has restricted Pages visibility (available on GitHub Enterprise), GitHub will ask you to sign in with an account that has access to the repository before the site loads.
 
@@ -372,7 +372,7 @@ If `python build_pdf.py` errors out or produces a PDF missing content:
 1. Check the pipeline (GitLab **CI/CD > Pipelines**) or workflow (GitHub **Actions** tab) actually ran, and succeeded, for your latest commit - if it's still running, or failed, the old version stays published.
 2. Confirm your change actually reached the default branch (`main`) - a commit sitting on a feature branch, or a merge/pull request you haven't merged yet, never triggers a rebuild. See [Managing branches and issues](#managing-branches-and-issues).
 3. Hard refresh the published page (`Ctrl+Shift+R`/`Cmd+Shift+R`) - your browser can cache the old version just as easily as it caches the local preview.
-4. On GitHub specifically, if the workflow fails with `Get Pages site failed... Not Found`, GitHub Pages hasn't been switched on for the repository yet. Go to **Settings > Pages** and change **Build and deployment > Source** from **Deploy from a branch** to **GitHub Actions**, then re-run the failed workflow. This is a one-off step after forking or cloning a fresh copy of the repository into a new GitHub account - see step 7 of [Fork the zendoc-template](installtooling.md#fork-the-zendoc-template) in Install tooling.
+4. On GitHub specifically, if the workflow fails with `Get Pages site failed... Not Found`, GitHub Pages hasn't been switched on for the repository yet. Go to **Settings > Pages** and change **Build and deployment > Source** from **Deploy from a branch** to **GitHub Actions**, then re-run the failed workflow. This is a one-off step after forking or cloning a fresh copy of the repository into a new GitHub account - see step 7 of [Fork the prodockit-template](installtooling.md#fork-the-prodockit-template) in Install tooling.
 5. On GitLab specifically, if the pipeline succeeds but no Pages site ever appears, check that the **Pages** feature itself hasn't been disabled for the project: **Settings > General > Visibility, project features, permissions**, and make sure **Pages** is toggled on. Unlike GitHub, GitLab doesn't need a separate "source" setting - Pages deploys automatically from the `pages` job in `.gitlab-ci.yml` once the feature is enabled, which it is by default.
 
 ## Release your report
@@ -381,10 +381,10 @@ Before you submit your report, remove the "Start Here" section so it isn't part 
 
 {% if is_surrey %}
 !!! Info "University of Surrey Pages Site"
-    Once you've removed "Start Here" from your own report, you can still come back to this guidance on the documentation template's own site at [http://mb0105.pages.surrey.ac.uk/zendoc-template/starthere/starthere](http://mb0105.pages.surrey.ac.uk/zendoc-template/starthere/starthere){target="_blank"}.
+    Once you've removed "Start Here" from your own report, you can still come back to this guidance on the documentation template's own site at [http://mb0105.pages.surrey.ac.uk/prodockit-template/starthere/starthere](http://mb0105.pages.surrey.ac.uk/prodockit-template/starthere/starthere){target="_blank"}.
 {% else %}
 !!! Info
-    Once you've removed "Start Here" from your own report, you can still come back to this guidance on the documentation template's own site at [https://buckwem.github.io/zendoc-template/starthere/starthere](https://buckwem.github.io/zendoc-template/starthere/starthere){target="_blank"}.
+    Once you've removed "Start Here" from your own report, you can still come back to this guidance on the documentation template's own site at [https://buckwem.github.io/prodockit-template/starthere/starthere](https://buckwem.github.io/prodockit-template/starthere/starthere){target="_blank"}.
 {% endif %}
 
 ## Where to go next

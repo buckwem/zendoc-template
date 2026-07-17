@@ -5,7 +5,7 @@
 
 # Contributing
 
-Thanks for your interest in improving zendoc-template. This guide covers contributing to the template itself - fixing bugs, adding features, or improving the documentation-as-code tooling. If you're a student using the template to write your own assignment, you don't need any of this: just fork the repo and follow the [Start Here](docs/starthere/starthere.md) section.
+Thanks for your interest in improving prodockit-template. This guide covers contributing to the template itself - fixing bugs, adding features, or improving the documentation-as-code tooling. If you're a student using the template to write your own assignment, you don't need any of this: just fork the repo and follow the [Start Here](docs/starthere/starthere.md) section.
 
 ## Before you start
 

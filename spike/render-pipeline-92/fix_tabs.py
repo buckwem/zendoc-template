@@ -44,7 +44,7 @@ def fix(html: str) -> str:
 
     for label in soup.select("div.tabbed-labels label"):
         p = soup.new_tag("p")
-        p["class"] = "zendoc-tab-label"
+        p["class"] = "prodockit-tab-label"
         p.string = label.get_text()
         label.replace_with(p)
 

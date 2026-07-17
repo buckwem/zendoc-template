@@ -5,7 +5,7 @@
 table-caption auto-numbering (see "Captions" in customise.md and issue #43)
 against the real, already-built PDF.
 
-Before zendoc-template#92, this batch mostly called preprocess_markdown()
+Before prodockit-template#92, this batch mostly called preprocess_markdown()
 directly on hand-written snippets to exercise build_pdf.py's own regex
 reimplementation of pymdownx.blocks.caption's numbering/position/id/class
 handling (zensical_caption_replacer()/table_caption_replacer()). That
@@ -74,7 +74,7 @@ def test_real_figure_caption_image_is_horizontally_centered_under_its_caption(pd
 
 
 def test_real_prepend_table_caption_appears_above_its_table(pdf_doc):
-    """Regression test (zendoc-template#93): pymdownx.blocks.caption's own
+    """Regression test (prodockit-template#93): pymdownx.blocks.caption's own
     HTML places a "| <" (prepend) caption physically before its table in
     the DOM, but Pandoc's Figure AST node stores Caption and content as two
     separate fields regardless of source order, and Pandoc's own HTML

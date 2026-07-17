@@ -42,7 +42,7 @@ def run_batch(batch_name, pytest_args):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Run the zendoc-template test suite.")
+    parser = argparse.ArgumentParser(description="Run the prodockit-template test suite.")
     parser.add_argument("--batch", help="Run only this batch (see --list for names)")
     parser.add_argument("--list", action="store_true", help="List available batches and exit")
     parser.add_argument("pytest_args", nargs="*", help="Extra arguments passed through to pytest")

@@ -49,15 +49,15 @@ The PDF build reuses this same setting for its own running footer - see [Page fo
 {% if is_surrey %}
 
 ```toml
-repo_url = "https://gitlab.surrey.ac.uk/mb0105/zendoc-template"
-repo_name = "zendoc-template"
+repo_url = "https://gitlab.surrey.ac.uk/mb0105/prodockit-template"
+repo_name = "prodockit-template"
 ```
 
 {% else %}
 
 ```toml
-repo_url = "https://github.com/buckwem/zendoc-template"
-repo_name = "zendoc-template"
+repo_url = "https://github.com/buckwem/prodockit-template"
+repo_name = "prodockit-template"
 ```
 
 {% endif %}
@@ -216,7 +216,7 @@ Keep the numbers in each title sequential as you add, remove, or reorder chapter
 
 ### References and bibliography
 
-This template uses [`prodockit.citations`](https://buckwem.github.io/prodockit-extensions/extensions/citations/) (from the [prodockit](https://github.com/buckwem/prodockit-extensions) package, already installed and enabled in `zensical.toml` - see [zendoc-template#25](https://github.com/buckwem/zendoc-template/issues/25)) for citations: define a source once, cite it by key anywhere with `\cite{id}`.
+This template uses [`prodockit.citations`](https://buckwem.github.io/prodockit-extensions/extensions/citations/) (from the [prodockit](https://github.com/buckwem/prodockit-extensions) package, already installed and enabled in `zensical.toml` - see [prodockit-template#25](https://github.com/buckwem/prodockit-template/issues/25)) for citations: define a source once, cite it by key anywhere with `\cite{id}`.
 
 !!! info "How the PDF handles this"
     `build_pdf.py` renders every page through the same Zensical/prodockit pipeline the website uses (see `render_page_html()`), so `\cite{id}` resolves to the same linked citation in both outputs automatically - no separate PDF-side translation needed, and no manual HTML or per-output link either.
@@ -282,7 +282,7 @@ This template uses [`prodockit.citations`](https://buckwem.github.io/prodockit-e
 
 ### Acronyms and abbreviations
 
-This template uses [`prodockit.glossary`](https://buckwem.github.io/prodockit-extensions/extensions/glossary/) (from the same [prodockit](https://github.com/buckwem/prodockit-extensions) package as citations above - see [zendoc-template#87](https://github.com/buckwem/zendoc-template/issues/87)) for acronyms: define a term once, insert it by id with `\gls{id}` - it expands to the term's own text, linked to its definition.
+This template uses [`prodockit.glossary`](https://buckwem.github.io/prodockit-extensions/extensions/glossary/) (from the same [prodockit](https://github.com/buckwem/prodockit-extensions) package as citations above - see [prodockit-template#87](https://github.com/buckwem/prodockit-template/issues/87)) for acronyms: define a term once, insert it by id with `\gls{id}` - it expands to the term's own text, linked to its definition.
 
 !!! info "How the PDF handles this"
     Same as citations above - `build_pdf.py` renders this page through the real Zensical/prodockit pipeline, so `\gls{id}` resolves the same way in both outputs with no separate PDF-side translation.
@@ -574,7 +574,7 @@ This template configures three caption types under `[project.markdown_extensions
     ```
 
     !!! warning "Always add `| <` to `table-caption`"
-        `table-caption` has no setting that makes it default to top-positioned - `| <` isn't optional here, it's part of the syntax every single `table-caption` block needs. This template shows every table caption of its own above its table (see [Fork and cloning the zendoc-template](installtooling.md#fork-and-cloning-the-zendoc-template) for a real example); a `table-caption` block missing `| <` silently falls back to *below* the table instead, breaking that consistency without any warning. There's no `zensical.toml` setting to make this the default and skip typing `| <` each time - see [issue #68](https://github.com/buckwem/zendoc-template/issues/68) if you want to help change that.
+        `table-caption` has no setting that makes it default to top-positioned - `| <` isn't optional here, it's part of the syntax every single `table-caption` block needs. This template shows every table caption of its own above its table (see [Fork and cloning the prodockit-template](installtooling.md#fork-and-cloning-the-prodockit-template) for a real example); a `table-caption` block missing `| <` silently falls back to *below* the table instead, breaking that consistency without any warning. There's no `zensical.toml` setting to make this the default and skip typing `| <` each time - see [issue #68](https://github.com/buckwem/prodockit-template/issues/68) if you want to help change that.
 
 The caption block always comes *after* the image or table it captions, regardless of where it's actually shown - `pymdownx.blocks.caption` attaches to whichever element immediately precedes it.
 

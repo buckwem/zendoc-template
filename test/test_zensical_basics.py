@@ -639,7 +639,7 @@ def test_mark_insert_and_keys_render_styled_not_leaked(pdf_full_text, pdf_doc):
 
 
 # ---------------------------------------------------------------------------
-# Grid cards and table styling (zendoc-template#92/#93)
+# Grid cards and table styling (prodockit-template#92/#93)
 # ---------------------------------------------------------------------------
 # Zensical's native grid-card HTML (a plain <div class="grid cards"><ul><li>)
 # isn't demonstrated as its own section in zensicalbasics.md, but is a real,
@@ -655,7 +655,7 @@ def test_mark_insert_and_keys_render_styled_not_leaked(pdf_full_text, pdf_doc):
 # own markdown.Markdown() pipeline that batch otherwise tests can exercise.
 
 def test_real_grid_card_renders_as_a_bordered_box_not_a_plain_bullet_list(pdf_doc):
-    """Regression test (zendoc-template#92): Zensical's real grid-card HTML
+    """Regression test (prodockit-template#92): Zensical's real grid-card HTML
     is a plain <div class="grid cards"><ul><li>, not the old regex
     pipeline's own .gridcard-matrix/-item convention (retired along with the
     rest of preprocess_markdown()) - the compiled PDF CSS only had rules for
@@ -707,7 +707,7 @@ def test_real_grid_card_title_icon_renders_as_an_image_not_missing(pdf_doc):
     ("12.3.1 Installing GitHub Desktop", "12.3.2 Installing GitKraken"),
 ])
 def test_real_grid_card_does_not_force_a_blank_page_gap_before_its_heading(pdf_doc, parent_heading, child_heading):
-    """Regression test (zendoc-template#93): a real grid card commonly wraps
+    """Regression test (prodockit-template#93): a real grid card commonly wraps
     a whole tabbed-set (e.g. installtooling.md's per-OS install
     instructions, all three OS tabs stacked since WeasyPrint can't do
     interactive tabs) - often taller than a full page. The grid-card CSS's
@@ -820,7 +820,7 @@ def test_real_heading_does_not_force_a_blank_page_gap_after_a_short_preceding_ad
 
 
 def test_real_footnote_lands_near_its_reference_and_is_smaller(pdf_doc):
-    """Regression test (zendoc-template#93): Zensical's own markdown
+    """Regression test (prodockit-template#93): Zensical's own markdown
     pipeline renders a footnote as a <div class="footnote"> collecting
     every footnote's own text at the *end* of the page, never a
     Pandoc-native Note element (that only exists when Pandoc's own
@@ -838,7 +838,7 @@ def test_real_footnote_lands_near_its_reference_and_is_smaller(pdf_doc):
     chapter (e.g. the h3-h6/admonition-title page-break-after fixes above)
     can still shift the footnote text onto the chapter's last page rather
     than its own exact reference page - a further symptom of the same
-    WeasyPrint limitation tracked in zendoc-template#95, not something
+    WeasyPrint limitation tracked in prodockit-template#95, not something
     build_pdf.py's CSS can pin down further. Checks the real "Here's a
     sentence with a footnote." example (zensicalbasics.md): its footnote
     text should land somewhere in the same chapter as the reference (not

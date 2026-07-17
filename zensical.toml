@@ -33,8 +33,8 @@ site_author = "Mark Buckwell"
 site_url = "https://github.com/buckwem/prodockit-template/"
 site_dir = "public"
 
-repo_url = "https://github.com/buckwem/zendoc-template"
-repo_name = "zendoc-template"
+repo_url = "https://github.com/buckwem/prodockit-template"
+repo_name = "prodockit-template"
 edit_uri = "edit/main/docs/"
 
 # The copyright notice appears in the page footer and can contain an HTML

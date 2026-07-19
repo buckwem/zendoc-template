@@ -9,7 +9,7 @@ icon: lucide/book-open
 
 {{ heading_counter_reset(page) }}
 
-# Section
+# Section {: #section1 }
 
 ## SubSection {: #citations-example }
 
@@ -17,9 +17,9 @@ Git is a tool used to manage version control in software development with many d
 
 Above is an example of using references in a document. The reference is linked to the references section of the document, which is automatically generated from the references.md file.
 
-### SubSubSection
+### SubSubSection {: #section1-subsubsection-1 }
 
-### SubSubSection
+### SubSubSection {: #section1-subsubsection-2 }
 
 ## SubSection {: #acronyms-example }
 
@@ -27,7 +27,7 @@ This template uses \gls{css} to control the appearance of both the website and t
 
 Above is an example of using acronyms in a document. The acronym is linked to the acronyms section of the document, which is automatically generated from the acronyms.md file.
 
-### SubSubSection
+### SubSubSection {: #section1-subsubsection-3 }
 
 ## SubSection {: #glossary-example }
 
@@ -35,5 +35,5 @@ This document is written in \gls{markdown-def}, then converted into the website 
 
 Above is an example of using a glossary in a document. The term is linked to the glossary section of the document, which is automatically generated from the glossary.md file.
 
-### SubSubSection
+### SubSubSection {: #section1-subsubsection-4 }
 

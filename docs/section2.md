@@ -9,7 +9,7 @@ icon: lucide/book-open
 
 {{ heading_counter_reset(page) }}
 
-# Section
+# Section {: #section2 }
 
 ## SubSection {: #cross-reference-example }
 
@@ -17,14 +17,14 @@ As introduced in \ref{citations-example}, sources are cited with `\cite{id}`. Se
 
 Above is an example of using `\ref{id}` to cross-reference another section by number. Unlike a hand-typed "see Section 2.1", it updates automatically if the target section moves.
 
-### SubSubSection
+### SubSubSection {: #section2-subsubsection-1 }
 
-### SubSubSection
+### SubSubSection {: #section2-subsubsection-2 }
 
-## SubSection
+## SubSection {: #section2-subsection-2 }
 
-### SubSubSection
+### SubSubSection {: #section2-subsubsection-3 }
 
-## SubSection
+## SubSection {: #section2-subsection-3 }
 
-### SubSubSection
+### SubSubSection {: #section2-subsubsection-4 }

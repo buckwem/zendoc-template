@@ -9,7 +9,7 @@ icon: lucide/book-open
 
 {{ heading_counter_reset(page) }}
 
-# Section
+# Section {: #section3 }
 
 ## SubSection {: #figure-caption-example }
 
@@ -20,15 +20,15 @@ The Zensical logo, used throughout this template's branding.
 
 Above is an example of a captioned figure. The caption is automatically numbered and prefixed with the current chapter number, in both the website and the PDF.
 
-### SubSubSection
+### SubSubSection {: #section3-subsubsection-1 }
 
-### SubSubSection
+### SubSubSection {: #section3-subsubsection-2 }
 
-## SubSection
+## SubSection {: #section3-subsection-2 }
 
-### SubSubSection
+### SubSubSection {: #section3-subsubsection-3 }
 
-## SubSection
+## SubSection {: #section3-subsection-3 }
 
-### SubSubSection
+### SubSubSection {: #section3-subsubsection-4 }
 

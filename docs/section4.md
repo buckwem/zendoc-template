@@ -9,9 +9,9 @@ icon: lucide/book-open
 
 {{ heading_counter_reset(page) }}
 
-# Section
+# Section {: #section4 }
 
-## SubSection
+## SubSection {: #table-caption-example }
 
 /// table-caption
 prodockit capabilities demonstrated in this document
@@ -28,15 +28,15 @@ prodockit capabilities demonstrated in this document
 
 Above is an example of a captioned table. Like a figure caption, it's automatically numbered and prefixed with the current chapter number.
 
-### SubSubSection
+### SubSubSection {: #section4-subsubsection-1 }
 
-### SubSubSection
+### SubSubSection {: #section4-subsubsection-2 }
 
-## SubSection
+## SubSection {: #section4-subsection-2 }
 
-### SubSubSection
+### SubSubSection {: #section4-subsubsection-3 }
 
-## SubSection
+## SubSection {: #section4-subsection-3 }
 
-### SubSubSection
+### SubSubSection {: #section4-subsubsection-4 }
 

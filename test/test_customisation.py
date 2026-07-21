@@ -93,9 +93,15 @@ def test_pdf_cover_page_has_an_embedded_logo_image(pdf_doc):
     get_image_info() (bounding boxes of images actually drawn on this
     specific page) rather than get_images() (every image in the PDF's
     shared resource pool, most of which - e.g. Figure 11.3/11.4's header/
-    footer diagrams - live nowhere near the cover page)."""
-    cover_images = pdf_doc[0].get_image_info()
-    assert cover_images, "No image found on the PDF cover page"
+    footer diagrams - live nowhere near the cover page). Also accepts
+    get_drawings() - the cover page's own hero graphic is an SVG, and
+    WeasyPrint renders an embedded SVG as native vector paths, not a
+    raster image XObject (the same distinction test_zensical_basics.py's
+    icon/emoji tests already rely on)."""
+    page = pdf_doc[0]
+    assert page.get_image_info() or page.get_drawings(), (
+        "No image or vector drawing found on the PDF cover page"
+    )
 
 
 # ---------------------------------------------------------------------------

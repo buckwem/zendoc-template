@@ -49,6 +49,12 @@ pages:
     - prodockit pdf
     - zensical build --clean
     - python test/run_tests.py
+    # source_bundle.pdf (from pdf_source_bundle in zensical.toml) is written
+    # to the project root by prodockit.pdf.config, not docs_dir - it bundles
+    # the whole repo's own source, not just docs_dir's content, so it isn't
+    # one of the files `zensical build` copies into public/ on its own.
+    # Copied in explicitly so it's actually included in what gets published.
+    - cp source_bundle.pdf public/source_bundle.pdf
   pages:
     publish: public
   rules:

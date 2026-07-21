@@ -5,7 +5,7 @@
 ## Test plan
 
 <!-- How did you verify this works? e.g. `zensical serve` and checked the page,
-     or `python build_pdf.py` and checked the PDF output. -->
+     or `prodockit pdf` and checked the PDF output. -->
 
 - [ ]
 

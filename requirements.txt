@@ -3,7 +3,7 @@
 
 # File to list prerequisites for the project. This file is used by the CI/CD pipeline to install dependencies before building the documentation.
 zensical
-prodockit>=0.6.5
+prodockit>=0.6.8
 mkdocstrings-python
 pandoc
 toml

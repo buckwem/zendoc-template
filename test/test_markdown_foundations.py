@@ -16,11 +16,11 @@ extension list, so a change to zensical.toml's
 instead of silently drifting out of sync. This is the same "call the real
 thing on a synthetic snippet" approach test_fences.py uses, extended to
 Zensical's website-side Markdown pipeline (markdown.md's syntax isn't
-PDF-specific, so there's no build_pdf.py function to call directly the way
+PDF-specific, so there's no PDF-pipeline function to call directly the way
 test_fences.py does) - so, like that batch, this one runs without building
 anything first. One exception: test_pandoc_nests_a_two_space_list_unlike_python_markdown
 shells out to the real `pandoc` binary directly (same tool, same invocation
-shape build_pdf.py itself uses) to check a genuine website/PDF rendering
+shape the PDF pipeline itself uses) to check a genuine website/PDF rendering
 discrepancy - see issue #70."""
 
 import subprocess
@@ -177,9 +177,9 @@ def test_nested_list_at_four_spaces_actually_nests(render):
 def test_pandoc_nests_a_two_space_list_unlike_python_markdown():
     """Not a synthetic markdown.Markdown() check like the rest of this
     file - a real subprocess call to the actual `pandoc` binary
-    build_pdf.py itself shells out to (see main()'s subprocess.run(cmd)),
-    since this is specifically about how the *PDF's* engine, not the
-    website's, handles the same source.
+    prodockit.pdf.build.build_pdf() itself shells out to, since this is
+    specifically about how the *PDF's* engine, not the website's, handles
+    the same source.
 
     Documents a general engine discrepancy worth knowing about (see issue
     #70): Pandoc's markdown reader nests a sub-list at just 2-space

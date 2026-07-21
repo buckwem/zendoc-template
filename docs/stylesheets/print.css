@@ -19,10 +19,10 @@ h3 { font-size: 14pt; }
 
 /* Custom Code Block Layout Adjustments. #dddddd is another 5% darker than
    #e9e9e9 (itself 5% darker than --md-code-bg-color, #f5f5f5), the website's
-   shading for inline code and code blocks (build_pdf.py's own CSS
-   blueprint repeats this same value with !important, since that stylesheet
-   is compiled in after this one - kept in sync here too for anyone reading
-   this file directly). */
+   shading for inline code and code blocks (prodockit.pdf.css's own
+   generated stylesheet repeats this same value with !important, since
+   that stylesheet is compiled in after this one - kept in sync here too
+   for anyone reading this file directly). */
 pre, code {
     font-family: "JetBrains Mono", monospace;
     background-color: #dddddd;
@@ -42,12 +42,38 @@ pre {
 }
 
 /* Marker for content meant only for the live website (e.g. the "Download
-   PDF" button on the cover page) - mirrors .pdf-only in extra.css/
-   build_pdf.py. Shown normally on the website by default (print.css
-   isn't loaded there - see extra_css in zensical.toml), hidden here since
-   print.css is only ever read by the PDF build. */
+   PDF" button on the cover page) - mirrors .pdf-only in extra.css.
+   Shown normally on the website by default (print.css isn't loaded there -
+   see extra_css in zensical.toml), hidden here since print.css is only
+   ever read by the PDF build (via pdf_extra_css - see zensical.toml). */
 .web-only {
     display: none !important;
+}
+
+/* A PDF has no light/dark toggle, so only the #only-light half of the
+   cover page's hero graphic pair should ever appear there - the
+   #only-dark half used to render right alongside it (both variants get
+   base64-embedded into the PDF's HTML, and the resulting data: URI has
+   no trace of "#only-dark" left for a stylesheet to hide it by - a
+   selector here can't fix that). Fixed at the source instead: prodockit
+   >=0.6.7 drops the #only-dark half entirely before it ever reaches this
+   stylesheet (see prodockit-extensions#83).
+
+   The remaining hero graphic's actual displayed size was never really
+   controlled by its nominal `width="37.5%"` HTML attribute at all -
+   prodockit.pdf.css's own generated `.cover-page img` rule below caps every
+   cover-page image at max-width: 65%/max-height: 3.5cm with
+   object-fit: contain (sized for an ordinary logo), and 3.5cm tall is
+   the binding constraint here (well under the 65%-wide cap), so `width`
+   was already being silently overridden the whole time. Scaled to 3x
+   the graphic's *actual* controlling dimension instead (max-height:
+   3.5cm -> 10.5cm) - `.cover-page` in the selector matches that rule's
+   own specificity so this one wins the tie instead of silently losing
+   to it just because it's declared first; selected by `alt` text rather
+   than `src`, since the embedded `data:` URI has nothing else left to
+   select on. */
+.cover-page img[alt="Illustration of abstract flowing concentric lines, representing professional documentation"] {
+    max-height: 10.5cm !important;
 }
 
 /* ==========================================================================

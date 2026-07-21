@@ -7,17 +7,18 @@ customise.md and issue #43) against a real, synthetic PDF built through the
 actual production pipeline (see conftest.py's build_synthetic_pdf fixture).
 
 Before prodockit-template#92, this batch mostly called preprocess_markdown()
-directly on hand-written snippets to exercise build_pdf.py's own regex
+directly on hand-written snippets to exercise a since-removed regex
 reimplementation of pymdownx.blocks.caption's numbering/position/id/class
 handling (zensical_caption_replacer()/table_caption_replacer()). That
-reimplementation is gone: build_pdf.py now renders every page through the
+reimplementation is gone: prodockit.pdf now renders every page through the
 real pymdownx.blocks.caption extension (see render_page_html()), so manual
 number overrides, custom ids/classes, and prepend/append position are
 pymdownx's own, already-tested behaviour, identical to the website's -
-nothing build_pdf.py-specific left to unit-test there. The one thing that
-*is* build_pdf.py-specific is prepending the current chapter number/
+nothing PDF-pipeline-specific left to unit-test there. The one thing that
+*is* PDF-pipeline-specific is prepending the current chapter number/
 appendix letter in front of pymdownx's own per-page auto-number (the
-Figure() Lua handler in main()) - covered below.
+Figure() Lua handler prodockit.pdf.build.build_pdf() generates) - covered
+below.
 
 These used to check specific real pages (installtooling.md/customise.md's
 "Fork and Clone Comparison at a Glance" table, customise.md/startediting.md's
@@ -59,7 +60,7 @@ Fork and Clone Comparison at a Glance
 def test_real_figure_caption_image_is_horizontally_centered_under_its_caption(build_synthetic_pdf):
     """Regression test: a <figure>'s own default centering relies on the
     compiled stylesheet's "figure { text-align: center }" rule (see
-    build_pdf.py's main()) - the <img> is a naturally inline-level element,
+    prodockit.pdf.build.build_pdf()) - the <img> is a naturally inline-level element,
     positioned by its parent's text-align, so without it the image sits at
     its default left-aligned position while the figcaption text ends up
     centered anyway (WeasyPrint's own default for figcaption), visibly

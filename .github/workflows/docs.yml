@@ -19,7 +19,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     env:
-      # Only needed so build_pdf.py can pre-render ```mermaid fenced code
+      # Only needed so `prodockit pdf` can pre-render ```mermaid fenced code
       # blocks to static images via mermaid-cli/Puppeteer, and TeX math
       # ($...$/$$...$$) to static images via mathjax-full (pure Node, no
       # browser needed for that one) - WeasyPrint has no JS engine to run
@@ -67,7 +67,7 @@ jobs:
       - run: npm ci --prefix tools/mathjax
       - run: pip install -r requirements.txt -r testrequirements.txt
       - run: python sync_repo_icon.py
-      - run: python build_pdf.py
+      - run: prodockit pdf
       - run: zensical build --clean
       - run: python test/run_tests.py
       - uses: actions/upload-pages-artifact@v4

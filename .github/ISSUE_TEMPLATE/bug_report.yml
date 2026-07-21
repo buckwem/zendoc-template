@@ -21,7 +21,7 @@ body:
       label: Steps to reproduce
       description: How can we reproduce this? Include commands run and any relevant config.
       placeholder: |
-        1. Run `zensical serve` / `python build_pdf.py`
+        1. Run `zensical serve` / `prodockit pdf`
         2. ...
     validations:
       required: true

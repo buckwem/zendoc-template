@@ -69,14 +69,15 @@ jobs:
       - run: python sync_repo_icon.py
       - run: prodockit pdf
       - run: zensical build --clean
-      - run: python test/run_tests.py
       # source_bundle.pdf (from pdf_source_bundle in zensical.toml) is
       # written to the project root by prodockit.pdf.config, not docs_dir -
       # it bundles the whole repo's own source, not just docs_dir's content,
       # so it isn't one of the files `zensical build` copies into public/ on
-      # its own. Copied in explicitly so it's actually included in what
-      # gets published, rather than silently built and then discarded.
+      # its own. Copied in explicitly, before the test suite runs, since
+      # test_links.py checks that the cover page's "Source" button actually
+      # resolves inside public/.
       - run: cp source_bundle.pdf public/source_bundle.pdf
+      - run: python test/run_tests.py
       - uses: actions/upload-pages-artifact@v4
         with:
           path: public

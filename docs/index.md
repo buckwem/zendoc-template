@@ -10,7 +10,14 @@ hide:
 # SPDX-License-Identifier: MIT
 -->
 
-[:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" style="float: right; margin-left: 15px;" .web-only}
+<!-- The "Source" button links to source_bundle.pdf, only built when
+     pdf_source_bundle = true under [project.extra] in zensical.toml (on
+     by default in this template) - remove this button if you turn that
+     setting off, since the link would otherwise 404. -->
+<div style="float: right; display: flex; gap: 15px; margin-left: 15px;" class="web-only" markdown="1">
+[:material-archive: Source](source_bundle.pdf){ .md-button target="_blank" }
+[:material-file-pdf-box: PDF](site_documentation.pdf){ .md-button target="_blank" }
+</div>
 
 <!-- Hide heading 1 on the page as hide: title does not seem to work -->
 <style> .md-typeset h1 { display: none; } </style>

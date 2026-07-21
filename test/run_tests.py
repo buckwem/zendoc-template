@@ -14,6 +14,7 @@ build it themselves:
     python sync_repo_icon.py   # only needed after changing the git remote
     prodockit pdf
     zensical build
+    cp source_bundle.pdf public/source_bundle.pdf   # see .github/workflows/docs.yml
 
 Usage:
     python test/run_tests.py                  # run every batch

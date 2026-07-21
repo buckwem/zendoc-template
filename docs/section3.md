@@ -13,9 +13,9 @@ icon: lucide/book-open
 
 ## SubSection {: #figure-caption-example }
 
-![Zensical logo](assets/logo_black.png){ width="30%" }
+![This template's default logo](assets/logo_black.png){ width="30%" }
 /// figure-caption
-The Zensical logo, used throughout this template's branding.
+This template's own default logo, used throughout its branding - swap it for your own (see "Institution branding" in the User Guide's customise.md).
 ///
 
 Above is an example of a captioned figure. The caption is automatically numbered and prefixed with the current chapter number, in both the website and the PDF.

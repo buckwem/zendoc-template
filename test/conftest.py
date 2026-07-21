@@ -4,7 +4,7 @@
 """Shared fixtures for the test suite (see issue #44). Tests here check the
 *built output* - the website in public/ and the PDF at
 docs/site_documentation.pdf - not the build process itself; run
-`python build_pdf.py` and `zensical build` (or `python sync_repo_icon.py`
+`prodockit pdf` and `zensical build` (or `python sync_repo_icon.py`
 first, if you've just changed the git remote) before running these tests.
 See test/run_tests.py for the runner and CONTRIBUTING.md for usage."""
 
@@ -74,7 +74,7 @@ def resolved_zensical_config():
 @pytest.fixture(scope="session")
 def nav_pages(resolved_zensical_config):
     """List of every nav markdown file, docs_dir-relative, in nav order -
-    e.g. "section1.md", "acronyms.md" - the same order both build_pdf.py
+    e.g. "section1.md", "acronyms.md" - the same order both prodockit.pdf.config
     and prodockit.zensical_macros walk to compute chapter numbers."""
     return [page["url"] for page in flatten_nav(resolved_zensical_config.get("nav") or [])]
 
@@ -144,7 +144,7 @@ def count_top_level_headings(path):
 def pdf_doc():
     if not PDF_PATH.exists():
         pytest.fail(
-            f"{PDF_PATH} not found - run `python build_pdf.py` before running the test suite"
+            f"{PDF_PATH} not found - run `prodockit pdf` before running the test suite"
         )
     doc = fitz.open(PDF_PATH)
     if doc.page_count == 0:
@@ -239,9 +239,11 @@ def build_synthetic_pdf(tmp_path, docs_dir, resolved_zensical_config):
     """Factory fixture: build_synthetic_pdf([("page.md", "# Heading\\n...")])
     renders each given (docs_rel_path, markdown_text) pair through the real
     Zensical Markdown pipeline and then the real prodockit.pdf Pandoc/
-    WeasyPrint pipeline - the same pipeline build_pdf.py's own main() uses,
-    including this project's real extra.css/print.css and icon config - into
-    a small, throwaway PDF, and returns it opened as a fitz.Document.
+    WeasyPrint pipeline - the same pipeline `prodockit pdf`
+    (build_pdf_from_zensical_config()) uses, including this project's real
+    extra.css/print.css (via zensical.toml's extra_css/pdf_extra_css) and
+    icon config - into a small, throwaway PDF, and returns it opened as a
+    fitz.Document.
 
     For tests that need to check a specific real-world PDF rendering or
     pagination behaviour (see test_captions.py/test_zensical_basics.py)
@@ -252,10 +254,9 @@ def build_synthetic_pdf(tmp_path, docs_dir, resolved_zensical_config):
     from zensical.markdown.render import render as _zensical_render
 
     from prodockit.pdf import Page, build_pdf
+    from prodockit.pdf.config import _find_mmdc_bin, _find_tex2svg_script, _inline_css_urls
     from prodockit.pdf.icons import build_icon_registry, discover_icon_dirs
     from prodockit.pdf.mermaid import render_mermaid_diagram
-
-    build_pdf_module = _import_repo_module("build_pdf")
 
     def _build(pages_markdown, *, heading_numbering_enabled=True):
         _zensical_config_module.parse_config(str(ZENSICAL_TOML_PATH))
@@ -267,10 +268,20 @@ def build_synthetic_pdf(tmp_path, docs_dir, resolved_zensical_config):
         theme = resolved_zensical_config.get("theme") or {}
         admonition_icon_config = (theme.get("icon") or {}).get("admonition") or {}
         icon_registry = build_icon_registry(discover_icon_dirs(str(docs_dir)))
-        extra_css = build_pdf_module._load_extra_css(str(docs_dir))
+        extra = resolved_zensical_config.get("extra") or {}
+        css_rel_paths = list(resolved_zensical_config.get("extra_css") or []) + list(
+            extra.get("pdf_extra_css") or []
+        )
+        extra_css = ""
+        for css_rel_path in css_rel_paths:
+            full_css_path = docs_dir / css_rel_path
+            extra_css += (
+                _inline_css_urls(full_css_path.read_text(encoding="utf-8"), str(full_css_path.parent))
+                + "\n"
+            )
         output_path = str(tmp_path / "synthetic.pdf")
 
-        mmdc_bin = build_pdf_module._find_mmdc_bin()
+        mmdc_bin = _find_mmdc_bin(extra.get("pdf_mmdc_bin"))
         render_mermaid = None
         if mmdc_bin:
             mermaid_dir = str(tmp_path / "mermaid_diagrams")
@@ -283,8 +294,8 @@ def build_synthetic_pdf(tmp_path, docs_dir, resolved_zensical_config):
         math_dir = tmp_path / "math_diagrams"
         math_dir.mkdir(parents=True, exist_ok=True)
         math_dir = str(math_dir)
-        tex2svg_script = str(REPO_ROOT / "tools" / "mathjax" / "tex2svg.js")
-        mathjax_available = (REPO_ROOT / "tools" / "mathjax" / "node_modules" / "mathjax-full").exists()
+        tex2svg_script = _find_tex2svg_script(extra.get("pdf_tex2svg_script")) or ""
+        mathjax_available = tex2svg_script != ""
 
         build_pdf(
             pages,

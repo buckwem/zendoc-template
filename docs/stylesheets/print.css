@@ -19,10 +19,10 @@ h3 { font-size: 14pt; }
 
 /* Custom Code Block Layout Adjustments. #dddddd is another 5% darker than
    #e9e9e9 (itself 5% darker than --md-code-bg-color, #f5f5f5), the website's
-   shading for inline code and code blocks (build_pdf.py's own CSS
-   blueprint repeats this same value with !important, since that stylesheet
-   is compiled in after this one - kept in sync here too for anyone reading
-   this file directly). */
+   shading for inline code and code blocks (prodockit.pdf.css's own
+   generated stylesheet repeats this same value with !important, since
+   that stylesheet is compiled in after this one - kept in sync here too
+   for anyone reading this file directly). */
 pre, code {
     font-family: "JetBrains Mono", monospace;
     background-color: #dddddd;
@@ -42,10 +42,10 @@ pre {
 }
 
 /* Marker for content meant only for the live website (e.g. the "Download
-   PDF" button on the cover page) - mirrors .pdf-only in extra.css/
-   build_pdf.py. Shown normally on the website by default (print.css
-   isn't loaded there - see extra_css in zensical.toml), hidden here since
-   print.css is only ever read by the PDF build. */
+   PDF" button on the cover page) - mirrors .pdf-only in extra.css.
+   Shown normally on the website by default (print.css isn't loaded there -
+   see extra_css in zensical.toml), hidden here since print.css is only
+   ever read by the PDF build (via pdf_extra_css - see zensical.toml). */
 .web-only {
     display: none !important;
 }
@@ -61,7 +61,7 @@ pre {
 
    The remaining hero graphic's actual displayed size was never really
    controlled by its nominal `width="37.5%"` HTML attribute at all -
-   build_pdf.py's own generated `.cover-page img` rule below caps every
+   prodockit.pdf.css's own generated `.cover-page img` rule below caps every
    cover-page image at max-width: 65%/max-height: 3.5cm with
    object-fit: contain (sized for an ordinary logo), and 3.5cm tall is
    the binding constraint here (well under the 65%-wide cap), so `width`

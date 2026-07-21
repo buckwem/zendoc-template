@@ -41,7 +41,7 @@ Built on [Zensical](https://zensical.org/), a static site generator, with a comp
 2. Clone your fork locally.
 3. Install the prerequisites and preview the site locally with `zensical serve`.
 4. Write your report in `docs/` (`originality.md`, `section1.md`–`section4.md`).
-5. Build the PDF with `python build_pdf.py`.
+5. Build the PDF with `prodockit pdf`.
 
 Full, step-by-step instructions for all of this - installing tools, editing and previewing locally, Markdown and Zensical syntax, customising the template, and building the PDF - are in the **[prodockit User Guide](https://buckwem.github.io/prodockit-userguide/)**.
 
@@ -49,7 +49,7 @@ Full, step-by-step instructions for all of this - installing tools, editing and 
 
 ```bash
 pip install -r requirements.txt
-python build_pdf.py
+prodockit pdf
 ```
 
 This produces `docs/site_documentation.pdf`. Building Mermaid diagrams and maths to images also requires the Node tooling under `tools/mermaid/` and `tools/mathjax/` (`npm ci` in each) - see [Install tooling](https://buckwem.github.io/prodockit-userguide/installtooling/) in the User Guide for the full setup, and `.gitlab-ci.yml` / `.github/workflows/docs.yml` for how the CI pipelines do it.
@@ -60,7 +60,6 @@ This produces `docs/site_documentation.pdf`. Building Mermaid diagrams and maths
 * `docs/stylesheets/` - `extra.css` (website) and `print.css` (PDF) appearance.
 * `zensical.toml` - site configuration and navigation.
 * `macros.py` - build-time logic (Surrey detection, word count, repository link, heading numbering).
-* `build_pdf.py` - builds the single-file PDF.
 * `tools/` - Node.js tooling used only by the PDF build (Mermaid, MathJax rendering).
 
 See [Directory structure](https://buckwem.github.io/prodockit-userguide/customise/#directory-structure) in the User Guide's Customisation page for the complete, up-to-date map.

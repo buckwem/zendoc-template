@@ -6,7 +6,7 @@ conftest.count_top_level_headings()/prodockit.wordcount.count_words() rely on
 against nested combinations of headings, admonitions, and code blocks - not
 just a single flat fenced block.
 
-build_pdf.py's own equivalent fence-awareness concerns (skipping fenced
+The PDF pipeline's own equivalent fence-awareness concerns (skipping fenced
 examples of tab/admonition/caption syntax, code fences nested under grid
 cards, and so on) no longer need dedicated primitives of their own - see
 prodockit-template#92: render_page_html() renders pages through Zensical's real

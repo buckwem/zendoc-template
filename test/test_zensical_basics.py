@@ -349,7 +349,7 @@ def test_mermaid_diagram_types_get_the_mermaid_class(render, diagram_type):
     [project.markdown_extensions.pymdownx.superfences] custom_fences entry)
     tags a ```mermaid fence with class="mermaid" regardless of which
     diagram type is inside it - actual Mermaid.js rendering is client-side
-    (website) / mermaid-cli (PDF, see build_pdf.py's render_mermaid_diagrams()
+    (website) / mermaid-cli (PDF, see prodockit.pdf.mermaid.render_mermaid_diagram()
     tested in test_fences.py), neither of which this batch exercises."""
     body = MERMAID_DIAGRAM_SNIPPETS[diagram_type]
     html = render(f"``` mermaid\n{body}\n```")
@@ -487,7 +487,7 @@ def test_attr_list_title_as_a_tooltip_on_a_non_link_element(render):
 # Markdown pipeline - a faithful proxy for the *website*, since that's
 # literally what powers it, but not evidence either way for the *PDF*,
 # which goes through a completely different parser (Pandoc) that
-# build_pdf.py has to explicitly teach about each pymdownx extension one at
+# prodockit.pdf has to explicitly teach about each pymdownx extension one at
 # a time (see #25/#28's "every feature needs its own bespoke regex pass").
 #
 # These used to check zensicalbasics.md's own "each with a live example"
@@ -563,7 +563,7 @@ def test_content_tabs_render_both_tabs_content_not_leaked(build_synthetic_pdf):
 
 
 def test_mermaid_diagram_is_a_real_embedded_diagram_not_leaked_text(build_synthetic_pdf):
-    """render_mermaid_diagrams() in build_pdf.py pre-renders ```mermaid
+    """prodockit.pdf.mermaid.render_mermaid_diagram() pre-renders ```mermaid
     fences to static images via mermaid-cli (see test_fences.py for the
     function itself) - confirms that actually reaches the real PDF: real
     vector drawing content (WeasyPrint renders the resulting SVG as native
@@ -590,9 +590,9 @@ graph LR
 
 def test_math_is_rendered_not_leaked_as_literal_dollar_syntax(build_synthetic_pdf):
     """mathjax-full pre-renders $...$/$$...$$ to static images for the PDF
-    (see tools/mathjax/, and build_pdf.py's own comment on why - WeasyPrint
-    has no JS engine to run MathJax client-side). Confirms the literal
-    dollar-delimited source doesn't leak through unconverted."""
+    (see tools/mathjax/, and .github/workflows/docs.yml's own comment on
+    why - WeasyPrint has no JS engine to run MathJax client-side). Confirms
+    the literal dollar-delimited source doesn't leak through unconverted."""
     doc = build_synthetic_pdf([("test.md", r"""# Test Chapter
 
 $$
@@ -661,7 +661,7 @@ def test_mark_insert_and_keys_render_styled_not_leaked(build_synthetic_pdf):
     used to leak through as literal, unrendered text; pymdownx.caret's insert
     mode (^^underline^^) used to silently collide with Pandoc's own
     single-caret superscript syntax and produce an empty, invisible
-    <sup></sup> instead. build_pdf.py now renders the page through the real
+    <sup></sup> instead. prodockit.pdf now renders the page through the real
     pymdownx.mark/pymdownx.caret/pymdownx.keys extensions (see
     render_page_html()) and hands Pandoc the resulting real HTML, which it
     passes through untouched, rather than hand-translating the markdown
@@ -811,9 +811,9 @@ def test_real_table_body_text_is_left_aligned_not_centered(build_synthetic_pdf):
 
 def test_real_table_body_font_size_is_smaller_than_body_text(build_synthetic_pdf):
     """Companion to the alignment fix above - table th/td font-size is
-    reduced to 10pt (see build_pdf.py's "table th, table td" rule), smaller
-    than surrounding body text, so a dense grid of short cells reads
-    better."""
+    reduced to 10pt (see prodockit.pdf.css's "table th, table td" rule),
+    smaller than surrounding body text, so a dense grid of short cells
+    reads better."""
     doc = build_synthetic_pdf([("test.md", f"""# Test Chapter
 
 Knowing where you are and how to move around is essential.

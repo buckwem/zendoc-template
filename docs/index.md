@@ -84,17 +84,18 @@ Date: Submission Date
 </p>
 
 <!-- Automated word count of the PDF body content, filled in at PDF build
-     time by build_pdf.py. Delete this line if you don't want a word
-     count shown on the cover page. -->
+     time by `prodockit pdf` itself (see prodockit.pdf's own "Cover page
+     markers" docs). Delete this line if you don't want a word count shown
+     on the cover page. -->
 <p class="pdf-only">Word count: {WORDCOUNT}</p>
 
 <!-- Automated repository URL, filled in at PDF build time by
-     build_pdf.py. Delete this line if you don't want the repository
+     `prodockit pdf`. Delete this line if you don't want the repository
      link shown on the cover page. -->
 <p class="pdf-only">Repo: {REPOURL}</p>
 
 <!-- Automated latest release tag (e.g. "v0.0.11"), filled in at PDF build
-     time by build_pdf.py from the repo's GitHub/GitLab releases API. Only
+     time by `prodockit pdf` from the repo's GitHub/GitLab releases API. Only
      shown if a release has actually been published - the whole line is
      dropped otherwise, so most forks of this template (which never publish
      one) won't show a bare, empty "Release:" label. Delete this line if you

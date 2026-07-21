@@ -29,7 +29,7 @@ pages:
     # substitutes a generic system font instead of erroring if they're
     # missing (see test_customisation.py's font-embedding check).
     - apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic texlive-latex-extra fonts-inter fonts-jetbrains-mono
-    # Node + Chrome are only needed so build_pdf.py can pre-render
+    # Node + Chrome are only needed so `prodockit pdf` can pre-render
     # ```mermaid fenced code blocks to static images via mermaid-cli/Puppeteer,
     # and TeX math ($...$/$$...$$) to static images via mathjax-full (pure
     # Node, no browser needed for that one) - WeasyPrint has no JS engine to
@@ -46,7 +46,7 @@ pages:
     - npm ci --prefix tools/mathjax
     - pip install -r requirements.txt -r testrequirements.txt
     - python sync_repo_icon.py
-    - python build_pdf.py
+    - prodockit pdf
     - zensical build --clean
     - python test/run_tests.py
   pages:

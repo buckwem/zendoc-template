@@ -85,7 +85,7 @@ def test_pdf_internal_goto_links_resolve_to_a_real_page(pdf_doc):
     to references.md, acronym/glossary links, section cross-references, code
     annotation markers, and more - is a "kind 4" (GoTo) link with a named
     destination, resolved by build_page_anchor_map()/render_page_html()'s own
-    cross-page link rewriting in build_pdf.py (issue #16). Confirms every one of these actually points
+    cross-page link rewriting in prodockit.pdf (issue #16). Confirms every one of these actually points
     at a real page inside the document, not an unresolved or out-of-range
     target - contrary to a stale warning in customise.md's "References and
     bibliography" section claiming these "generally don't resolve to the

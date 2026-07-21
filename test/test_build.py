@@ -1,7 +1,7 @@
 # Copyright (c) 2025-2026 Mark Buckwell, Zensical and contributors
 # SPDX-License-Identifier: MIT
 
-"""build batch: sanity-checks that both build_pdf.py and `zensical build`
+"""build batch: sanity-checks that both `prodockit pdf` and `zensical build`
 actually produced usable output - not a rebuild, just enough evidence that
 the artifacts on disk are complete and openable. See conftest.py for the
 pdf_doc/public_dir fixtures, which already fail with a clear message if the

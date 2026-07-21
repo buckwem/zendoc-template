@@ -48,26 +48,15 @@ def test_website_word_count_excludes_flagged_pages(website_word_count, nav_pages
     assert computed_total == naive_total - flagged_total
 
 
-def test_pdf_word_count_reflects_the_excluded_pages(pdf_full_text, nav_pages, docs_dir):
-    """The PDF computes its word count independently (build_pdf.py runs it
-    on already-rendered pages, a different pipeline to
-    prodockit.zensical_macros' website-side count - see the "Word count" note
-    in customise.md), so it won't match the website's number exactly. But
-    it should land closer to "excluding the flagged pages" than to
-    "including them" - if exclusion silently broke, the PDF's count would
-    jump back up toward (or past) the naive, everything-included total."""
+def test_pdf_word_count_matches_the_website_exactly(pdf_full_text, website_word_count):
+    """The PDF's {WORDCOUNT} cover-page marker (see prodockit.pdf.config's
+    own docs) reuses prodockit.zensical_macros._compute_site_word_count() -
+    the exact same function the website's own {{ word_count }} macro
+    calls - so the two numbers are guaranteed equal, not just close, and a
+    submission's PDF and its live website page never disagree."""
     cover_text = pdf_full_text[0]
     match = re.search(r"Word count:\s*([\d,]+)", cover_text)
     assert match, "No 'Word count: N' line found on the PDF cover page"
-    pdf_count = int(match.group(1).replace(",", ""))
+    pdf_count = match.group(1)
 
-    naive_total, flagged_total = _naive_and_flagged_totals(nav_pages, docs_dir)
-    assert flagged_total > 0
-
-    distance_to_excluding = abs(pdf_count - (naive_total - flagged_total))
-    distance_to_including = abs(pdf_count - naive_total)
-    assert distance_to_excluding < distance_to_including, (
-        f"PDF word count ({pdf_count}) is closer to the naive, "
-        f"everything-included total ({naive_total}) than to the total with "
-        f"flagged pages excluded ({naive_total - flagged_total})"
-    )
+    assert pdf_count == website_word_count

@@ -12,7 +12,7 @@ Run the builds first - these tests check the *built* output, they don't
 build it themselves:
 
     python sync_repo_icon.py   # only needed after changing the git remote
-    python build_pdf.py
+    prodockit pdf
     zensical build
 
 Usage:

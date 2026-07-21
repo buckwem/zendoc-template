@@ -360,6 +360,11 @@ quote = "fontawesome/solid/quote-left"
 #link = "https://github.com/user/repo"
 
 [project.extra]
+# Stylesheet meant only for the PDF build (e.g. rules that would look wrong
+# on the live website) - concatenated after extra_css above, so it wins the
+# cascade against a same-specificity extra_css rule. Requires prodockit>=0.6.8.
+pdf_extra_css = ["stylesheets/print.css"]
+
 # Set to false to turn off automatic sequential heading numbering (e.g. "7.2.1")
 # on both the website and the PDF build. When false, headings show as plain
 # text with no number prefix anywhere (content or sidebar).

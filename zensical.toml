@@ -409,6 +409,10 @@ pdf_header_footer_font_size = "10pt"
 pdf_header_footer_color = "#555555"
 pdf_header_footer_divider_color = "#e2e8f0"
 
+
+# Generate a PDF bundle of the source files (Markdown, images, etc.) in addition to the PDF of the rendered site. This is useful for archiving or sharing the source content. PDF-only, has no effect on the live site.
+pdf_source_bundle = true
+
 # ----------------------------------------------------------------------------
 # Python Extensions
 #

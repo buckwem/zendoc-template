@@ -43,6 +43,7 @@ tmp
 .cache/
 public/
 docs/*.pdf
+/source_bundle.pdf
 
 # Local Claude Code config (dev-preview launch config, personal permissions)
 .claude/

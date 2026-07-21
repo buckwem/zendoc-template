@@ -51,8 +51,8 @@ School of Computer Science and Electronic Engineering
 <br>
 <br>
 <br>
-![Illustration of abstract flowing concentric lines, representing professional documentation](assets/cover-hero-light.svg#only-light){ width="22.5%" style="display: block; margin: 0 auto;" }
-![Illustration of abstract flowing concentric lines, representing professional documentation](assets/cover-hero-dark.svg#only-dark){ width="22.5%" style="display: block; margin: 0 auto;" }
+![Illustration of abstract flowing concentric lines, representing professional documentation](assets/cover-hero-light.svg#only-light){ width="37.5%" style="display: block; margin: 0 auto;" }
+![Illustration of abstract flowing concentric lines, representing professional documentation](assets/cover-hero-dark.svg#only-dark){ width="37.5%" style="display: block; margin: 0 auto;" }
 
 <!-- the different title line use styles defined in the extras.css file -->
 <p class="title-ctr-b4">

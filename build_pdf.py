@@ -29,6 +29,7 @@ from zensical.markdown.render import render as zensical_render
 from prodockit.pdf import Page, PdfBuildError, build_pdf
 from prodockit.pdf.icons import build_icon_registry, discover_icon_dirs
 from prodockit.pdf.mermaid import render_mermaid_diagram
+from prodockit.pdf.source_bundle import SourceBundleError, build_source_bundle
 from prodockit.settings import flatten_nav, heading_numbering_enabled, reference_style_values
 from prodockit.wordcount import compute_word_count
 from prodockit.zensical_macros import _get_repo_url as get_git_detected_repo_url
@@ -317,6 +318,22 @@ def main():
         shutil.rmtree(workspace_dir, ignore_errors=True)
 
     print(f"\n🎉 Success! The document compiled cleanly. PDF ready at: {output_path}")
+
+    if bool(extra.get('pdf_source_bundle', False)):
+        print("\n📦 Building source bundle via prodockit.pdf.source_bundle...")
+        try:
+            build_source_bundle(
+                "source_bundle.pdf",
+                root=os.path.dirname(os.path.abspath('zensical.toml')),
+                report_name=site_name_text,
+                page_size=extra.get('pdf_page_size') or "A4",
+            )
+        except SourceBundleError as error:
+            print(f"\n❌ Error: {error}")
+            if error.stderr:
+                print(error.stderr)
+            sys.exit(1)
+        print("🎉 Source bundle ready at: source_bundle.pdf")
 
 
 if __name__ == "__main__":

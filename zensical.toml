@@ -14,13 +14,13 @@
 # The site_name is shown in the page header and the browser window title
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_name
-site_name = "Assignment Template"
+site_name = "Document Template"
 
 # The site_description is included in the HTML head and should contain a
 # meaningful description of the site content for use by search engines.
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_description
-site_description = "A template for student assignment reports using Zensical."
+site_description = "A template for professional and academic reports using Zensical."
 
 # The site_author attribute. This is used in the HTML head element.
 #
@@ -414,6 +414,20 @@ pdf_header_footer_font_size = "10pt"
 pdf_header_footer_color = "#555555"
 pdf_header_footer_divider_color = "#e2e8f0"
 
+# Overrides `copyright` above for the PDF's own running footer only - the
+# live website's copyright text is untouched either way. Repeats the same
+# text `copyright` has, plus one extra line crediting the PDF pipeline
+# itself, matching the same "Made with Zensical and prodockit" line the
+# live website's own footer already shows (see overrides/partials/
+# copyright.html) - kept as its own distinct line (the "\A " forces a line
+# break; requires white-space: pre-line on the footer box, which
+# prodockit.pdf.css already sets), so removing just this one line back to
+# a plain `copyright`-only footer never touches the license text itself.
+# Requires prodockit>=0.8.0.
+pdf_copyright = '''
+Author: Mark Buckwell and contributors. Licensed under the MIT License.\A Made with Zensical and prodockit.
+'''
+
 
 # Generate a PDF bundle of the source files (Markdown, images, etc.) in addition to the PDF of the rendered site. This is useful for archiving or sharing the source content. PDF-only, has no effect on the live site.
 pdf_source_bundle = true
@@ -473,9 +487,16 @@ custom_checkbox = true
 # data-cite-text attribute (see docs/references.md), cite it anywhere;
 # prodockit.glossary adds \gls{id} - define a term once via attr_list's
 # data-term attribute (see docs/acronyms.md/docs/glossary.md), insert it
-# anywhere. Unlike pymdownx/zensical's own namespaces, Zensical doesn't
-# hoist a nested "prodockit.headings" table into that dotted extension name,
-# so these need a quoted key instead - see
+# anywhere; prodockit.bibliography adds \citebib{id} bibliography-style
+# citations (separate syntax from prodockit.citations' own \cite{id}, so
+# both can be enabled together with no conflict - see prodockit.bibliography's
+# own "Comparing the two approaches"); prodockit.tables adds a width
+# attribute to attr_list-tagged table header cells; prodockit.index adds
+# \index{Term} markers for prodockit.pdf's own PDF-only back-of-book index
+# (opt-in per the pdf_include_index setting below - marking a term here
+# doesn't turn the index page on by itself). Unlike pymdownx/zensical's own
+# namespaces, Zensical doesn't hoist a nested "prodockit.headings" table
+# into that dotted extension name, so these need a quoted key instead - see
 # https://buckwem.github.io/prodockit-extensions/ and prodockit-template#25/#87.
 [project.markdown_extensions."prodockit.headings"]
 # numbering = "continuous" makes h1 numbering carry on across pages in nav
@@ -490,6 +511,9 @@ numbering = "continuous"
 [project.markdown_extensions."prodockit.refs"]
 [project.markdown_extensions."prodockit.citations"]
 [project.markdown_extensions."prodockit.glossary"]
+[project.markdown_extensions."prodockit.bibliography"]
+[project.markdown_extensions."prodockit.tables"]
+[project.markdown_extensions."prodockit.index"]
 [project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.blocks.caption]
 # "caption" (no prefix) is kept for a plain, unnumbered caption - e.g. a
